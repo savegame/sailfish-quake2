@@ -23,7 +23,7 @@ ifeq ($(config),release)
   OBJDIR     = ../../../Output/Targets/Linux-x86-32/Release/obj/quake2-game
   TARGETDIR  = ../../../Output/Targets/Linux-x86-32/Release/bin/baseq2
   TARGET     = $(TARGETDIR)/game.so
-  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP
+  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -DSAILFISHOS
   INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -O2 -fPIC -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden

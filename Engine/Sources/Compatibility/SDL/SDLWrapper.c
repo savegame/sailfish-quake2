@@ -118,7 +118,9 @@ bool sdlwCreateWindow(const char *windowName, int windowWidth, int windowHeight,
 	if (sdlw == NULL) return true;
 
     sdlwDestroyWindow();
-
+#ifdef SAILFISHOS
+    windowWidth = -1;
+#endif
     if (windowWidth < 0 || windowHeight < 0)
     {
         SDL_DisplayMode dm;
@@ -127,7 +129,7 @@ bool sdlwCreateWindow(const char *windowName, int windowWidth, int windowHeight,
             printf("SDL_GetDesktopDisplayMode failed: %s", SDL_GetError());
             goto on_error;
         }
-        #if defined(__RASPBERRY_PI__) || defined(__GCW_ZERO__)
+        #if defined(__RASPBERRY_PI__) || defined(__GCW_ZERO__) || defined(SAILFISHOS)
         // Windowed mode does not work on these platforms. So use full screen.
         windowWidth = dm.w;
         windowHeight = dm.h;
@@ -138,8 +140,16 @@ bool sdlwCreateWindow(const char *windowName, int windowWidth, int windowHeight,
     }
     sdlw->windowWidth = windowWidth;
     sdlw->windowHeight = windowHeight;
-       
     int windowPos = SDL_WINDOWPOS_CENTERED;
+#ifdef SAILFISHOS
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    windowPos = SDL_WINDOWPOS_UNDEFINED;
+    flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN;
+#endif
    	if ((sdlw->window=SDL_CreateWindow(windowName, windowPos, windowPos, windowWidth, windowHeight, flags))==NULL) goto on_error;
 
     return false;

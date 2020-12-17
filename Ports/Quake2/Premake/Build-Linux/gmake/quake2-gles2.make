@@ -31,7 +31,7 @@ ifeq ($(config),release)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/Linux-x86-32/Release/lib -L. -s
   LDDEPS    += ../../../Output/Targets/Linux-x86-32/Release/lib/libZLib.a
-  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lSDL2main -lSDL2 -lX11
+  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lSDL2
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -45,15 +45,16 @@ ifeq ($(config),debug)
   OBJDIR     = ../../../Output/Targets/Linux-x86-32/Debug/obj/quake2-gles2
   TARGETDIR  = ../../../Output/Targets/Linux-x86-32/Debug/bin
   TARGET     = $(TARGETDIR)/quake2-gles2
-  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2
-  INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
+  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2 -DSAILFISHOS 
+  DEFINES    += -DSDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH
+  INCLUDES  += -I../../../../../SDL2-2.0.12/include -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -g -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/Linux-x86-32/Debug/lib -L.
   LDDEPS    += ../../../Output/Targets/Linux-x86-32/Debug/lib/libZLib.a
-  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lSDL2main -lSDL2 -lX11
+  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lSDL2 -lSDL2_mixer -lSDL2_image
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef

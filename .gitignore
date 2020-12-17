@@ -1,0 +1,3 @@
+*.o
+Ports/Quake2/Output/*
+SDL2/build/*
