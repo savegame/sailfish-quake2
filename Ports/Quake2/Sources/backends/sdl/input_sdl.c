@@ -5,7 +5,7 @@
 
 #include "SDL/SDLWrapper.h"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40

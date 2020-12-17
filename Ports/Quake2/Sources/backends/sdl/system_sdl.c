@@ -22,7 +22,7 @@
 #include "backends/input.h"
 #include "common/common.h"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <stdbool.h>
 #include <stdio.h>

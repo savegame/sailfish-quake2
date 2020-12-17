@@ -36,7 +36,7 @@
 #include "client/client.h"
 #include "client/sound/local.h"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <stdlib.h>
 

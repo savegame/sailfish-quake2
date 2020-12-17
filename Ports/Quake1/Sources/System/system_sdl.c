@@ -2,7 +2,7 @@
 #include "Common/quakedef.h"
 #include "Common/sys.h"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <ctype.h>
 #include <errno.h>
