@@ -3763,6 +3763,10 @@ static void R_Window_getValidWindowSize(int maxWindowWidth, int maxWindowHeight,
         requestedWidth = R_WIDTH_MIN;
     if (requestedHeight < R_HEIGHT_MIN)
         requestedHeight = R_HEIGHT_MIN;
+#ifdef SAILFISHOS
+    requestedWidth = maxWindowWidth;
+    requestedHeight = maxWindowHeight;
+#endif
     *windowWidth = requestedWidth;
     *windowHeight = requestedHeight;
     #endif

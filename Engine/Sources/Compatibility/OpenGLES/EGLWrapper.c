@@ -122,35 +122,6 @@ static bool eglwFindConfig(EglwContext *eglw, const EglwConfigInfo *minimalCfgi,
         printf("Requested config: %s\n", eglwGetConfigInfoString(requestedCfgi));
     }
 
-// #ifdef SAILFISHOS
-//     EGLint frameBufferAttributes[] =
-//     {
-//         EGL_SURFACE_TYPE,     EGL_WINDOW_BIT,
-//         EGL_RENDERABLE_TYPE,  EGL_OPENGL_ES2_BIT,
-//         EGL_RED_SIZE,         8,
-//         EGL_GREEN_SIZE,       8,
-//         EGL_BLUE_SIZE,        8,
-//         EGL_DEPTH_SIZE,       8,
-//         //	    EGL_TRANSPARENT_TYPE, EGL_TRANSPARENT_RGB,
-//         EGL_NONE
-//     };
-//     EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE, EGL_NONE };
-
-//     // eglw->display, frameBufferAttributes
-//     // Get configs
-//     if ( (eglGetConfigs(eglw->display, NULL, 0, &configNb) != EGL_TRUE) || (configNb == 0))
-//     {
-//         printf("Cannot find an EGL config.\n");
-//         goto on_error;
-//     }
-
-//     // Choose config
-//     if ( (eglChooseConfig(eglw->display, frameBufferAttributes, &eglw->config, 1, &configNb) != EGL_TRUE) || (configNb != 1))
-//     {
-//         printf("Cannot find an EGL config.\n");
-//         goto on_error;
-//     }
-// #else
     EGLint frameBufferAttributes[10*2+1];
     {
         EGLint *fba = frameBufferAttributes;
@@ -233,13 +204,10 @@ static bool eglwFindConfig(EglwContext *eglw, const EglwConfigInfo *minimalCfgi,
     }
 
     free(configs);
-// #endif
 
     return false;
 on_error:
-// #ifndef SAILFISHOS
     free(configs);
-// #endif
     return true;
 }
 
@@ -349,16 +317,7 @@ static EGLNativeWindowType eglwGetNativeWindow()
     #elif defined(__unix__) && defined(SDL_VIDEO_DRIVER_X11)
     nativeWindow=wmInfo.info.x11.window;
     #elif defined(SAILFISHOS) && defined(SDL_VIDEO_DRIVER_WAYLAND)
-        
         nativeWindow=wmInfo.info.wl.egl_window;
-    	// struct wl_egl_window       *wlEGLWindow;
-		// struct wl_region           *wlRegion; 
-        // int windowWidth = 800, windowHeight = 1280;
-        // struct wl_region *wlRegion = wl_compositor_create_region(CIrrDeviceSailfish::wlCompositor);
-		// wl_region_add(wlRegion, 0, 0, windowWidth, windowHeight);
-		// wl_surface_set_opaque_region(wmInfo.info.wl.surface, wlRegion);
-		// wl_region_destroy(wlRegion);
-		// nativeWindow = wl_egl_window_create(wmInfo.info.wl.surface, windowWidth, windowHeight);
     #endif
 
     #endif
