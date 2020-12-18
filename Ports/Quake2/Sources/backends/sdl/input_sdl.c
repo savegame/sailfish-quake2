@@ -311,7 +311,11 @@ bool IN_processEvent(SDL_Event *event)
 //        case SDL_WINDOWEVENT_SIZE_CHANGED:
 			break;
 		case SDL_WINDOWEVENT_FOCUS_LOST:
+			cl_paused->value = 1;
 			Key_MarkAllUp();
+			break;
+		case SDL_WINDOWEVENT_FOCUS_GAINED:
+			cl_paused->value = 0;
 			break;
 		}
 		break;
@@ -356,7 +360,62 @@ bool IN_processEvent(SDL_Event *event)
 			l_mouseY += event->motion.yrel;
 		}
 		break;
-
+	case SDL_FINGERUP:
+	case SDL_FINGERDOWN:
+		{
+			if( cls.key_dest == key_menu ) 
+			{
+ 				if( event->type == SDL_FINGERUP ) {
+					Key_Event(K_DOWNARROW, false);
+					Key_Event(K_UPARROW, false);
+				}
+				Key_Event(K_ENTER, true);
+			}
+			else if( cls.key_dest == key_game ) 
+			{
+				int key = -1;
+				key = K_MOUSE1;
+				// switch (event->button.button)
+				// {
+				// default:
+				//     break;
+				// case SDL_BUTTON_LEFT:
+				//     key = K_MOUSE1;
+				//     break;
+				// case SDL_BUTTON_MIDDLE:
+				//     key = K_MOUSE3;
+				//     break;
+				// case SDL_BUTTON_RIGHT:
+				//     key = K_MOUSE2;
+				//     break;
+				// case SDL_BUTTON_X1:
+				//     key = K_MOUSE4;
+				//     break;
+				// case SDL_BUTTON_X2:
+				//     key = K_MOUSE5;
+				//     break;
+				// }
+				if (key >= 0)
+					Key_Event(key, (event->type == SDL_FINGERDOWN));
+			}
+        }
+		break;
+	case SDL_FINGERMOTION:
+		if (cls.key_dest == key_game && !cl_paused->value)
+		{
+			l_mouseX += event->tfinger.dx;
+			l_mouseY += event->tfinger.dy;
+		}
+		else if( cls.key_dest == key_menu ) 
+		{
+			if( event->tfinger.dy > 15.0 ) {
+            	Key_Event(K_DOWNARROW, true);
+			}
+			else if( event->tfinger.dy < -15.0 ) {
+            	Key_Event(K_UPARROW, true);
+			}
+		}
+		break;
 		#if !defined(__GCW_ZERO__)
 	case SDL_TEXTINPUT:
 		Char_Event(event->text.text[0], false);
