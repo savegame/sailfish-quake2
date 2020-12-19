@@ -227,7 +227,32 @@ display_handle_geometry(void *data,
 {
     SDL_VideoDisplay *display = data;
 
-    display->name = SDL_strdup(model);
+    SDL_DisplayOrientation orientation = SDL_ORIENTATION_UNKNOWN;
+    SDL_bool is_portrait = physical_height > physical_width;
+
+    if (SDL_strcmp(model, "") != 0 && SDL_strcmp(display->name, model) != 0) {
+        SDL_free(display->name);
+        display->name = SDL_strdup(model);
+    }
+
+    // Send orientation information
+    switch (transform) {
+    case WL_OUTPUT_TRANSFORM_NORMAL:
+        orientation = is_portrait ? SDL_ORIENTATION_PORTRAIT : SDL_ORIENTATION_LANDSCAPE;
+        break;
+    case WL_OUTPUT_TRANSFORM_90:
+        orientation = is_portrait ? SDL_ORIENTATION_LANDSCAPE_FLIPPED : SDL_ORIENTATION_PORTRAIT_FLIPPED;
+        break;
+    case WL_OUTPUT_TRANSFORM_180:
+        orientation = is_portrait ? SDL_ORIENTATION_PORTRAIT_FLIPPED :  SDL_ORIENTATION_LANDSCAPE_FLIPPED;
+        break;
+    case WL_OUTPUT_TRANSFORM_270:
+        orientation = is_portrait ? SDL_ORIENTATION_LANDSCAPE : SDL_ORIENTATION_PORTRAIT;
+        break;
+    default:
+        break;
+    }
+    SDL_SendDisplayEvent(display, SDL_DISPLAYEVENT_ORIENTATION, orientation);
 }
 
 static void
@@ -259,12 +284,6 @@ static void
 display_handle_done(void *data,
                     struct wl_output *output)
 {
-    /* !!! FIXME: this will fail on any further property changes! */
-    SDL_VideoDisplay *display = data;
-    SDL_AddVideoDisplay(display);
-    wl_output_set_user_data(output, display->driverdata);
-    SDL_free(display->name);
-    SDL_free(display);
 }
 
 static void
@@ -286,6 +305,7 @@ static const struct wl_output_listener output_listener = {
 static void
 Wayland_add_display(SDL_VideoData *d, uint32_t id)
 {
+    int index;
     struct wl_output *output;
     SDL_WaylandOutputData *data;
     SDL_VideoDisplay *display = SDL_malloc(sizeof *display);
@@ -306,7 +326,15 @@ Wayland_add_display(SDL_VideoData *d, uint32_t id)
     data->scale_factor = 1.0;
     display->driverdata = data;
 
-    wl_output_add_listener(output, &output_listener, display);
+    index = SDL_AddVideoDisplay(display);
+    wl_output_set_user_data(output, display->driverdata);
+
+    SDL_free(display);
+
+    if (index != -1) {
+        // Use the display pointer to already added display as data
+        wl_output_add_listener(output, &output_listener, SDL_GetDisplay(index));
+    }
 }
 
 #ifdef SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH
@@ -364,7 +392,7 @@ display_handle_global(void *data, struct wl_registry *registry, uint32_t id,
     } else if (strcmp(interface, "wl_output") == 0) {
         Wayland_add_display(d, id);
     } else if (strcmp(interface, "wl_seat") == 0) {
-        Wayland_display_add_input(d, id);
+        Wayland_display_add_input(d, id, version);
     } else if (strcmp(interface, "xdg_wm_base") == 0) {
         d->shell.xdg = wl_registry_bind(d->registry, id, &xdg_wm_base_interface, 1);
         xdg_wm_base_add_listener(d->shell.xdg, &shell_listener_xdg, NULL);

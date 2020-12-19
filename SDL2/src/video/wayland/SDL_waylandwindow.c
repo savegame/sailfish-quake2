@@ -460,6 +460,7 @@ Wayland_GetWindowWMInfo(_THIS, SDL_Window * window, SDL_SysWMinfo * info)
     info->info.wl.display = data->waylandData->display;
     info->info.wl.surface = data->surface;
     info->info.wl.shell_surface = data->shell_surface.wl;
+    info->info.wl.egl_window = data->egl_window;
     info->subsystem = SDL_SYSWM_WAYLAND;
 
     return SDL_TRUE;
