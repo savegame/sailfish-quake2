@@ -1,0 +1,32 @@
+ {
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug on device",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/Ports/Quake2/Output/Targets/Linux-x86-32/Debug/bin/quake2-gles2",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Включить автоматическое форматирование для gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            // "preLaunchTask": "Deploy nemo",
+            // here you should paste your SDK path
+            "miDebuggerPath": "${HOME}/SailfishOS/bin/gdb-armv7hl-meego-linux-gnueabi",
+            "miDebuggerServerAddress": "192.168.2.15:10001",  // default device IP, port is setuped in tasks.json
+        }
+    ]
+}

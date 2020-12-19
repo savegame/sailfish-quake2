@@ -1,0 +1,79 @@
+{
+    "options": {
+        "env" : {
+            "device" : "nemo@192.168.2.15",// default developer mode IP
+            "SAILFISH_SDK" : "${HOME}/SailfishOS" // default SailfishSDK path
+        }
+    },
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Deploy nemo",
+            "command": "rsync",
+            "args": [
+                "-zavP",
+                "quake2-gles2","baseq2",
+                "${device}:/home/nemo/Projects/quake2/"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Output/Targets/Linux-x86-32/Debug/bin/"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Generated task by Debugger",
+            "dependsOn":["Build armv7hl"]
+        },
+        {
+            "type": "shell",
+            "label": "Build armv7hl",
+            "command": "${SAILFISH_SDK}/bin/sfdk",
+            "args": [
+                "engine",
+                "exec",
+                "sb2","-t","SailfishOS-3.4.0.24-armv7hl","make","-j8","config=debug","quake2-gles2"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-Linux/gmake"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Generated task by Debugger"
+        },
+        {
+            "type": "shell",
+            "label": "GDB server Nemo",
+            "command": "ssh",
+            "args": [
+                "${device}",
+                "gdbserver",":10001",
+                "/home/nemo/Projects/quake2/quake2-gles2"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Output/Targets/Linux-x86-32/Debug/bin/"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn":["Deploy nemo"],
+            "detail": "Run remote gdbserver",
+        }
+    ],
+    "version": "2.0.0"
+}
