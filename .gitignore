@@ -1,4 +1,11 @@
 *.o
 Ports/Quake2/Output/*
 SDL2/build/*
+SDL2/gen/*
+SDL2/config.*
+SDL2/libtool
+SDL2/Makefile*
+SDL2/sdl2-config*
+SDL2/sdl2.pc
+SDL2/include/SDL_config.h
 SDL2-src
