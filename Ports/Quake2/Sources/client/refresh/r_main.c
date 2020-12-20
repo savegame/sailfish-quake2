@@ -4210,8 +4210,11 @@ static bool R_setup()
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 	{
-		if (SDL_Init(SDL_INIT_VIDEO) == -1)
+		if (SDL_Init(SDL_INIT_VIDEO) == -1) 
+		{
+			R_printf(PRINT_ALL, "SDL Error \"%s\".\n", SDL_GetError() );
 			return false;
+		}
 
 		const char * driverName = SDL_GetCurrentVideoDriver();
 		R_printf(PRINT_ALL, "SDL video driver is \"%s\".\n", driverName);

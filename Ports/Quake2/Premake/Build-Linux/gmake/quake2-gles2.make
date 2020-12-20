@@ -47,15 +47,16 @@ ifeq ($(config),debug)
   TARGET     = $(TARGETDIR)/quake2-gles2
   DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2 -DSAILFISHOS 
   # DEFINES    += -DSDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH
-  INCLUDES  += -I../../../../../SDL2-src/SDL2/include -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
+  INCLUDES  += -I../../../../../SDL2/include -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -g -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/Linux-x86-32/Debug/lib -L. -L../../../../../SDL2-src/SDL2/build/.libs
   LDDEPS    += ../../../Output/Targets/Linux-x86-32/Debug/lib/libZLib.a
-  LDDEPS    += ../../../../../SDL2-src/SDL2/build/.libs/libSDL2.a -lpthread
-  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lSDL2_mixer -lSDL2_image
+  LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a -lpthread
+  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL 
+  # LIBS      += -lSDL2_mixer -lSDL2_image
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef

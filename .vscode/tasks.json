@@ -2,7 +2,8 @@
     "options": {
         "env" : {
             "device" : "nemo@192.168.2.15",// default developer mode IP
-            "SAILFISH_SDK" : "${HOME}/SailfishOS" // default SailfishSDK path
+            "sb2_target" : "SailfishOS-3.4.0.24-armv7hl",
+            "SAILFISH_SDK" : "/home/developer/SailfishOS" // default SailfishSDK path
         }
     },
     "tasks": [
@@ -27,7 +28,7 @@
                 "isDefault": true
             },
             "detail": "Generated task by Debugger",
-            "dependsOn":["Build armv7hl"]
+            // "dependsOn":["Build armv7hl"]
         },
         {
             "type": "shell",
@@ -36,11 +37,82 @@
             "args": [
                 "engine",
                 "exec",
-                "sb2","-t","SailfishOS-3.4.0.24-armv7hl","make","-j8","config=debug","quake2-gles2"
+                "sb2","-t","${sb2_target}","make","-j4","config=debug","quake2-gles2"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
                 "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-Linux/gmake"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Generated task by Debugger"
+        },
+        {
+            "type": "shell",
+            "label": "armv7hl: Install deps",
+            "command": "${SAILFISH_SDK}/bin/sfdk",
+            "args": [
+                "engine",
+                "exec",
+                "sb2","-t","${sb2_target}","-m","sdk-install","-R",
+                "zypper","in", "-y",
+                "pulseaudio-devel",  "wayland-devel", "libGLESv1-devel", "wayland-egl-devel", "wayland-protocols-devel", "udev-devel", 
+                "libxkbcommon-devel"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-Linux/gmake"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Generated task by Debugger"
+        },
+        {
+            "type": "shell",
+            "label": "Configure SDL2",
+            "command": "${SAILFISH_SDK}/bin/sfdk",
+            "args": [
+                "engine",
+                "exec",
+                "sb2","-t","${sb2_target}",
+                "./configure", "CFLAGS='-std=c99'","--disable-video-x11","--enable-video-wayland","--enable-pulseaudio", "--disable-shared"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/SDL2"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Generated task by Debugger"
+        },
+        {
+            "type": "shell",
+            "label": "Build SDL2",
+            "command": "${SAILFISH_SDK}/bin/sfdk",
+            "args": [
+                "engine",
+                "exec",
+                "sb2","-t","${sb2_target}",
+                "make", "-j4"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/SDL2"
             },
             "problemMatcher": [
                 "$gcc"
