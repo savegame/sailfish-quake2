@@ -61,7 +61,7 @@
                 "exec",
                 "sb2","-t","${sb2_target}","-m","sdk-install","-R",
                 "zypper","in", "-y",
-                "pulseaudio-devel",  "wayland-devel", "libGLESv1-devel", "wayland-egl-devel", "wayland-protocols-devel", "udev-devel", 
+                "pulseaudio-devel",  "wayland-devel", "libGLESv1-devel", "wayland-egl-devel", "wayland-protocols-devel", "libudev-devel", 
                 "libxkbcommon-devel"
             ],
             "options": {
