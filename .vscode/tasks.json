@@ -18,7 +18,7 @@
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
-                "cwd": "${workspaceFolder}/Ports/Quake2/Output/Targets/Linux-x86-32/Debug/bin/"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Output/Targets/SailfishOS-32/Debug/bin/"
             },
             "problemMatcher": [
                 "$gcc"
@@ -27,7 +27,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Generated task by Debugger",
+            "detail": "Copy compiled ARM build to device",
             // "dependsOn":["Build armv7hl"]
         },
         {
@@ -41,6 +41,26 @@
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-Sailfish/gmake"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Build armv7hl SailfishOS binary"
+        },
+        {
+            "type": "shell",
+            "label": "Build Desktop",
+            "command": "make",
+            "args": [
+                "-j4","config=debug","quake2-gles2"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
                 "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-Linux/gmake"
             },
             "problemMatcher": [
@@ -50,7 +70,28 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Generated task by Debugger"
+            "detail": "Build Linux Desktop binary"
+        },
+        ,
+        {
+            "type": "shell",
+            "label": "Build Desktop Game",
+            "command": "make",
+            "args": [
+                "-j4","config=debug","quake2-game"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-Linux/gmake"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Build Linux Desktop binary"
         },
         {
             "type": "shell",

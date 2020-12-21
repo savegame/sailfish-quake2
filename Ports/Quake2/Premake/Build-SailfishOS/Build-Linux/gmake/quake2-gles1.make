@@ -19,13 +19,11 @@ ifndef RESCOMP
   endif
 endif
 
-INCLUDES  += -I/usr/include/SDL2
-
 ifeq ($(config),release)
-  OBJDIR     = ../../../Output/Targets/Linux-x86-32/Release/obj/quake2-gles2
+  OBJDIR     = ../../../Output/Targets/Linux-x86-32/Release/obj/quake2-gles1
   TARGETDIR  = ../../../Output/Targets/Linux-x86-32/Release/bin
-  TARGET     = $(TARGETDIR)/quake2-gles2
-  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2
+  TARGET     = $(TARGETDIR)/quake2-gles1
+  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES1
   INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -O2 -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
@@ -33,7 +31,7 @@ ifeq ($(config),release)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/Linux-x86-32/Release/lib -L. -s
   LDDEPS    += ../../../Output/Targets/Linux-x86-32/Release/lib/libZLib.a
-  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lSDL2 
+  LIBS      += $(LDDEPS) -lm -ldl -lGLESv1_CM -lEGL -lSDL2 
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -44,10 +42,10 @@ ifeq ($(config),release)
 endif
 
 ifeq ($(config),debug)
-  OBJDIR     = ../../../Output/Targets/Linux-x86-32/Debug/obj/quake2-gles2
+  OBJDIR     = ../../../Output/Targets/Linux-x86-32/Debug/obj/quake2-gles1
   TARGETDIR  = ../../../Output/Targets/Linux-x86-32/Debug/bin
-  TARGET     = $(TARGETDIR)/quake2-gles2
-  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2 
+  TARGET     = $(TARGETDIR)/quake2-gles1
+  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES1 -DSAILFISHOS
   INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -g -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
@@ -55,8 +53,7 @@ ifeq ($(config),debug)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/Linux-x86-32/Debug/lib -L.
   LDDEPS    += ../../../Output/Targets/Linux-x86-32/Debug/lib/libZLib.a
-  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lSDL2 
-  # LIBS      += -lSDL2_mixer -lSDL2_image
+  LIBS      += $(LDDEPS) -lm -ldl -lGLESv1_CM -lEGL -lSDL2 
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -176,7 +173,7 @@ all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 	@:
 
 $(TARGET): $(GCH) $(OBJECTS) $(LDDEPS) $(RESOURCES)
-	@echo Linking quake2-gles2
+	@echo Linking quake2-gles1
 	$(SILENT) $(LINKCMD)
 	$(POSTBUILDCMDS)
 
@@ -197,7 +194,7 @@ else
 endif
 
 clean:
-	@echo Cleaning quake2-gles2
+	@echo Cleaning quake2-gles1
 ifeq (posix,$(SHELLTYPE))
 	$(SILENT) rm -f  $(TARGET)
 	$(SILENT) rm -rf $(OBJDIR)

@@ -19,11 +19,12 @@ ifndef RESCOMP
   endif
 endif
 
-INCLUDES  += -I/usr/include/SDL2
+# define SailfishOS platform first
+DEFINES += -DSAILFISHOS
 
 ifeq ($(config),release)
-  OBJDIR     = ../../../Output/Targets/Linux-x86-32/Release/obj/quake2-gles2
-  TARGETDIR  = ../../../Output/Targets/Linux-x86-32/Release/bin
+  OBJDIR     = ../../../Output/Targets/SailfishOS-32/Release/obj/quake2-gles2
+  TARGETDIR  = ../../../Output/Targets/SailfishOS-32/Release/bin
   TARGET     = $(TARGETDIR)/quake2-gles2
   DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2
   INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
@@ -31,9 +32,10 @@ ifeq ($(config),release)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -O2 -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/Linux-x86-32/Release/lib -L. -s
-  LDDEPS    += ../../../Output/Targets/Linux-x86-32/Release/lib/libZLib.a
-  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lSDL2 
+  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/SailfishOS-32/Release/lib -L. -s
+  LDDEPS    += ../../../Output/Targets/SailfishOS-32/Release/lib/libZLib.a
+  LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a
+  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -44,19 +46,20 @@ ifeq ($(config),release)
 endif
 
 ifeq ($(config),debug)
-  OBJDIR     = ../../../Output/Targets/Linux-x86-32/Debug/obj/quake2-gles2
-  TARGETDIR  = ../../../Output/Targets/Linux-x86-32/Debug/bin
+  OBJDIR     = ../../../Output/Targets/SailfishOS-32/Debug/obj/quake2-gles2
+  TARGETDIR  = ../../../Output/Targets/SailfishOS-32/Debug/bin
   TARGET     = $(TARGETDIR)/quake2-gles2
-  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2 
-  INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
+  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2  
+  # DEFINES    += -DSDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH
+  INCLUDES  += -I../../../../../SDL2/include -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -g -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/Linux-x86-32/Debug/lib -L.
-  LDDEPS    += ../../../Output/Targets/Linux-x86-32/Debug/lib/libZLib.a
-  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lSDL2 
-  # LIBS      += -lSDL2_mixer -lSDL2_image
+  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/SailfishOS-32/Debug/lib -L. -L../../../../../SDL2-src/SDL2/build/.libs
+  LDDEPS    += ../../../Output/Targets/SailfishOS-32/Debug/lib/libZLib.a
+  LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a
+  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
