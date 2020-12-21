@@ -372,7 +372,7 @@ void SCR_Sky_f()
 }
 
 void SCR_Init()
-{
+{// TODO SailfishOS : set default scale parameters here ( basic hud scale 3x and )
 	scr_viewsize = Cvar_Get("viewsize", "100", CVAR_ARCHIVE);
 	scr_conspeed = Cvar_Get("scr_conspeed", "3", 0);
 	scr_centertime = Cvar_Get("scr_centertime", "2.5", 0);
@@ -1249,7 +1249,7 @@ void SCR_UpdateScreen()
 		separation[1] = 0;
 		numframes = 1;
 	}
-
+	// TODO SailfishOS: here we should set texture buffer for render all in Frame 
 	for (i = 0; i < numframes; i++)
 	{
 		R_Frame_begin(separation[i], i);

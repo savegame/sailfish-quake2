@@ -3340,7 +3340,7 @@ static void R_Gamma_update()
 // Frame.
 //********************************************************************************
 static void R_Frame_clear(int eyeIndex)
-{
+{// TODO SailfishOS : maybe here we should draw our framebuffer rotated with screen orientation
 	GLbitfield clearFlags = 0;
 
 	// Color buffer.
