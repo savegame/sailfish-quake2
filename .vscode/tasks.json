@@ -41,7 +41,7 @@
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
-                "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-Sailfish/gmake"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-SailfishOS/gmake"
             },
             "problemMatcher": [
                 "$gcc"
@@ -72,7 +72,6 @@
             },
             "detail": "Build Linux Desktop binary"
         },
-        ,
         {
             "type": "shell",
             "label": "Build Desktop Game",
