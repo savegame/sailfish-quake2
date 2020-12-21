@@ -219,7 +219,7 @@ static EGL_DISPMANX_WINDOW_T l_dispmanWindow;
 
 static EGLNativeWindowType eglwGetNativeWindow()
 {
-    EGLNativeWindowType nativeWindow = NULL;
+    EGLNativeWindowType nativeWindow = (EGLNativeWindowType)NULL;
 
     #if defined(EGLW_SDL_DISPLAY)
 
@@ -315,9 +315,9 @@ static EGLNativeWindowType eglwGetNativeWindow()
     #if defined(_WIN32)
     nativeWindow=wmInfo.info.win.window;
     #elif defined(__unix__) && defined(SDL_VIDEO_DRIVER_X11)
-    nativeWindow=wmInfo.info.x11.window;
+    nativeWindow=(EGLNativeWindowType)wmInfo.info.x11.window;
     #elif defined(SAILFISHOS) && defined(SDL_VIDEO_DRIVER_WAYLAND)
-        nativeWindow=wmInfo.info.wl.egl_window;
+    nativeWindow=(EGLNativeWindowType)wmInfo.info.wl.egl_window;
     #endif
 
     #endif
