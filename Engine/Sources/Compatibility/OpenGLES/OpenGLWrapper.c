@@ -405,6 +405,14 @@ on_error:
 //--------------------------------------------------------------------------------
 // Initialization.
 //--------------------------------------------------------------------------------
+
+GLuint oglwGetProgram() 
+{
+    if( l_openGLWrapper != NULL )
+        return l_openGLWrapper->program;
+    return GL_NONE;
+}
+
 bool oglwCreate() {
     OpenGLWrapper *oglw = l_openGLWrapper;
     if (oglw == NULL) {

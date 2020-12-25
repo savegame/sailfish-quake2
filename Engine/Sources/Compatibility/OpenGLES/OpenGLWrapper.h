@@ -70,6 +70,7 @@ void oglwEnableTexturing(int unit, bool flag);
 // Set the current texture blending (GL_REPLACE, GL_MODULATE) for the next oglwBegin() / oglwEnd().
 void oglwSetTextureBlending(int unit, GLint mode);
 
+GLuint oglwGetProgram();
 //--------------------------------------------------------------------------------
 // ROPs.
 //--------------------------------------------------------------------------------
