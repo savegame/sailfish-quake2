@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "SAILFISH_FBO",
+                "SDL_JOYSTICK_HIDAPI",
+                "HAVE_LIBUDEV_H",
+                "_DEBUG"
+            ],
+            "compilerPath": "/usr/lib64/ccache/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}

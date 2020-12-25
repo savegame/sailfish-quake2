@@ -35,7 +35,7 @@ void CL_Connect_f();
 void CL_Rcon_f();
 void CL_CheckForResend();
 
-cvar_t *input_freelook;
+extern cvar_t *input_freelook;
 
 cvar_t *adr0;
 cvar_t *adr1;
