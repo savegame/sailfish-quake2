@@ -2,6 +2,14 @@
 #include "client/keyboard.h"
 #include "client/refresh/r_private.h"
 
+#ifdef SAILFISH_FBO
+// SailfishOS
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#include <GLES2/gl2platform.h>
+// 
+#endif
+
 glconfig_t gl_config;
 glstate_t gl_state;
 bool r_stencilAvailable = false;
@@ -3451,6 +3459,87 @@ void R_Frame_begin(float camera_separation, int eyeIndex)
 	oglwEnableStencilTest(false);
 }
 
+#ifdef SAILFISH_FBO
+
+GLuint loadShader(GLenum type, const char *source)
+{
+	GLuint shader = glCreateShader(type);
+	if (shader == 0)
+	{
+		R_printf(PRINT_ALL, "Could not create %s shader!\n", type == GL_VERTEX_SHADER ? "Vertex" : "Fragment" );
+		return 0;
+	}
+	glShaderSource(shader, 1, &source, NULL);
+	glCompileShader(shader);
+	GLint compiled;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	if (!compiled)
+	{
+		R_printf(PRINT_ALL, "Could not compile %s shader!\n", type == GL_VERTEX_SHADER ? "Vertex" : "Fragment");
+		GLint infoLen = 0;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+		if (infoLen)
+		{
+			char* infoLog = (char*)malloc(infoLen);
+			glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
+			R_printf(PRINT_ALL, "Error %s\n", infoLog);
+			free(infoLog);
+		}
+		glDeleteShader(shader);
+		return 0;
+	}
+	return shader;
+}
+
+GLuint loadProgram(const char *vp, const char *fp, const char **attributes, int attributeCount)
+{
+	GLuint vertexShader = loadShader(GL_VERTEX_SHADER, vp);
+	if (!vertexShader)
+		return 0;
+	GLuint fragmentShader = loadShader(GL_FRAGMENT_SHADER, fp);
+	if (!fragmentShader)
+	{
+		glDeleteShader(vertexShader);
+		return 0;
+	}
+
+	GLuint program = glCreateProgram();
+	if (program == 0)
+	{
+		R_printf(PRINT_ALL, "Could not create program!\n");
+		return 0;
+	}
+	glAttachShader(program, vertexShader);
+	glAttachShader(program, fragmentShader);
+
+	for (int i = 0; i < attributeCount; i++)
+		glBindAttribLocation(program, i, attributes[i]);
+
+	glLinkProgram(program);
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+	GLint linked;
+	glGetProgramiv(program, GL_LINK_STATUS, &linked);
+	if (!linked)
+	{
+		R_printf(PRINT_ALL, "Could not link program!\n");
+		GLint infoLen = 0;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLen);
+		if (infoLen)
+		{
+			char* infoLog = (char*)malloc(sizeof(char) * infoLen);
+			glGetProgramInfoLog(program, infoLen, NULL, infoLog);
+			R_printf("Errors: %s\n", infoLog);
+			free(infoLog);
+		}
+		glDeleteProgram(program);
+		return 0;
+	}
+	return program;
+}
+
+#endif
+
 void R_Frame_end()
 {
 	if (r_discardframebuffer->value && gl_config.discardFramebuffer)
@@ -3462,9 +3551,192 @@ void R_Frame_end()
 		gl_config.discardFramebuffer(GL_FRAMEBUFFER_OES, 2, attachements);
         #endif
 	}
+
+#ifdef SAILFISH_FBO
+	// TODO Sailfish here we should unbind our buffer and draw it on quad
+	// ============================================================================= begin
+	static GLuint quad_VertexArrayID = 0;
+	static GLuint quad_vertexbuffer = 0;
+	static GLuint quad_programID = 0;
+	static GLuint texID = 0;
+	static GLuint Framebuffer = 0;
+	static GLuint ColorBuffer = 0;
+	static GLuint RenderedTexture = 0;
+	static GLuint DepthRenderBuffer = 0;
+
+	static const GLfloat g_quad_vertex_buffer_data[] = {
+		-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, //0
+	  	 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, //1
+		-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, //2
+		-1.0f,  1.0f, 0.0f, 0.0f, 0.0f,//3
+		1.0f, -1.0f, 0.0f,  1.0f, 1.0f, //4
+		1.0f,  1.0f, 0.0f,  1.0f, 0.0f //5
+	};
+
+	if(quad_VertexArrayID == 0)
+	{
+		// The fullscreen quad's FBO
+		glGenVertexArrays(1, &quad_VertexArrayID);
+		glBindVertexArray(quad_VertexArrayID);
+
+		Gles_checkGlesError();
+		glGenBuffers(1, &quad_vertexbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+
+		const char *vp =
+	        //"#version 150 core\n"
+	        "attribute vec3 a_position;\n"
+	        "attribute vec2 a_texcoord;\n"
+	        // "uniform mat4 u_view;\n"
+	        // "uniform mat4 u_projection;\n"
+	        "varying vec2 v_texcoord;\n"
+
+	        "void main()\n"
+	        "{\n"
+	        "  gl_Position = vec4(a_position, 1.0);\n"
+	        "  v_texcoord = a_texcoord;\n"
+	        "}\n";
+
+		const char *fp =
+	        //"#version 150 core\n"
+			#ifdef EGLW_GLES2
+			"precision mediump float;\n"
+			#endif
+	        "varying vec2 v_texcoord;\n"
+	        "uniform sampler2D u_texture;\n"
+	        // "out vec4 o_color;\n"
+
+	        "void main()\n"
+	        "{\n"
+	        "  gl_FragColor = vec4(texture2D(u_texture, v_texcoord*2.5).rgb, 1.0); //vec4(v_texcoord.xy,0.5,1.0); \n"
+	        "}\n";
+
+		const char *attribs[] =
+		{
+	    	"a_position",
+	    	"a_texcoord"
+		};
+
+		// Create and compile our GLSL program from the shaders
+		quad_programID = loadProgram( vp, fp , attribs, 2);
+		Gles_checkGlesError();
+		texID = glGetUniformLocation(quad_programID, "u_texture");
+		Gles_checkGlesError();
+		// GLuint timeID = glGetUniformLocation(quad_programID, "time");
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0,0,viddef.width,viddef.height);	
+	Gles_checkGlesError();
+
+	if( RenderedTexture != 0 )
+	{// try draw your buffer 
+		glUseProgram(quad_programID);
+		glBindVertexArray(quad_VertexArrayID);
+		Gles_checkGlesError();
+		glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(
+					0,                  // attribute 0
+					3,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					sizeof(GLfloat) * 5,// stride
+					(void*)(0) // array buffer offset
+					);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(
+					1,                  // attribute 1
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					sizeof(GLfloat) * 5,// stride
+					(void*)(sizeof(GLfloat) * 3)// array buffer offset
+					);
+		glUniform1i(texID, 0);
+		glBindTexture(GL_TEXTURE_2D,RenderedTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 2 * 3);
+		Gles_checkGlesError(); 
+	}
+	// ============================================================================= ebnd
+#endif // SAILFISH_FBO
 	eglwSwapBuffers();
 	Gles_checkGlesError();
 	Gles_checkEglError();
+#ifdef SAILFISH_FBO
+	// TODO SailfishOS: here we should set texture buffer for render all in Frame 
+	//============================================================================= begin
+	if( Framebuffer == 0 ) {
+		// create framebuffer 
+		glGenFramebuffers(1, &Framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer);
+		Gles_checkGlesError();
+		// ======================
+		// create Render Texture
+		glGenTextures(1, &RenderedTexture);
+
+		// "Bind" the newly created texture : all future texture functions will modify this texture
+		glBindTexture(GL_TEXTURE_2D, RenderedTexture);
+		Gles_checkGlesError();
+
+		// Give an empty image to OpenGL ( the last "0" )
+		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGB, 1024, 768, 0,  GL_RGB, GL_UNSIGNED_BYTE, 0);
+		Gles_checkGlesError();
+		// Poor filtering. Needed !
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		Gles_checkGlesError();
+		// =======================
+		// The depth buffer
+		// glGenRenderbuffers(1, &DepthRenderBuffer);
+		// glBindRenderbuffer(GL_RENDERBUFFER, DepthRenderBuffer);
+		// glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 768);
+		// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, DepthRenderBuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, RenderedTexture);
+		// ==========================
+		// configure framebuffer 
+		// Set "renderedTexture" as our colour attachement #0
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, RenderedTexture, 0);
+		Gles_checkGlesError();
+
+		// Set the list of draw buffers.
+		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+		glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffer
+
+		// ==========================
+        // Check that our FBO creation was successful
+        GLuint uStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+        if(uStatus != GL_FRAMEBUFFER_COMPLETE)
+        {
+			const char *s;
+			switch(uStatus) {
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+				s = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+				s = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+				s = "GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS";
+				break;
+			case GL_FRAMEBUFFER_UNSUPPORTED:
+				s = "GL_FRAMEBUFFER_UNSUPPORTED";
+				break;
+			}
+            R_printf(PRINT_ALERT, "ERROR: Failed to initialise FBO: %s",s);
+        }
+	}
+
+	// Render to our framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer);
+	glViewport(0,0,1024,768);
+	// glViewport(0,0,viddef.width, viddef.height);
+	Gles_checkGlesError();
+	// =============================================================================
+#endif
 }
 
 //********************************************************************************

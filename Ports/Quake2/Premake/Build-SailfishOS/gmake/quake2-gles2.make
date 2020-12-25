@@ -3,6 +3,10 @@ ifndef config
   config=release
 endif
 
+ifndef use_fbo
+  use_fbo=no
+endif
+
 ifndef verbose
   SILENT = @
 endif
@@ -21,6 +25,10 @@ endif
 
 # define SailfishOS platform first
 DEFINES += -DSAILFISHOS
+
+ifeq ($(use_fbo),yes)
+  DEFINES += -DSAILFISH_FBO
+endif
 
 ifeq ($(config),release)
   OBJDIR     = ../../../Output/Targets/SailfishOS-32/Release/obj/quake2-gles2

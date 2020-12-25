@@ -54,6 +54,28 @@
         },
         {
             "type": "shell",
+            "label": "Build GAME armv7hl",
+            "command": "${SAILFISH_SDK}/bin/sfdk",
+            "args": [
+                "engine",
+                "exec",
+                "sb2","-t","${sb2_target}","make","-j4","config=debug","quake2-game"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-SailfishOS/gmake"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Build GAME"
+        },
+        {
+            "type": "shell",
             "label": "Build Desktop",
             "command": "make",
             "args": [
@@ -125,7 +147,8 @@
                 "engine",
                 "exec",
                 "sb2","-t","${sb2_target}",
-                "./configure", "CFLAGS='-std=c99'","--disable-video-x11","--enable-video-wayland","--enable-pulseaudio", "--disable-shared"
+                "./configure", "--disable-video-x11","--enable-video-wayland","--enable-pulseaudio", "--disable-shared", "--enable-hidapi", "--enable-libudev"
+                //"CFLAGS='-std=c99'", 
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"

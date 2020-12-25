@@ -47,7 +47,7 @@
                     "ignoreFailures": true
                 }
             ],
-            // "preLaunchTask": "Deploy nemo",
+            "preLaunchTask": "Build Desktop",
             // here you should paste your SDK path
             // "miDebuggerPath": "${HOME}/SailfishOS/bin/gdb-armv7hl-meego-linux-gnueabi",
             // "miDebuggerServerAddress": "192.168.2.15:10001",  // default device IP, port is setuped in tasks.json
