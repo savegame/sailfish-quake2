@@ -1,6 +1,7 @@
 {
     "options": {
         "env" : {
+            "num_cpu":"4",
             "device" : "nemo@192.168.2.15",// default developer mode IP
             "sb2_target" : "SailfishOS-3.4.0.24-armv7hl",
             "SAILFISH_SDK" : "/home/developer/SailfishOS" // default SailfishSDK path
@@ -37,7 +38,7 @@
             "args": [
                 "engine",
                 "exec",
-                "sb2","-t","${sb2_target}","make","-j4","config=debug","quake2-gles2"
+                "sb2","-t","${sb2_target}","make","-j${num_cpu}","config=debug","quake2-gles2"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
@@ -59,7 +60,7 @@
             "args": [
                 "engine",
                 "exec",
-                "sb2","-t","${sb2_target}","make","-j4","config=debug","quake2-game"
+                "sb2","-t","${sb2_target}","make","-j${num_cpu}","config=debug","quake2-game"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
@@ -79,7 +80,7 @@
             "label": "Build Desktop",
             "command": "make",
             "args": [
-                "-j4","config=debug","quake2-gles2"
+                "-j4","config=debug","sailfish_fbo=yes","quake2-gles2"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
@@ -93,13 +94,13 @@
                 "isDefault": true
             },
             "detail": "Build Linux Desktop binary"
-        },
+        },        
         {
             "type": "shell",
             "label": "Build Desktop Game",
             "command": "make",
             "args": [
-                "-j4","config=debug","quake2-game"
+                "-j${num_cpu}","config=debug","quake2-game"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
@@ -123,7 +124,7 @@
                 "exec",
                 "sb2","-t","${sb2_target}","-m","sdk-install","-R",
                 "zypper","in", "-y",
-                "pulseaudio-devel",  "wayland-devel", "libGLESv1-devel", "wayland-egl-devel", "wayland-protocols-devel", "libudev-devel", 
+                "pulseaudio-devel",  "wayland-devel", "libGLESv1-devel", "wayland-egl-devel", "wayland-protocols-devel", "libusb-devel", 
                 "libxkbcommon-devel"
             ],
             "options": {
@@ -171,7 +172,7 @@
                 "engine",
                 "exec",
                 "sb2","-t","${sb2_target}",
-                "make", "-j4"
+                "make", "-j${num_cpu}"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"

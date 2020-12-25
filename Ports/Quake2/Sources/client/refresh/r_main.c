@@ -123,9 +123,9 @@ cvar_t *r_subdivision;
 cvar_t *r_fullscreenflash;
 cvar_t *r_lightflash;
 
-cvar_t *gl_hudscale; /* named for consistency with R1Q2 */
-cvar_t *gl_consolescale;
-cvar_t *gl_menuscale;
+extern cvar_t *gl_hudscale; /* named for consistency with R1Q2 */
+extern cvar_t *gl_consolescale;
+extern cvar_t *gl_menuscale;
 
 //********************************************************************************
 // Global.

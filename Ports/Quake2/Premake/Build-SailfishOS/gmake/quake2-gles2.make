@@ -3,8 +3,8 @@ ifndef config
   config=release
 endif
 
-ifndef use_fbo
-  use_fbo=no
+ifndef sailfish_fbo
+  sailfish_fbo=no
 endif
 
 ifndef verbose
@@ -26,7 +26,7 @@ endif
 # define SailfishOS platform first
 DEFINES += -DSAILFISHOS
 
-ifeq ($(use_fbo),yes)
+ifeq ($(sailfish_fbo),yes)
   DEFINES += -DSAILFISH_FBO
 endif
 
