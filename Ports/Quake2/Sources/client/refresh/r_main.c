@@ -3606,23 +3606,23 @@ void R_Frame_end()
 	static GLuint DepthBuffer = 0;
 	static GLuint StencilBuffer = 0;
 
-	// static const GLfloat g_quad_vertex_buffer_data[] = {
-	// 	-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, //0
-	//   	 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, //1
-	// 	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, //2
-	// 	-1.0f,  1.0f, 0.0f, 0.0f, 0.0f,//3
-	// 	1.0f, -1.0f, 0.0f,  1.0f, 1.0f, //4
-	// 	1.0f,  1.0f, 0.0f,  1.0f, 0.0f //5
-	// };
-
 	static const GLfloat g_quad_vertex_buffer_data[] = {
 		-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, //0
-	  	 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, //1
-		-1.0f,  0.0f, 0.0f, 0.0f, 0.0f, //2
-		-1.0f,  0.0f, 0.0f, 0.0f, 0.0f,//3
-		0.0f, -1.0f, 0.0f,  1.0f, 1.0f, //4
-		0.0f,  0.0f, 0.0f,  1.0f, 0.0f //5
+	  	 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, //1
+		-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, //2
+		-1.0f,  1.0f, 0.0f, 0.0f, 0.0f,//3
+		1.0f, -1.0f, 0.0f,  1.0f, 1.0f, //4
+		1.0f,  1.0f, 0.0f,  1.0f, 0.0f //5
 	};
+
+	// static const GLfloat g_quad_vertex_buffer_data[] = {
+	// 	-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, //0
+	//   	 0.5f, -1.0f, 0.0f, 1.0f, 1.0f, //1
+	// 	-1.0f,  0.5f, 0.0f, 0.0f, 0.0f, //2
+	// 	-1.0f,  0.5f, 0.0f, 0.0f, 0.0f,//3
+	// 	0.5f, -1.0f, 0.0f,  1.0f, 1.0f, //4
+	// 	0.5f,  0.5f, 0.0f,  1.0f, 0.0f //5
+	// };
 
 	if(quad_VertexArrayID == 0)
 	{
@@ -3645,7 +3645,7 @@ void R_Frame_end()
 
 	        "void main()\n"
 	        "{\n"
-	        "  gl_Position = vec4(a_position, 1.0);\n"
+	        "  gl_Position = vec4(a_position.xy, 0.0, 1.0);\n"
 	        "  v_texcoord = a_texcoord;\n"
 	        "}\n";
 
@@ -3660,7 +3660,8 @@ void R_Frame_end()
 
 	        "void main()\n"
 	        "{\n"
-	        "  gl_FragColor = vec4(texture2D(u_texture, v_texcoord.yx).rgb, 1.0); //vec4(v_texcoord.xy,0.5,1.0); \n"
+			"  vec3 color = texture2D(u_texture, vec2(v_texcoord.y,1.0 - v_texcoord.x)).rgb;\n"
+	        "  gl_FragColor = vec4(color.r,color.g,color.b,1.0); //vec4(v_texcoord.xy,0.5,1.0); \n"
 	        "}\n";
 
 		const char *attribs[] =
@@ -3682,7 +3683,8 @@ void R_Frame_end()
 		( glBindFramebuffer(GL_FRAMEBUFFER, 0) );
 		glGetError();
 		GL_CHECK( glViewport(0,0,viddef.width,viddef.height) );
-
+		// GLuint program = glGet(GL_CURRENT_PROGRAM);
+		// GLuint texture = glGet(GL_TEXTURE_BINDING_2D);
 		GL_CHECK( glUseProgram(quad_programID) );
 		GL_CHECK( glBindVertexArray(quad_VertexArrayID) );
 		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer) );
@@ -3709,9 +3711,12 @@ void R_Frame_end()
 
 		GL_CHECK( glDisable(GL_DEPTH_TEST) );
 		GL_CHECK( glBindTexture(GL_TEXTURE_2D,RenderedTexture) );
+		// GL_CHECK( glBindTexture(GL_TEXTURE_2D,DepthTexture) );
 
 		GL_CHECK( glDrawArrays(GL_TRIANGLES, 0, 2 * 3) );
 		
+		// GL_CHECK( glBindTexture(GL_TEXTURE_2D,texture) );
+		GL_CHECK( glUseProgram(oglwGetProgram()) );
 		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, GL_NONE) );
 		GL_CHECK( glBindVertexArray(GL_NONE) );
 	}
@@ -3735,15 +3740,30 @@ void R_Frame_end()
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ));
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, viddef.width, viddef.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+		GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0) );
 		
 		// attach it to currently bound framebuffer object
-
+#if 1 // RenderBuffer as depth buffer
 		GL_CHECK( glGenRenderbuffers(1, &DepthBuffer) );
 		GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, DepthBuffer) ); 
 		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, viddef.width, viddef.height) );  
 
 		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderedTexture, 0) );
 		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, DepthBuffer) );
+#else
+		GL_CHECK(glGenTextures(1, &DepthTexture));
+		GL_CHECK( glBindTexture(GL_TEXTURE_2D, DepthTexture) );
+		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST) ); 
+		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST) );
+		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
+		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE) );
+		GL_CHECK( glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, viddef.width, viddef.height, 0,
+			GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 0) );
+		GL_CHECK( glBindTexture(GL_TEXTURE_2D, 0) );
+
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderedTexture, 0) );
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthTexture, 0) );
+#endif
 
 		// Stencil - just skip it
 		// glGenFramebuffers(1, &StencilBuffer);
@@ -3754,22 +3774,9 @@ void R_Frame_end()
 		// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER, StencilBuffer);
 		// ==========================
 
-		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+		GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
 		GL_CHECK(glDrawBuffers(1, DrawBuffers));
 
-        
-
-		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER,  GL_NONE) );
-		GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, GL_NONE) );
-		GL_CHECK( glBindTexture(GL_TEXTURE_2D, GL_NONE) );
-	}
-
-	// Render to our framebuffer
-	
-	frame_Count++;
-	if( Framebuffer ) 
-	{
-		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer) );
 		// Check that our FBO creation was successful
         GLuint uStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -3790,10 +3797,21 @@ void R_Frame_end()
 				s = "GL_FRAMEBUFFER_UNSUPPORTED";
 				break;
 			}
-            R_printf(PRINT_ALL, "ERROR: Failed to initialise FBO: %s",s);
-        }
+            R_printf(PRINT_ALL, "ERROR: Failed to initialise FBO: %s\n",s);
+        }       
+
+		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER,  GL_NONE) );
+		// GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, GL_NONE) );
+		// GL_CHECK( glBindTexture(GL_TEXTURE_2D, GL_NONE) );
+	}
+
+	// Render to our framebuffer
+	
+	frame_Count++;
+	if( Framebuffer ) 
+	{
+		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer) );
 		GL_CHECK( glViewport(0,0,viddef.width, viddef.height) );
-		GL_CHECK( glEnable(GL_DEPTH_TEST) );
 		GL_CHECK( glClearColor(0.1f, 0.1f, 0.1f, 1.0f) );
 		GL_CHECK( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ); // we're not using the stencil buffer now
 		GL_CHECK( glEnable(GL_DEPTH_TEST) );

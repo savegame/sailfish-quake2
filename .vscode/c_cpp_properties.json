@@ -9,7 +9,7 @@
                 "SAILFISH_FBO",
                 "SDL_JOYSTICK_HIDAPI",
                 "HAVE_LIBUDEV_H",
-                "_DEBUG"
+                "EGLW_GLES2"
             ],
             "compilerPath": "/usr/lib64/ccache/clang",
             "cStandard": "c11",
