@@ -29,7 +29,7 @@
                 "isDefault": true
             },
             "detail": "Copy compiled ARM build to device",
-            // "dependsOn":["Build armv7hl"]
+            "dependsOn":["Build armv7hl"]
         },
         {
             "type": "shell",
@@ -38,7 +38,7 @@
             "args": [
                 "engine",
                 "exec",
-                "sb2","-t","${sb2_target}","make","-j${num_cpu}","config=debug","quake2-gles2"
+                "sb2","-t","${sb2_target}","make","-j${num_cpu}","config=debug","sailfish_fbo=yes","quake2-gles2"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
@@ -207,7 +207,9 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "dependsOn":["Deploy nemo"],
+            "dependsOn":[
+                "Deploy nemo"
+            ],
             "detail": "Run remote gdbserver",
         }
     ],

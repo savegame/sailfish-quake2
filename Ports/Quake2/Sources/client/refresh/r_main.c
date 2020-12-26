@@ -43,8 +43,9 @@
 #else
 #define GL_CHECK( functionCall ) functionCall
 #endif // DEBUG_GL
-
-#endif
+#else 
+#define GL_CHECK( functionCall ) functionCall
+#endif // SAILFISH_FBO
 
 glconfig_t gl_config;
 glstate_t gl_state;
@@ -3605,6 +3606,7 @@ void R_Frame_end()
 	static GLuint DepthTexture = 0;
 	static GLuint DepthBuffer = 0;
 	static GLuint StencilBuffer = 0;
+	static GLuint vw = 0, vh = 0;
 
 	static const GLfloat g_quad_vertex_buffer_data[] = {
 		-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, //0
@@ -3615,22 +3617,12 @@ void R_Frame_end()
 		1.0f,  1.0f, 0.0f,  1.0f, 0.0f //5
 	};
 
-	// static const GLfloat g_quad_vertex_buffer_data[] = {
-	// 	-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, //0
-	//   	 0.5f, -1.0f, 0.0f, 1.0f, 1.0f, //1
-	// 	-1.0f,  0.5f, 0.0f, 0.0f, 0.0f, //2
-	// 	-1.0f,  0.5f, 0.0f, 0.0f, 0.0f,//3
-	// 	0.5f, -1.0f, 0.0f,  1.0f, 1.0f, //4
-	// 	0.5f,  0.5f, 0.0f,  1.0f, 0.0f //5
-	// };
-
 	if(quad_VertexArrayID == 0)
 	{
 		// The fullscreen quad's FBO
 		GL_CHECK( glGenVertexArrays(1, &quad_VertexArrayID) );
 		GL_CHECK( glBindVertexArray(quad_VertexArrayID) );
 
-		Gles_checkGlesError();
 		GL_CHECK( glGenBuffers(1, &quad_vertexbuffer) );
 		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer) );
 		GL_CHECK( glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW) );
@@ -3660,8 +3652,14 @@ void R_Frame_end()
 
 	        "void main()\n"
 	        "{\n"
-			"  vec3 color = texture2D(u_texture, vec2(v_texcoord.y,1.0 - v_texcoord.x)).rgb;\n"
-	        "  gl_FragColor = vec4(color.r,color.g,color.b,1.0); //vec4(v_texcoord.xy,0.5,1.0); \n"
+			"  vec3 color = texture2D(u_texture, vec2(v_texcoord.x, v_texcoord.y).xy).rgb;\n"
+			"  if( v_texcoord.y < 0.1 ) {\n"
+			"    color.r = 0.0;\n"
+			"  } else if( v_texcoord.y > 0.9){\n"
+			"    color.g = 0.0;\n"
+			"  }\n"
+			"  \n"
+	        "  gl_FragColor = vec4(color.rgb,1.0); \n"
 	        "}\n";
 
 		const char *attribs[] =
@@ -3682,7 +3680,7 @@ void R_Frame_end()
 	{// try draw your buffer 
 		( glBindFramebuffer(GL_FRAMEBUFFER, 0) );
 		glGetError();
-		GL_CHECK( glViewport(0,0,viddef.width,viddef.height) );
+		GL_CHECK( glViewport(0,0,vw,vh) );
 		// GLuint program = glGet(GL_CURRENT_PROGRAM);
 		// GLuint texture = glGet(GL_TEXTURE_BINDING_2D);
 		GL_CHECK( glUseProgram(quad_programID) );
@@ -3729,7 +3727,8 @@ void R_Frame_end()
 	// TODO SailfishOS: here we should set texture buffer for render all in Frame 
 	//============================================================================= begin
 	if( Framebuffer == 0 ) {
-		GLuint w = 800, h = 600;
+		vw =  viddef.width;
+		vh =  viddef.height;
 		// create framebuffer 
 		GL_CHECK( glGenFramebuffers(1, &Framebuffer) );
 		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer) )
@@ -3737,16 +3736,18 @@ void R_Frame_end()
 		// create Render Texture
 		GL_CHECK(glGenTextures(1, &RenderedTexture));
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, RenderedTexture));
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ));
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, viddef.width, viddef.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE) );
+		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, vw, vh, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0) );
 		
 		// attach it to currently bound framebuffer object
 #if 1 // RenderBuffer as depth buffer
 		GL_CHECK( glGenRenderbuffers(1, &DepthBuffer) );
 		GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, DepthBuffer) ); 
-		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, viddef.width, viddef.height) );  
+		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, vw, vh) );  
 
 		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderedTexture, 0) );
 		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, DepthBuffer) );
@@ -3774,7 +3775,7 @@ void R_Frame_end()
 		// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER, StencilBuffer);
 		// ==========================
 
-		GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
+		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 		GL_CHECK(glDrawBuffers(1, DrawBuffers));
 
 		// Check that our FBO creation was successful
@@ -3811,10 +3812,10 @@ void R_Frame_end()
 	if( Framebuffer ) 
 	{
 		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer) );
-		GL_CHECK( glViewport(0,0,viddef.width, viddef.height) );
-		GL_CHECK( glClearColor(0.1f, 0.1f, 0.1f, 1.0f) );
-		GL_CHECK( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ); // we're not using the stencil buffer now
-		GL_CHECK( glEnable(GL_DEPTH_TEST) );
+		GL_CHECK( glViewport(0,0,vw,vh) );
+		// GL_CHECK( glClearColor(0.1f, 0.1f, 0.1f, 1.0f) );
+		// GL_CHECK( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ); // we're not using the stencil buffer now
+		// GL_CHECK( glEnable(GL_DEPTH_TEST) );
 	}
 	// =============================================================================
 #endif
