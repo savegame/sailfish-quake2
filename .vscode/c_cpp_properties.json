@@ -10,7 +10,8 @@
                 "SDL_JOYSTICK_HIDAPI",
                 "HAVE_LIBUDEV_H",
                 "EGLW_GLES2",
-                "SAILFISHOS"
+                "SAILFISHOS",
+                "EGLW_SDL_DISPLAY"
             ],
             "compilerPath": "/usr/lib64/ccache/clang",
             "cStandard": "c11",

@@ -2,6 +2,7 @@
 #include "client/keyboard.h"
 #include "client/refresh/r_private.h"
 
+// #undef SAILFISH_FBO
 #ifdef SAILFISH_FBO
 // SailfishOS
 #include <GLES2/gl2.h>
@@ -3652,7 +3653,7 @@ void R_Frame_end()
 
 	        "void main()\n"
 	        "{\n"
-			"  vec3 color = texture2D(u_texture, vec2(v_texcoord.x, v_texcoord.y).xy).rgb;\n"
+			"  vec3 color = texture2D(u_texture, vec2(v_texcoord.x, v_texcoord.y).yx).rgb;\n"
 			"  if( v_texcoord.y < 0.1 ) {\n"
 			"    color.r = 0.0;\n"
 			"  } else if( v_texcoord.y > 0.9){\n"
@@ -3680,7 +3681,7 @@ void R_Frame_end()
 	{// try draw your buffer 
 		( glBindFramebuffer(GL_FRAMEBUFFER, 0) );
 		glGetError();
-		GL_CHECK( glViewport(0,0,vw,vh) );
+		GL_CHECK( glViewport(0,0,vh,vw) );
 		// GLuint program = glGet(GL_CURRENT_PROGRAM);
 		// GLuint texture = glGet(GL_TEXTURE_BINDING_2D);
 		GL_CHECK( glUseProgram(quad_programID) );
@@ -3707,7 +3708,7 @@ void R_Frame_end()
 					));
 		GL_CHECK( glUniform1i(texID, 0) );
 
-		GL_CHECK( glDisable(GL_DEPTH_TEST) );
+		// GL_CHECK( glDisable(GL_DEPTH_TEST) );
 		GL_CHECK( glBindTexture(GL_TEXTURE_2D,RenderedTexture) );
 		// GL_CHECK( glBindTexture(GL_TEXTURE_2D,DepthTexture) );
 
@@ -3812,7 +3813,8 @@ void R_Frame_end()
 	if( Framebuffer ) 
 	{
 		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer) );
-		GL_CHECK( glViewport(0,0,vw,vh) );
+		// GL_CHECK( glViewport(0,0,vw,vh) );
+		oglwSetViewport(0,0,vw,vh);
 		// GL_CHECK( glClearColor(0.1f, 0.1f, 0.1f, 1.0f) );
 		// GL_CHECK( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ); // we're not using the stencil buffer now
 		// GL_CHECK( glEnable(GL_DEPTH_TEST) );
@@ -4117,9 +4119,9 @@ static void R_Window_getValidWindowSize(int maxWindowWidth, int maxWindowHeight,
         requestedWidth = R_WIDTH_MIN;
     if (requestedHeight < R_HEIGHT_MIN)
         requestedHeight = R_HEIGHT_MIN;
-#ifdef SAILFISHOS
-    requestedWidth = maxWindowWidth;
-    requestedHeight = maxWindowHeight;
+#if defined(SAILFISH_FBO) || defined(SAILFISHOS)
+    requestedHeight = maxWindowWidth;
+    requestedWidth = maxWindowHeight;
 #endif
     *windowWidth = requestedWidth;
     *windowHeight = requestedHeight;
@@ -4173,7 +4175,7 @@ static bool R_Window_update(bool forceFlag)
 
         bool updateNeeded = false;
 
-        #if defined(R_WINDOWED_MODE_DISABLED)
+        #if defined(R_WINDOWED_MODE_DISABLED) || (defined(SAILFISHOS) && defined(SAILFISH_FBO))
         bool fullscreen = true;
         #else
         bool fullscreen = r_fullscreen->value;
@@ -4194,11 +4196,18 @@ static bool R_Window_update(bool forceFlag)
             if (fullscreen)
 				flags |= SDL_WINDOW_FULLSCREEN;
 			#endif
+			#ifdef SAILFISH_FBO
+				creationWidth = windowHeight;
+				creationHeight = windowWidth;
+			#endif
 			R_printf(PRINT_ALL, "Creating a window with width=%i height=%i fullscreen=%i\n", creationWidth, creationHeight, fullscreen);
             if (!sdlwCreateWindow(windowName, creationWidth, creationHeight, flags))
             {
                 R_Window_setIcon();
 				#if defined(__RASPBERRY_PI__)
+				r_window_width->modified = false;
+				r_window_height->modified = false;
+				#elif defined(SAILFISHOS)
 				r_window_width->modified = false;
 				r_window_height->modified = false;
 				#else
@@ -4249,7 +4258,11 @@ static bool R_Window_update(bool forceFlag)
             if (!currentFullscreen)
             {
                 int currentWidth, currentHeight;
+			#ifdef SAILFISH_FBO
+				SDL_GetWindowSize(sdlw->window, &currentHeight, &currentWidth);
+			#else
                 SDL_GetWindowSize(sdlw->window, &currentWidth, &currentHeight);
+			#endif
                 if (windowWidth != currentWidth || windowHeight != currentHeight)
                 {
                     updateNeeded = true;
@@ -4287,9 +4300,13 @@ static bool R_Window_update(bool forceFlag)
 				if (windowY < 0)
 					windowY = 0;
 				#endif
-
+#ifdef SAILFISH_FBO
 				Cvar_SetValue("r_window_width", windowWidth);
 				Cvar_SetValue("r_window_height", windowHeight);
+#else
+				Cvar_SetValue("r_window_width", windowWidth);
+				Cvar_SetValue("r_window_height", windowHeight);
+#endif
 				Cvar_SetValue("r_window_x", windowX);
 				Cvar_SetValue("r_window_y", windowY);
 				Cvar_SetValue("r_fullscreen", fullscreen);
@@ -4332,7 +4349,11 @@ static bool R_Window_update(bool forceFlag)
     }
     
 	int effectiveWidth, effectiveHeight;
+#ifdef SAILFISH_FBO
+	SDL_GetWindowSize(sdlw->window, &effectiveHeight, &effectiveWidth);
+#else
 	SDL_GetWindowSize(sdlw->window, &effectiveWidth, &effectiveHeight);
+#endif
 	viddef.width = effectiveWidth;
 	viddef.height = effectiveHeight;
 	sdlwResize(effectiveWidth, effectiveHeight);
