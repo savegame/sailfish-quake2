@@ -9,44 +9,38 @@
 #include <GLES2/gl2ext.h>
 #include <GLES2/gl2platform.h>
 // DEBUG _ GL
-/**
-* @brief Entity to pretty print OpenGL errors out of the functions calls within the source
-*/
-// class GLDebugger
-// {
-// public:
-	/**
-    * @brief Checks OpenGL call for errors
-    * @param functionCall name of the function being checked
-    * @param filename in the current c++ file
-    * @param line in the current c++ line
-    */
-    static void GLCheckCall( const char* functionCall, const char* filename, int line )
-    {
-        GLenum err = glGetError();
- 
-        while( GL_NO_ERROR != err )
-        {
-            //NOTE: use GL/glu.h for this const char* glError = reinterpret_cast< const char* >( gluErrorString( err ) );
-            fprintf(stderr, "OpenGL error on '%s' in '%s:%d': 0x%04x\n", functionCall, filename, line, err  );
-            err = glGetError();
-        }
-    }
-// };
+#	define DEBUG_GL
+#endif // SAILFISH_FBO
 
-#define DEBUG_GL
 #ifdef DEBUG_GL
-#define GL_CHECK( functionCall )                                           \
+	/**
+	* @brief Entity to pretty print OpenGL errors out of the functions calls within the source
+	*/
+	/**
+	* @brief Checks OpenGL call for errors
+	* @param functionCall name of the function being checked
+	* @param filename in the current c++ file
+	* @param line in the current c++ line
+	*/
+	static void GLCheckCall( const char* functionCall, const char* filename, int line )
+	{
+		GLenum err = glGetError();
+
+		while( GL_NO_ERROR != err )
+		{
+			//NOTE: use GL/glu.h for this const char* glError = reinterpret_cast< const char* >( gluErrorString( err ) );
+			fprintf(stderr, "OpenGL error on '%s' in '%s:%d': 0x%04x\n", functionCall, filename, line, err  );
+			err = glGetError();
+		}
+	}
+#	define GL_CHECK( functionCall )                                           \
     {                                                                      \
         functionCall;                                                      \
 		GLCheckCall( #functionCall, __FILE__, __LINE__ ); \
     }
 #else
-#define GL_CHECK( functionCall ) functionCall
+#	define GL_CHECK( functionCall ) functionCall
 #endif // DEBUG_GL
-#else 
-#define GL_CHECK( functionCall ) functionCall
-#endif // SAILFISH_FBO
 
 glconfig_t gl_config;
 glstate_t gl_state;
@@ -164,6 +158,35 @@ cvar_t *r_lightflash;
 extern cvar_t *gl_hudscale; /* named for consistency with R1Q2 */
 extern cvar_t *gl_consolescale;
 extern cvar_t *gl_menuscale;
+
+#ifdef SAILFISH_FBO 
+struct _sailfish_fbo {
+	GLuint quad_VertexArrayID;
+	GLuint quad_vertexbuffer;
+	GLuint quad_programID;
+	GLuint texID;
+	GLuint Framebuffer;
+	GLuint ColorBuffer;
+	GLuint RenderedTexture;
+	GLuint DepthTexture;
+	GLuint DepthBuffer;
+	GLuint StencilBuffer;
+	GLuint vw, vh;
+	const GLfloat g_quad_vertex_buffer_data[30];
+};
+typedef struct _sailfish_fbo SailfishFBO;
+SailfishFBO sailfish_fbo = {
+	0,0,0,0,0,0,0,0,0,0,0,0,
+	{
+		-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, //0
+	  	 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, //1
+		-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, //2
+		-1.0f,  1.0f, 0.0f, 0.0f, 0.0f,//3
+		1.0f, -1.0f, 0.0f,  1.0f, 1.0f, //4
+		1.0f,  1.0f, 0.0f,  1.0f, 0.0f //5
+	}
+};
+#endif
 
 //********************************************************************************
 // Global.
@@ -3386,7 +3409,7 @@ static void R_Gamma_update()
 // Frame.
 //********************************************************************************
 static void R_Frame_clear(int eyeIndex)
-{// TODO SailfishOS : maybe here we should draw our framebuffer rotated with screen orientation
+{
 	GLbitfield clearFlags = 0;
 
 	// Color buffer.
@@ -3576,6 +3599,9 @@ GLuint loadProgram(const char *vp, const char *fp, const char **attributes, int 
 	return program;
 }
 
+void create_fbo() {
+
+}
 #endif
 
 void R_Frame_end()
@@ -3597,36 +3623,16 @@ void R_Frame_end()
 #ifdef SAILFISH_FBO
 	// TODO Sailfish here we should unbind our buffer and draw it on quad
 	// ============================================================================= begin
-	static GLuint quad_VertexArrayID = 0;
-	static GLuint quad_vertexbuffer = 0;
-	static GLuint quad_programID = 0;
-	static GLuint texID = 0;
-	static GLuint Framebuffer = 0;
-	static GLuint ColorBuffer = 0;
-	static GLuint RenderedTexture = 0;
-	static GLuint DepthTexture = 0;
-	static GLuint DepthBuffer = 0;
-	static GLuint StencilBuffer = 0;
-	static GLuint vw = 0, vh = 0;
 
-	static const GLfloat g_quad_vertex_buffer_data[] = {
-		-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, //0
-	  	 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, //1
-		-1.0f,  1.0f, 0.0f, 0.0f, 0.0f, //2
-		-1.0f,  1.0f, 0.0f, 0.0f, 0.0f,//3
-		1.0f, -1.0f, 0.0f,  1.0f, 1.0f, //4
-		1.0f,  1.0f, 0.0f,  1.0f, 0.0f //5
-	};
-
-	if(quad_VertexArrayID == 0)
+	if(sailfish_fbo.quad_VertexArrayID == 0)
 	{
 		// The fullscreen quad's FBO
-		GL_CHECK( glGenVertexArrays(1, &quad_VertexArrayID) );
-		GL_CHECK( glBindVertexArray(quad_VertexArrayID) );
+		GL_CHECK( glGenVertexArrays(1, &sailfish_fbo.quad_VertexArrayID) );
+		GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
 
-		GL_CHECK( glGenBuffers(1, &quad_vertexbuffer) );
-		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer) );
-		GL_CHECK( glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW) );
+		GL_CHECK( glGenBuffers(1, &sailfish_fbo.quad_vertexbuffer) );
+		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
+		GL_CHECK( glBufferData(GL_ARRAY_BUFFER, sizeof(sailfish_fbo.g_quad_vertex_buffer_data), sailfish_fbo.g_quad_vertex_buffer_data, GL_STATIC_DRAW) );
 
 		const char *vp =
 	        //"#version 150 core\n"
@@ -3670,23 +3676,23 @@ void R_Frame_end()
 		};
 
 		// Create and compile our GLSL program from the shaders
-		GL_CHECK( quad_programID = loadProgram( vp, fp , attribs, 2) );
-		GL_CHECK(  texID = glGetUniformLocation(quad_programID, "u_texture") );
+		GL_CHECK( sailfish_fbo.quad_programID = loadProgram( vp, fp , attribs, 2) );
+		GL_CHECK( sailfish_fbo.texID = glGetUniformLocation(sailfish_fbo.quad_programID, "u_texture") );
 		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, GL_NONE) );
 		GL_CHECK( glBindVertexArray(GL_NONE) );
 		// GLuint timeID = glGetUniformLocation(quad_programID, "time");
 	}
 
-	if( RenderedTexture != 0)
+	if( sailfish_fbo.RenderedTexture != 0)
 	{// try draw your buffer 
 		( glBindFramebuffer(GL_FRAMEBUFFER, 0) );
 		glGetError();
-		GL_CHECK( glViewport(0,0,vh,vw) );
+		GL_CHECK( glViewport(0,0,sailfish_fbo.vh,sailfish_fbo.vw) );
 		// GLuint program = glGet(GL_CURRENT_PROGRAM);
 		// GLuint texture = glGet(GL_TEXTURE_BINDING_2D);
-		GL_CHECK( glUseProgram(quad_programID) );
-		GL_CHECK( glBindVertexArray(quad_VertexArrayID) );
-		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer) );
+		GL_CHECK( glUseProgram(sailfish_fbo.quad_programID) );
+		GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
+		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
 
 		GL_CHECK( glEnableVertexAttribArray(0));
 		GL_CHECK( glVertexAttribPointer(
@@ -3706,10 +3712,10 @@ void R_Frame_end()
 					sizeof(GLfloat) * 5,// stride
 					(void*)(sizeof(GLfloat) * 3)// array buffer offset
 					));
-		GL_CHECK( glUniform1i(texID, 0) );
+		GL_CHECK( glUniform1i(sailfish_fbo.texID, 0) );
 
 		// GL_CHECK( glDisable(GL_DEPTH_TEST) );
-		GL_CHECK( glBindTexture(GL_TEXTURE_2D,RenderedTexture) );
+		GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.RenderedTexture) );
 		// GL_CHECK( glBindTexture(GL_TEXTURE_2D,DepthTexture) );
 
 		GL_CHECK( glDrawArrays(GL_TRIANGLES, 0, 2 * 3) );
@@ -3725,36 +3731,35 @@ void R_Frame_end()
 	Gles_checkGlesError();
 	Gles_checkEglError();
 #ifdef SAILFISH_FBO
-	// TODO SailfishOS: here we should set texture buffer for render all in Frame 
 	//============================================================================= begin
-	if( Framebuffer == 0 ) {
-		vw =  viddef.width;
-		vh =  viddef.height;
+	if( sailfish_fbo.Framebuffer == 0 ) {
+		sailfish_fbo.vw =  viddef.width;
+		sailfish_fbo.vh =  viddef.height;
 		// create framebuffer 
-		GL_CHECK( glGenFramebuffers(1, &Framebuffer) );
-		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer) )
+		GL_CHECK( glGenFramebuffers(1, &sailfish_fbo.Framebuffer) );
+		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) )
 		// ======================
 		// create Render Texture
-		GL_CHECK(glGenTextures(1, &RenderedTexture));
-		GL_CHECK(glBindTexture(GL_TEXTURE_2D, RenderedTexture));
+		GL_CHECK(glGenTextures(1, &sailfish_fbo.RenderedTexture));
+		GL_CHECK(glBindTexture(GL_TEXTURE_2D, sailfish_fbo.RenderedTexture));
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE) );
-		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, vw, vh, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
+		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, sailfish_fbo.vw, sailfish_fbo.vh, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0) );
 		
 		// attach it to currently bound framebuffer object
 #if 1 // RenderBuffer as depth buffer
-		GL_CHECK( glGenRenderbuffers(1, &DepthBuffer) );
-		GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, DepthBuffer) ); 
-		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, vw, vh) );  
+		GL_CHECK( glGenRenderbuffers(1, &sailfish_fbo.DepthBuffer) );
+		GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) ); 
+		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, sailfish_fbo.vw, sailfish_fbo.vh) );  
 
-		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderedTexture, 0) );
-		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, DepthBuffer) );
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sailfish_fbo.RenderedTexture, 0) );
+		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
 #else
-		GL_CHECK(glGenTextures(1, &DepthTexture));
-		GL_CHECK( glBindTexture(GL_TEXTURE_2D, DepthTexture) );
+		GL_CHECK(glGenTextures(1, &sailfish_fbo.DepthTexture));
+		GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.DepthTexture) );
 		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST) ); 
 		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST) );
 		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
@@ -3810,11 +3815,13 @@ void R_Frame_end()
 	// Render to our framebuffer
 	
 	frame_Count++;
-	if( Framebuffer ) 
+	if( sailfish_fbo.Framebuffer ) 
 	{
-		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer) );
+		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) );
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sailfish_fbo.RenderedTexture, 0) );
+		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
 		// GL_CHECK( glViewport(0,0,vw,vh) );
-		oglwSetViewport(0,0,vw,vh);
+		oglwSetViewport(0,0,sailfish_fbo.vw,sailfish_fbo.vh);
 		// GL_CHECK( glClearColor(0.1f, 0.1f, 0.1f, 1.0f) );
 		// GL_CHECK( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ); // we're not using the stencil buffer now
 		// GL_CHECK( glEnable(GL_DEPTH_TEST) );
@@ -4119,7 +4126,7 @@ static void R_Window_getValidWindowSize(int maxWindowWidth, int maxWindowHeight,
         requestedWidth = R_WIDTH_MIN;
     if (requestedHeight < R_HEIGHT_MIN)
         requestedHeight = R_HEIGHT_MIN;
-#if defined(SAILFISH_FBO) || defined(SAILFISHOS)
+#if defined(SAILFISH_FBO) && defined(SAILFISHOS)
     requestedHeight = maxWindowWidth;
     requestedWidth = maxWindowHeight;
 #endif
@@ -4258,7 +4265,7 @@ static bool R_Window_update(bool forceFlag)
             if (!currentFullscreen)
             {
                 int currentWidth, currentHeight;
-			#ifdef SAILFISH_FBO
+			#if defined(SAILFISH_FBO) && defined(SAILFISHOS)
 				SDL_GetWindowSize(sdlw->window, &currentHeight, &currentWidth);
 			#else
                 SDL_GetWindowSize(sdlw->window, &currentWidth, &currentHeight);
@@ -4300,13 +4307,9 @@ static bool R_Window_update(bool forceFlag)
 				if (windowY < 0)
 					windowY = 0;
 				#endif
-#ifdef SAILFISH_FBO
+
 				Cvar_SetValue("r_window_width", windowWidth);
 				Cvar_SetValue("r_window_height", windowHeight);
-#else
-				Cvar_SetValue("r_window_width", windowWidth);
-				Cvar_SetValue("r_window_height", windowHeight);
-#endif
 				Cvar_SetValue("r_window_x", windowX);
 				Cvar_SetValue("r_window_y", windowY);
 				Cvar_SetValue("r_fullscreen", fullscreen);
@@ -4390,6 +4393,10 @@ static bool R_Window_createContext()
 			break;
 		}
 	}
+
+#ifdef SAILFISH_FBO
+	create_fbo();
+#endif
 
 	r_msaaAvailable = (eglwContext->configInfoAbilities.samples > 0);
 	Cvar_SetValue("r_msaa_samples", eglwContext->configInfo.samples);

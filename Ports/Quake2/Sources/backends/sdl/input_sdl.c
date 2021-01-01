@@ -36,6 +36,59 @@ static int l_mouseOldX, l_mouseOldY;
 static SDL_Joystick *l_joystick = NULL;
 static SDL_GameController *l_controller = NULL;
 
+#ifdef SAILFISHOS
+struct _TouchFinger {
+	SDL_TouchID  touch_id;
+	SDL_FingerID finger_id;
+	float x;
+	float y;
+	float dx;
+	float dy;
+	Uint32 timestamp;
+	bool pressed;
+	bool wait_double_tap;
+};
+typedef struct _TouchFinger TouchFinger;
+
+struct _ScreenRect {
+	int x, y;
+	int w, h;
+};
+typedef struct _ScreenRect ScreenRect;
+
+#define MAX_FINGER 5
+#define DOUBLE_TAP_TIME 250
+#define DOUBLE_TAP_SIZE 50.0f
+
+static TouchFinger fingers[5] = {
+	{0,0,0.0f,0.0f,0.0f,0.0f,false},
+	{0,0,0.0f,0.0f,0.0f,0.0f,false},
+	{0,0,0.0f,0.0f,0.0f,0.0f,false},
+	{0,0,0.0f,0.0f,0.0f,0.0f,false},
+	{0,0,0.0f,0.0f,0.0f,0.0f,false}
+};
+
+#define SCREEN_W 1280
+#define SCREEN_H 800
+static ScreenRect sr_mouse_look = {
+	641,0,640,SCREEN_H
+};
+
+static ScreenRect sr_joystick = {
+	0,0,640,SCREEN_H
+};
+
+bool is_PointInRect( float x, float y, ScreenRect *sr) {
+	return sr->x <= (int)x && sr->y <= (int)y && sr->x + sr->w >= (int)x && sr->y + sr->h >= (int)y;
+}
+// transform touch point to FBO orientation 
+void transformTouch( float *x, float *y ) {
+	float tmp = *y;
+	*y = SCREEN_H - *x;
+	*x = tmp;
+}
+#endif
+
 static int IN_TranslateSDLtoQ2Key(Sint32 keysym)
 {
 	int key;
@@ -324,6 +377,7 @@ bool IN_processEvent(SDL_Event *event)
 		Key_Event((event->wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), true);
 		Key_Event((event->wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), false);
 		break;
+#ifndef SAILFISHOS
 	case SDL_MOUSEBUTTONDOWN:
 	// fall-through
 	case SDL_MOUSEBUTTONUP:
@@ -360,51 +414,149 @@ bool IN_processEvent(SDL_Event *event)
 			l_mouseY += event->motion.yrel;
 		}
 		break;
-	case SDL_FINGERUP:
+#endif
+#ifdef SAILFISHOS
 	case SDL_FINGERDOWN:
 		{
-			if( cls.key_dest == key_menu ) 
-			{
- 				if( event->type == SDL_FINGERUP ) {
-					Key_Event(K_DOWNARROW, false);
-					Key_Event(K_UPARROW, false);
+			int touch_count = 0;
+			transformTouch(&event->tfinger.x, &event->tfinger.y);
+			for(int i = 0; i < MAX_FINGER; i++) {
+				if( fingers[i].wait_double_tap ) {
+					fingers[i].pressed = true;
+					fingers[i].dx = event->tfinger.dx;
+					fingers[i].dy = event->tfinger.dy;
+					fingers[i].touch_id = event->tfinger.touchId;
+					fingers[i].finger_id = event->tfinger.fingerId;
+
+					ScreenRect sr = {
+						fingers[i].x - DOUBLE_TAP_SIZE * 0.5f,
+						fingers[i].y - DOUBLE_TAP_SIZE * 0.5f,
+						DOUBLE_TAP_SIZE, 
+						DOUBLE_TAP_SIZE
+					};
+					Uint32 tap_time = event->tfinger.timestamp - fingers[i].timestamp;
+					if( tap_time <= DOUBLE_TAP_TIME * 2 
+						&& is_PointInRect(event->tfinger.x, event->tfinger.y, &sr)) {
+						fingers[i].wait_double_tap = true;
+						Key_Event(K_ENTER, true);
+					}
+					fingers[i].x = event->tfinger.x;
+					fingers[i].y = event->tfinger.y;
+					fingers[i].timestamp = event->tfinger.timestamp;
+					break;
 				}
-				Key_Event(K_ENTER, true);
+				else if( !fingers[i].pressed  ) {
+					fingers[i].x = event->tfinger.x;
+					fingers[i].y = event->tfinger.y;
+					fingers[i].dx = event->tfinger.dx;
+					fingers[i].dy = event->tfinger.dy;
+					fingers[i].touch_id = event->tfinger.touchId;
+					fingers[i].finger_id = event->tfinger.fingerId;
+					fingers[i].timestamp = event->tfinger.timestamp;
+					fingers[i].pressed = true;
+					fingers[i].wait_double_tap = false; 
+					break;
+				}
 			}
-			else if( cls.key_dest == key_game ) 
-			{
-				int key = -1;
-				key = K_MOUSE1;
-				// switch (event->button.button)
-				// {
-				// default:
-				//     break;
-				// case SDL_BUTTON_LEFT:
-				//     key = K_MOUSE1;
-				//     break;
-				// case SDL_BUTTON_MIDDLE:
-				//     key = K_MOUSE3;
-				//     break;
-				// case SDL_BUTTON_RIGHT:
-				//     key = K_MOUSE2;
-				//     break;
-				// case SDL_BUTTON_X1:
-				//     key = K_MOUSE4;
-				//     break;
-				// case SDL_BUTTON_X2:
-				//     key = K_MOUSE5;
-				//     break;
-				// }
-				if (key >= 0)
-					Key_Event(key, (event->type == SDL_FINGERDOWN));
+			// if( touch_count > 1 ) {
+			// 	printf("Hello world!\n");
+			// }
+		}
+		break;
+	case SDL_FINGERUP:
+		{
+			int touch_count = 0;
+			transformTouch(&event->tfinger.x, &event->tfinger.y);
+			// if( event->type == SDL_FINGERDOWN )
+			for(int i = 0; i < MAX_FINGER; i++) {
+				if( fingers[i].pressed && fingers[i].finger_id == event->tfinger.fingerId ) {
+					if( event->tfinger.timestamp - fingers[i].timestamp <= DOUBLE_TAP_TIME ) {
+						if(!fingers[i].wait_double_tap) {
+							fingers[i].wait_double_tap = true;
+							fingers[i].pressed = false;
+							fingers[i].timestamp = event->tfinger.timestamp;
+							break;
+						}
+						else {
+							Key_Event(K_ENTER, false);
+							fingers[i].wait_double_tap = false;
+						}
+					}
+					if( is_PointInRect(fingers[i].x, fingers[i].y, &sr_joystick) ) {
+						Key_Event(K_DOWNARROW, false);
+						Key_Event(K_UPARROW, false);
+						Key_Event(SDLK_a, false);
+						Key_Event(SDLK_d, false);
+					}
+
+					fingers[i].x = 0;
+					fingers[i].y = 0;
+					fingers[i].dx = 0;
+					fingers[i].dy = 0;
+					fingers[i].touch_id = 0;
+					fingers[i].finger_id = 0;
+					fingers[i].pressed = false;
+					fingers[i].wait_double_tap = false;
+
+					break;
+				}
 			}
         }
 		break;
 	case SDL_FINGERMOTION:
+		transformTouch(&event->tfinger.x, &event->tfinger.y);
 		if (cls.key_dest == key_game && !cl_paused->value)
 		{
-			l_mouseX += event->tfinger.dx;
-			l_mouseY += event->tfinger.dy;
+			for(int i = 0; i < MAX_FINGER; i++ ) {
+				if( fingers[i].pressed && event->tfinger.fingerId == fingers[i].finger_id ) {
+					if ( is_PointInRect(fingers[i].x, fingers[i].y, &sr_mouse_look) ) {
+						l_mouseX += event->tfinger.dy * 2.0;
+						l_mouseY += -event->tfinger.dx * 2.0;
+					}
+					else if( is_PointInRect(fingers[i].x, fingers[i].y, &sr_joystick) ) {
+						float dx = event->tfinger.x - fingers[i].x;	
+						float dy = event->tfinger.y - fingers[i].y;	
+						if( dy > 15.0 ) {
+							// Key_Event(K_GAMEPAD_DOWN, true);
+							// Key_Event(K_GAMEPAD_UP, false);
+							Key_Event(K_UPARROW, false);
+							Key_Event(K_DOWNARROW, true);
+						}
+						else if( dy < -15.0 ) {
+							// Key_Event(K_GAMEPAD_DOWN, false);
+							// Key_Event(K_GAMEPAD_UP, true);
+							Key_Event(K_UPARROW, true);
+							Key_Event(K_DOWNARROW, false);
+						}
+						else {
+							// Key_Event(K_GAMEPAD_DOWN, false);
+							// Key_Event(K_GAMEPAD_UP, false);
+							Key_Event(K_UPARROW, false);
+							Key_Event(K_DOWNARROW, false);
+						}
+
+						if( dx > 15.0 ) {
+							// Key_Event(K_GAMEPAD_LEFT, false);
+							// Key_Event(K_GAMEPAD_RIGHT, true);
+							Key_Event(K_GAMEPAD_LEFT, false);
+							Key_Event(SDLK_d, true);
+						}
+						else if( dx < -15.0 ) {
+							// Key_Event(K_GAMEPAD_LEFT, true);
+							// Key_Event(K_GAMEPAD_RIGHT, false);
+							Key_Event(K_GAMEPAD_LEFT, true);
+							Key_Event(SDLK_d, false);
+						}
+						else {
+							// Key_Event(K_GAMEPAD_LEFT, false);
+							// Key_Event(K_GAMEPAD_RIGHT, false);
+							Key_Event(K_GAMEPAD_LEFT, false);
+							Key_Event(SDLK_d, false);
+						}
+					}
+					break;
+				}
+			}
 		}
 		else if( cls.key_dest == key_menu ) 
 		{
@@ -414,13 +566,18 @@ bool IN_processEvent(SDL_Event *event)
 			else if( event->tfinger.dy < -15.0 ) {
             	Key_Event(K_UPARROW, true);
 			}
+			else {
+				Key_Event(K_DOWNARROW, false);
+				Key_Event(K_UPARROW, false);
+			}
 		}
 		break;
-		#if !defined(__GCW_ZERO__)
+#endif // SAILFISHOS
+#if !defined(__GCW_ZERO__)
 	case SDL_TEXTINPUT:
 		Char_Event(event->text.text[0], false);
 		break;
-		#endif
+#endif
 
 	case SDL_KEYDOWN:
 	case SDL_KEYUP:

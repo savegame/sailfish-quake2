@@ -5,6 +5,9 @@
 
 SdlwContext *sdlwContext = NULL;
 
+#ifdef SAILFISHOS
+#include <SDL_hints.h>
+#endif
 //SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK
 
 static void sdlwLogOutputFunction(void *userdata, int category, SDL_LogPriority priority, const char *message)
@@ -151,7 +154,9 @@ bool sdlwCreateWindow(const char *windowName, int windowWidth, int windowHeight,
     flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN;
 #endif
    	if ((sdlw->window=SDL_CreateWindow(windowName, windowPos, windowPos, windowWidth, windowHeight, flags))==NULL) goto on_error;
-
+#ifdef SAILFISHOS
+    SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+#endif
     return false;
 on_error:
     return true;

@@ -313,7 +313,7 @@ static void SCR_CalcVrect()
 	scr_vrect.width = viddef.width * size / 100;
 	scr_vrect.width &= ~1;
 
-	scr_vrect.height = viddef.height * size / 100;
+ 	scr_vrect.height = viddef.height * size / 100;
 	scr_vrect.height &= ~1;
 
 	scr_vrect.x = (viddef.width - scr_vrect.width) / 2;
@@ -385,9 +385,15 @@ void SCR_Init()
 	scr_graphscale = Cvar_Get("graphscale", "1", 0);
 	scr_graphshift = Cvar_Get("graphshift", "0", 0);
 	scr_drawall = Cvar_Get("scr_drawall", "0", 0);
+#ifdef SAILFISH_FBO 
+	gl_hudscale = Cvar_Get("gl_hudscale", "3", CVAR_ARCHIVE);
+	gl_consolescale = Cvar_Get("gl_consolescale", "3", CVAR_ARCHIVE);
+	gl_menuscale = Cvar_Get("gl_menuscale", "3", CVAR_ARCHIVE);
+#else
 	gl_hudscale = Cvar_Get("gl_hudscale", "-1", CVAR_ARCHIVE);
 	gl_consolescale = Cvar_Get("gl_consolescale", "-1", CVAR_ARCHIVE);
 	gl_menuscale = Cvar_Get("gl_menuscale", "-1", CVAR_ARCHIVE);
+#endif
 
 	/* register our commands */
 	Cmd_AddCommand("timerefresh", SCR_TimeRefresh_f);
@@ -1249,7 +1255,7 @@ void SCR_UpdateScreen()
 		separation[1] = 0;
 		numframes = 1;
 	}
-	// TODO SailfishOS: here we should set texture buffer for render all in Frame 
+
 	for (i = 0; i < numframes; i++)
 	{
 		R_Frame_begin(separation[i], i);
