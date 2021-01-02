@@ -3600,7 +3600,91 @@ GLuint loadProgram(const char *vp, const char *fp, const char **attributes, int 
 }
 
 void create_fbo() {
+	GLuint dims[2];
+	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
+	//============================================================================= begin
+	if( sailfish_fbo.Framebuffer == 0 ) {
+		sailfish_fbo.vw =  2048;
+		sailfish_fbo.vh =  2048;
+		// create framebuffer 
+		GL_CHECK( glGenFramebuffers(1, &sailfish_fbo.Framebuffer) );
+		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) )
+		// ======================
+		// create Render Texture
+		GL_CHECK(glGenTextures(1, &sailfish_fbo.RenderedTexture));
+		GL_CHECK(glBindTexture(GL_TEXTURE_2D, sailfish_fbo.RenderedTexture));
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
+		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE) );
+		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sailfish_fbo.vw, sailfish_fbo.vh, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+		GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0) );
+		
+		// attach it to currently bound framebuffer object
+#if 1 // RenderBuffer as depth buffer
+		GL_CHECK( glGenRenderbuffers(1, &sailfish_fbo.DepthBuffer) );
+		GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) ); 
+		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, sailfish_fbo.vw, sailfish_fbo.vh) );  
 
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sailfish_fbo.RenderedTexture, 0) );
+		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
+#else
+		GL_CHECK(glGenTextures(1, &sailfish_fbo.DepthTexture));
+		GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.DepthTexture) );
+		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST) ); 
+		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST) );
+		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
+		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE) );
+		GL_CHECK( glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, viddef.width, viddef.height, 0,
+			GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 0) );
+		GL_CHECK( glBindTexture(GL_TEXTURE_2D, 0) );
+
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderedTexture, 0) );
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthTexture, 0) );
+#endif
+
+		// Stencil - just skip it
+		// glGenFramebuffers(1, &StencilBuffer);
+		// glBindFramebuffer(GL_FRAMEBUFFER, StencilBuffer); 
+		// glRenderbufferStorage(GL_FRAMEBUFFER, 	GL_STENCIL_INDEX8, viddef.width, viddef.height);  
+		// glBindFramebuffer(GL_FRAMEBUFFER,Framebuffer);	
+
+		// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER, StencilBuffer);
+		// ==========================
+
+		sailfish_fbo.vw =  viddef.width;
+		sailfish_fbo.vh =  viddef.height;
+
+		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+		GL_CHECK(glDrawBuffers(1, DrawBuffers));
+
+		// Check that our FBO creation was successful
+        GLuint uStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+        if(uStatus != GL_FRAMEBUFFER_COMPLETE)
+        {
+			const char *s;
+			switch(uStatus) {
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+				s = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+				s = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+				s = "GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS";
+				break;
+			case GL_FRAMEBUFFER_UNSUPPORTED:
+				s = "GL_FRAMEBUFFER_UNSUPPORTED";
+				break;
+			}
+            R_printf(PRINT_ALL, "ERROR: Failed to initialise FBO: %s\n",s);
+        }       
+
+		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER,  GL_NONE) );
+		// GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, GL_NONE) );
+		// GL_CHECK( glBindTexture(GL_TEXTURE_2D, GL_NONE) );
+	}
 }
 #endif
 
@@ -3660,11 +3744,11 @@ void R_Frame_end()
 	        "void main()\n"
 	        "{\n"
 			"  vec3 color = texture2D(u_texture, vec2(v_texcoord.x, v_texcoord.y).yx).rgb;\n"
-			"  if( v_texcoord.y < 0.1 ) {\n"
-			"    color.r = 0.0;\n"
-			"  } else if( v_texcoord.y > 0.9){\n"
-			"    color.g = 0.0;\n"
-			"  }\n"
+			// "  if( v_texcoord.y < 0.1 ) {\n"
+			// "    color.r = 0.0;\n"
+			// "  } else if( v_texcoord.y > 0.9){\n"
+			// "    color.g = 0.0;\n"
+			// "  }\n"
 			"  \n"
 	        "  gl_FragColor = vec4(color.rgb,1.0); \n"
 	        "}\n";
@@ -3727,94 +3811,14 @@ void R_Frame_end()
 	}
 	// ============================================================================= ebnd
 #endif // SAILFISH_FBO
+
 	eglwSwapBuffers();
 	Gles_checkGlesError();
 	Gles_checkEglError();
-#ifdef SAILFISH_FBO
-	//============================================================================= begin
-	if( sailfish_fbo.Framebuffer == 0 ) {
-		sailfish_fbo.vw =  viddef.width;
-		sailfish_fbo.vh =  viddef.height;
-		// create framebuffer 
-		GL_CHECK( glGenFramebuffers(1, &sailfish_fbo.Framebuffer) );
-		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) )
-		// ======================
-		// create Render Texture
-		GL_CHECK(glGenTextures(1, &sailfish_fbo.RenderedTexture));
-		GL_CHECK(glBindTexture(GL_TEXTURE_2D, sailfish_fbo.RenderedTexture));
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE) );
-		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, sailfish_fbo.vw, sailfish_fbo.vh, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
-		GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0) );
-		
-		// attach it to currently bound framebuffer object
-#if 1 // RenderBuffer as depth buffer
-		GL_CHECK( glGenRenderbuffers(1, &sailfish_fbo.DepthBuffer) );
-		GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) ); 
-		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, sailfish_fbo.vw, sailfish_fbo.vh) );  
-
-		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sailfish_fbo.RenderedTexture, 0) );
-		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
-#else
-		GL_CHECK(glGenTextures(1, &sailfish_fbo.DepthTexture));
-		GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.DepthTexture) );
-		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST) ); 
-		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST) );
-		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
-		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE) );
-		GL_CHECK( glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, viddef.width, viddef.height, 0,
-			GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 0) );
-		GL_CHECK( glBindTexture(GL_TEXTURE_2D, 0) );
-
-		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderedTexture, 0) );
-		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthTexture, 0) );
-#endif
-
-		// Stencil - just skip it
-		// glGenFramebuffers(1, &StencilBuffer);
-		// glBindFramebuffer(GL_FRAMEBUFFER, StencilBuffer); 
-		// glRenderbufferStorage(GL_FRAMEBUFFER, 	GL_STENCIL_INDEX8, viddef.width, viddef.height);  
-		// glBindFramebuffer(GL_FRAMEBUFFER,Framebuffer);	
-
-		// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER, StencilBuffer);
-		// ==========================
-
-		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-		GL_CHECK(glDrawBuffers(1, DrawBuffers));
-
-		// Check that our FBO creation was successful
-        GLuint uStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
-        if(uStatus != GL_FRAMEBUFFER_COMPLETE)
-        {
-			const char *s;
-			switch(uStatus) {
-			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-				s = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
-				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-				s = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
-				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-				s = "GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS";
-				break;
-			case GL_FRAMEBUFFER_UNSUPPORTED:
-				s = "GL_FRAMEBUFFER_UNSUPPORTED";
-				break;
-			}
-            R_printf(PRINT_ALL, "ERROR: Failed to initialise FBO: %s\n",s);
-        }       
-
-		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER,  GL_NONE) );
-		// GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, GL_NONE) );
-		// GL_CHECK( glBindTexture(GL_TEXTURE_2D, GL_NONE) );
-	}
 
 	// Render to our framebuffer
-	
-	frame_Count++;
+#ifdef SAILFISH_FBO
+	// frame_Count++;
 	if( sailfish_fbo.Framebuffer ) 
 	{
 		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) );
