@@ -3599,6 +3599,133 @@ GLuint loadProgram(const char *vp, const char *fp, const char **attributes, int 
 	return program;
 }
 
+void bind_fbo() {
+	if( sailfish_fbo.Framebuffer == 0 )
+		return; 
+	
+	GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) );
+	// GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sailfish_fbo.RenderedTexture, 0) );
+	// GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
+	// GL_CHECK( glViewport(0,0,vw,vh) );
+	oglwSetViewport(0,0,sailfish_fbo.vw,sailfish_fbo.vh);
+	// GL_CHECK( glClearColor(0.1f, 0.1f, 0.1f, 1.0f) );
+	// GL_CHECK( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ); // we're not using the stencil buffer now
+	// GL_CHECK( glEnable(GL_DEPTH_TEST) );	
+}
+
+/** Draw quad with FBO buffer texture
+ * 
+ * */
+void draw_fbo_quad() {
+	if( sailfish_fbo.RenderedTexture == 0)
+		return;
+	( glBindFramebuffer(GL_FRAMEBUFFER, 0) ); // this return glError! is this normal?
+	glGetError();
+	GL_CHECK( glViewport(0,0,sailfish_fbo.vh,sailfish_fbo.vw) );
+	// GLuint program = glGet(GL_CURRENT_PROGRAM);
+	// GLuint texture = glGet(GL_TEXTURE_BINDING_2D);
+	GL_CHECK( glUseProgram(sailfish_fbo.quad_programID) );
+	GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
+	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
+
+	GL_CHECK( glEnableVertexAttribArray(0));
+	GL_CHECK( glVertexAttribPointer(
+				0,                  // attribute 0
+				3,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				sizeof(GLfloat) * 5,// stride
+				(void*)(0) // array buffer offset
+				));
+	GL_CHECK( glEnableVertexAttribArray(1) );
+	GL_CHECK( glVertexAttribPointer(
+				1,                  // attribute 1
+				2,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				sizeof(GLfloat) * 5,// stride
+				(void*)(sizeof(GLfloat) * 3)// array buffer offset
+				));
+	GL_CHECK( glUniform1i(sailfish_fbo.texID, 0) );
+
+	// GL_CHECK( glDisable(GL_DEPTH_TEST) );
+	GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.RenderedTexture) );
+	// GL_CHECK( glBindTexture(GL_TEXTURE_2D,DepthTexture) );
+
+	GL_CHECK( glDrawArrays(GL_TRIANGLES, 0, 2 * 3) );
+	
+	// GL_CHECK( glBindTexture(GL_TEXTURE_2D,texture) );
+	GL_CHECK( glUseProgram(oglwGetProgram()) );
+	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, GL_NONE) );
+	GL_CHECK( glBindVertexArray(GL_NONE) );
+}
+
+/** Crete quad for FBO drawing
+ * 
+ */
+void create_fbo_quad() {
+	if(sailfish_fbo.quad_VertexArrayID != 0)
+		return;
+	// The fullscreen quad's FBO
+	GL_CHECK( glGenVertexArrays(1, &sailfish_fbo.quad_VertexArrayID) );
+	GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
+
+	GL_CHECK( glGenBuffers(1, &sailfish_fbo.quad_vertexbuffer) );
+	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
+	GL_CHECK( glBufferData(GL_ARRAY_BUFFER, sizeof(sailfish_fbo.g_quad_vertex_buffer_data), sailfish_fbo.g_quad_vertex_buffer_data, GL_STATIC_DRAW) );
+
+	const char *vp =
+		//"#version 150 core\n"
+		"attribute vec3 a_position;\n"
+		"attribute vec2 a_texcoord;\n"
+		// "uniform mat4 u_view;\n"
+		// "uniform mat4 u_projection;\n"
+		"varying vec2 v_texcoord;\n"
+
+		"void main()\n"
+		"{\n"
+		"  gl_Position = vec4(a_position.xy, 0.0, 1.0);\n"
+		"  v_texcoord = a_texcoord;\n"
+		"}\n";
+	// TODO modufy for right landscape orinetation 
+	const char *fp =
+		//"#version 150 core\n"
+		#ifdef EGLW_GLES2
+		"precision mediump float;\n"
+		#endif
+		"varying vec2 v_texcoord;\n"
+		"uniform sampler2D u_texture;\n"
+		// "out vec4 o_color;\n"
+
+		"void main()\n"
+		"{\n"
+		"  vec3 color = texture2D(u_texture, vec2(v_texcoord.x, v_texcoord.y).yx).rgb;\n"
+		// "  if( v_texcoord.y < 0.1 ) {\n"
+		// "    color.r = 0.0;\n"
+		// "  } else if( v_texcoord.y > 0.9){\n"
+		// "    color.g = 0.0;\n"
+		// "  }\n"
+		"  \n"
+		"  gl_FragColor = vec4(color.rgb,1.0); \n"
+		"}\n";
+
+	const char *attribs[] =
+	{
+		"a_position",
+		"a_texcoord"
+	};
+
+	// Create and compile our GLSL program from the shaders
+	GL_CHECK( sailfish_fbo.quad_programID = loadProgram( vp, fp , attribs, 2) );
+	GL_CHECK( sailfish_fbo.texID = glGetUniformLocation(sailfish_fbo.quad_programID, "u_texture") );
+	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, GL_NONE) );
+	GL_CHECK( glBindVertexArray(GL_NONE) );
+	// GLuint timeID = glGetUniformLocation(quad_programID, "time");
+}
+
+/** Create FBO with color texture and depth render buffer
+ * 
+ */
 void create_fbo() {
 	GLuint dims[2];
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
@@ -3628,7 +3755,7 @@ void create_fbo() {
 
 		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sailfish_fbo.RenderedTexture, 0) );
 		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
-#else
+#else // or as Depth texture
 		GL_CHECK(glGenTextures(1, &sailfish_fbo.DepthTexture));
 		GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.DepthTexture) );
 		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST) ); 
@@ -3709,106 +3836,9 @@ void R_Frame_end()
 	// ============================================================================= begin
 
 	if(sailfish_fbo.quad_VertexArrayID == 0)
-	{
-		// The fullscreen quad's FBO
-		GL_CHECK( glGenVertexArrays(1, &sailfish_fbo.quad_VertexArrayID) );
-		GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
+		create_fbo_quad();
 
-		GL_CHECK( glGenBuffers(1, &sailfish_fbo.quad_vertexbuffer) );
-		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
-		GL_CHECK( glBufferData(GL_ARRAY_BUFFER, sizeof(sailfish_fbo.g_quad_vertex_buffer_data), sailfish_fbo.g_quad_vertex_buffer_data, GL_STATIC_DRAW) );
-
-		const char *vp =
-	        //"#version 150 core\n"
-	        "attribute vec3 a_position;\n"
-	        "attribute vec2 a_texcoord;\n"
-	        // "uniform mat4 u_view;\n"
-	        // "uniform mat4 u_projection;\n"
-	        "varying vec2 v_texcoord;\n"
-
-	        "void main()\n"
-	        "{\n"
-	        "  gl_Position = vec4(a_position.xy, 0.0, 1.0);\n"
-	        "  v_texcoord = a_texcoord;\n"
-	        "}\n";
-
-		const char *fp =
-	        //"#version 150 core\n"
-			#ifdef EGLW_GLES2
-			"precision mediump float;\n"
-			#endif
-	        "varying vec2 v_texcoord;\n"
-	        "uniform sampler2D u_texture;\n"
-	        // "out vec4 o_color;\n"
-
-	        "void main()\n"
-	        "{\n"
-			"  vec3 color = texture2D(u_texture, vec2(v_texcoord.x, v_texcoord.y).yx).rgb;\n"
-			// "  if( v_texcoord.y < 0.1 ) {\n"
-			// "    color.r = 0.0;\n"
-			// "  } else if( v_texcoord.y > 0.9){\n"
-			// "    color.g = 0.0;\n"
-			// "  }\n"
-			"  \n"
-	        "  gl_FragColor = vec4(color.rgb,1.0); \n"
-	        "}\n";
-
-		const char *attribs[] =
-		{
-	    	"a_position",
-	    	"a_texcoord"
-		};
-
-		// Create and compile our GLSL program from the shaders
-		GL_CHECK( sailfish_fbo.quad_programID = loadProgram( vp, fp , attribs, 2) );
-		GL_CHECK( sailfish_fbo.texID = glGetUniformLocation(sailfish_fbo.quad_programID, "u_texture") );
-		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, GL_NONE) );
-		GL_CHECK( glBindVertexArray(GL_NONE) );
-		// GLuint timeID = glGetUniformLocation(quad_programID, "time");
-	}
-
-	if( sailfish_fbo.RenderedTexture != 0)
-	{// try draw your buffer 
-		( glBindFramebuffer(GL_FRAMEBUFFER, 0) );
-		glGetError();
-		GL_CHECK( glViewport(0,0,sailfish_fbo.vh,sailfish_fbo.vw) );
-		// GLuint program = glGet(GL_CURRENT_PROGRAM);
-		// GLuint texture = glGet(GL_TEXTURE_BINDING_2D);
-		GL_CHECK( glUseProgram(sailfish_fbo.quad_programID) );
-		GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
-		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
-
-		GL_CHECK( glEnableVertexAttribArray(0));
-		GL_CHECK( glVertexAttribPointer(
-					0,                  // attribute 0
-					3,                  // size
-					GL_FLOAT,           // type
-					GL_FALSE,           // normalized?
-					sizeof(GLfloat) * 5,// stride
-					(void*)(0) // array buffer offset
-					));
-		GL_CHECK( glEnableVertexAttribArray(1) );
-		GL_CHECK( glVertexAttribPointer(
-					1,                  // attribute 1
-					2,                  // size
-					GL_FLOAT,           // type
-					GL_FALSE,           // normalized?
-					sizeof(GLfloat) * 5,// stride
-					(void*)(sizeof(GLfloat) * 3)// array buffer offset
-					));
-		GL_CHECK( glUniform1i(sailfish_fbo.texID, 0) );
-
-		// GL_CHECK( glDisable(GL_DEPTH_TEST) );
-		GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.RenderedTexture) );
-		// GL_CHECK( glBindTexture(GL_TEXTURE_2D,DepthTexture) );
-
-		GL_CHECK( glDrawArrays(GL_TRIANGLES, 0, 2 * 3) );
-		
-		// GL_CHECK( glBindTexture(GL_TEXTURE_2D,texture) );
-		GL_CHECK( glUseProgram(oglwGetProgram()) );
-		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, GL_NONE) );
-		GL_CHECK( glBindVertexArray(GL_NONE) );
-	}
+	draw_fbo_quad();
 	// ============================================================================= ebnd
 #endif // SAILFISH_FBO
 
@@ -3819,17 +3849,7 @@ void R_Frame_end()
 	// Render to our framebuffer
 #ifdef SAILFISH_FBO
 	// frame_Count++;
-	if( sailfish_fbo.Framebuffer ) 
-	{
-		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) );
-		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sailfish_fbo.RenderedTexture, 0) );
-		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
-		// GL_CHECK( glViewport(0,0,vw,vh) );
-		oglwSetViewport(0,0,sailfish_fbo.vw,sailfish_fbo.vh);
-		// GL_CHECK( glClearColor(0.1f, 0.1f, 0.1f, 1.0f) );
-		// GL_CHECK( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ); // we're not using the stencil buffer now
-		// GL_CHECK( glEnable(GL_DEPTH_TEST) );
-	}
+	bind_fbo();
 	// =============================================================================
 #endif
 }
