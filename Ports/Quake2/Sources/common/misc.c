@@ -31,6 +31,11 @@
 
 #include <setjmp.h>
 
+#ifdef SAILFISHOS
+#include <mce/dbus-names.h>
+#include <SDL2/src/core/linux/SDL_dbus.h>
+#endif
+
 FILE *log_stats_file;
 cvar_t *host_speeds;
 cvar_t *log_stats;
@@ -461,11 +466,22 @@ void Qcommon_Run(int argc, char **argv)
 
 	int oldtime = Sys_Milliseconds();
 
+#ifdef SAILFISHOS
+	int second_time = oldtime;
+	SDL_DBusContext *context = SDL_DBus_GetContext();
+	SDL_DBus_CallVoidMethodOnConnection(context->system_conn, MCE_SERVICE, MCE_REQUEST_PATH, MCE_REQUEST_IF, MCE_PREVENT_BLANK_REQ, DBUS_TYPE_INVALID);
+#endif
+
 	/* The legendary Quake II mainloop */
 	while (1)
 	{
-		if (sdlwIsExitRequested())
+		if (sdlwIsExitRequested()) 
+		{
+#ifdef SAILFISHOS
+			SDL_DBus_CallVoidMethodOnConnection(context->system_conn, MCE_SERVICE, MCE_REQUEST_PATH, MCE_REQUEST_IF, MCE_CANCEL_PREVENT_BLANK_REQ, DBUS_TYPE_INVALID);
+#endif
 			Com_Quit();
+		}
 
 		/* find time spent rendering last frame */
 		int newtime, time;
@@ -478,5 +494,13 @@ void Qcommon_Run(int argc, char **argv)
 
 		Qcommon_Frame(time);
 		oldtime = newtime;
+
+#ifdef SAILFISHOS
+		if( newtime - second_time >= 60*1000 ) {
+			second_time = oldtime;
+			// printf("Call if(%s) %s;\n", MCE_REQUEST_IF, MCE_PREVENT_BLANK_REQ);
+			SDL_DBus_CallVoidMethodOnConnection(context->system_conn, MCE_SERVICE, MCE_REQUEST_PATH, MCE_REQUEST_IF, MCE_PREVENT_BLANK_REQ, DBUS_TYPE_INVALID);
+		}
+#endif
 	}
 }

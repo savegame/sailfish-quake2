@@ -25,6 +25,9 @@ endif
 
 # define SailfishOS platform first
 DEFINES += -DSAILFISHOS
+INCLUDES  += -I../../../../../SDL2/include
+INCLUDES  += -I../../../../../
+INCLUDES  += -I/usr/include/dbus-1.0/ -I/usr/lib/dbus-1.0/include $(pkg-config dbus --cflags)
 
 ifeq ($(sailfish_fbo),yes)
   DEFINES += -DSAILFISH_FBO

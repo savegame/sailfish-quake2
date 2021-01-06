@@ -3731,8 +3731,8 @@ void create_fbo() {
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
 	//============================================================================= begin
 	if( sailfish_fbo.Framebuffer == 0 ) {
-		sailfish_fbo.vw =  2048;
-		sailfish_fbo.vh =  2048;
+		sailfish_fbo.vw =  256;
+		sailfish_fbo.vh =  256;
 		// create framebuffer 
 		GL_CHECK( glGenFramebuffers(1, &sailfish_fbo.Framebuffer) );
 		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) )

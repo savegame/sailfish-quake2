@@ -125,7 +125,7 @@
                 "sb2","-t","${sb2_target}","-m","sdk-install","-R",
                 "zypper","in", "-y",
                 "pulseaudio-devel",  "wayland-devel", "libGLESv1-devel", "wayland-egl-devel", "wayland-protocols-devel", "libusb-devel", 
-                "libxkbcommon-devel"
+                "libxkbcommon-devel", "mce-headers", "dbus-devel"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
