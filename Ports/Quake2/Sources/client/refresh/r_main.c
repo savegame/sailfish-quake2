@@ -171,12 +171,17 @@ struct _sailfish_fbo {
 	GLuint DepthTexture;
 	GLuint DepthBuffer;
 	GLuint StencilBuffer;
-	GLuint vw, vh;
+	// vw, vh - view width and height (real device resolution)
+	// bw, bh - render buffer resolution 
+	GLuint vw, vh, bw, bh;
+	GLfloat vs; // scale from real device resolution to FBO resolution
 	const GLfloat g_quad_vertex_buffer_data[30];
 };
 typedef struct _sailfish_fbo SailfishFBO;
 SailfishFBO sailfish_fbo = {
-	0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0, // vw, vh, bw, bh
+	0.5f, // fbo scale
 	{
 		-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, //0
 	  	 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, //1
@@ -3608,6 +3613,7 @@ void bind_fbo() {
 	// GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
 	// GL_CHECK( glViewport(0,0,vw,vh) );
 	oglwSetViewport(0,0,sailfish_fbo.vw,sailfish_fbo.vh);
+	glViewport(0, 0, sailfish_fbo.bw,sailfish_fbo.bh);
 	// GL_CHECK( glClearColor(0.1f, 0.1f, 0.1f, 1.0f) );
 	// GL_CHECK( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ); // we're not using the stencil buffer now
 	// GL_CHECK( glEnable(GL_DEPTH_TEST) );	
@@ -3622,8 +3628,7 @@ void draw_fbo_quad() {
 	( glBindFramebuffer(GL_FRAMEBUFFER, 0) ); // this return glError! is this normal?
 	glGetError();
 	GL_CHECK( glViewport(0,0,sailfish_fbo.vh,sailfish_fbo.vw) );
-	// GLuint program = glGet(GL_CURRENT_PROGRAM);
-	// GLuint texture = glGet(GL_TEXTURE_BINDING_2D);
+	// GL_CHECK( glViewport(0,0,sailfish_fbo.vw,sailfish_fbo.vh) );
 	GL_CHECK( glUseProgram(sailfish_fbo.quad_programID) );
 	GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
@@ -3658,6 +3663,7 @@ void draw_fbo_quad() {
 	GL_CHECK( glUseProgram(oglwGetProgram()) );
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, GL_NONE) );
 	GL_CHECK( glBindVertexArray(GL_NONE) );
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0) );
 }
 
 /** Crete quad for FBO drawing
@@ -3701,9 +3707,9 @@ void create_fbo_quad() {
 		"{\n"
 		"  vec3 color = texture2D(u_texture, vec2(v_texcoord.x, v_texcoord.y).yx).rgb;\n"
 		// "  if( v_texcoord.y < 0.1 ) {\n"
-		// "    color.r = 0.0;\n"
+		// "    color.r = 0.0; color.g = 1.0; \n"
 		// "  } else if( v_texcoord.y > 0.9){\n"
-		// "    color.g = 0.0;\n"
+		// "    color.g = 0.0; color.r = 1.0; \n"
 		// "  }\n"
 		"  \n"
 		"  gl_FragColor = vec4(color.rgb,1.0); \n"
@@ -3726,13 +3732,15 @@ void create_fbo_quad() {
 /** Create FBO with color texture and depth render buffer
  * 
  */
-void create_fbo() {
+void create_fbo(GLuint w, GLuint h) {
 	GLuint dims[2];
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
 	//============================================================================= begin
 	if( sailfish_fbo.Framebuffer == 0 ) {
-		sailfish_fbo.vw =  256;
-		sailfish_fbo.vh =  256;
+		sailfish_fbo.vw =  w;
+		sailfish_fbo.vh =  h;
+		sailfish_fbo.bw =  ((GLfloat)w)*sailfish_fbo.vs;
+		sailfish_fbo.bh =  ((GLfloat)h)*sailfish_fbo.vs;
 		// create framebuffer 
 		GL_CHECK( glGenFramebuffers(1, &sailfish_fbo.Framebuffer) );
 		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) )
@@ -3744,14 +3752,14 @@ void create_fbo() {
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE) );
-		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sailfish_fbo.vw, sailfish_fbo.vh, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sailfish_fbo.bw, sailfish_fbo.bh, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0) );
 		
 		// attach it to currently bound framebuffer object
 #if 1 // RenderBuffer as depth buffer
 		GL_CHECK( glGenRenderbuffers(1, &sailfish_fbo.DepthBuffer) );
 		GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) ); 
-		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, sailfish_fbo.vw, sailfish_fbo.vh) );  
+		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, sailfish_fbo.bw, sailfish_fbo.bh) );  
 
 		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sailfish_fbo.RenderedTexture, 0) );
 		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
@@ -3779,8 +3787,8 @@ void create_fbo() {
 		// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER, StencilBuffer);
 		// ==========================
 
-		sailfish_fbo.vw =  viddef.width;
-		sailfish_fbo.vh =  viddef.height;
+		// sailfish_fbo.vw =  viddef.width;
+		// sailfish_fbo.vh =  viddef.height;
 
 		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
 		GL_CHECK(glDrawBuffers(1, DrawBuffers));
@@ -4419,7 +4427,7 @@ static bool R_Window_createContext()
 	}
 
 #ifdef SAILFISH_FBO
-	create_fbo();
+	create_fbo(viddef.width, viddef.height);
 #endif
 
 	r_msaaAvailable = (eglwContext->configInfoAbilities.samples > 0);

@@ -580,9 +580,6 @@ void oglwSetViewport(int x, int y, int w, int h)
     OpenGLWrapper *oglw = l_openGLWrapper;
     if (oglw->viewport.x != x || oglw->viewport.y != y || oglw->viewport.width != w || oglw->viewport.height != h)
     {
-        // only with this it draw in texture normally... need more tests ) 
-        w = 256; //(int)((float)w * 0.2f);
-        h = 256; //(int)((float)h * 0.37f);
         oglw->viewport.x = x;
         oglw->viewport.y = y;
         oglw->viewport.width = w;
