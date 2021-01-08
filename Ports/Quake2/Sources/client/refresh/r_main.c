@@ -8,6 +8,7 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #include <GLES2/gl2platform.h>
+#include <SDL/SDLWrapper.h>
 // DEBUG _ GL
 #	define DEBUG_GL
 #endif // SAILFISH_FBO
@@ -164,7 +165,8 @@ struct _sailfish_fbo {
 	GLuint quad_VertexArrayID;
 	GLuint quad_vertexbuffer;
 	GLuint quad_programID;
-	GLuint texID;
+	GLuint u_texID;
+	// GLuint u_orientationID;
 	GLuint Framebuffer;
 	GLuint ColorBuffer;
 	GLuint RenderedTexture;
@@ -3627,8 +3629,10 @@ void draw_fbo_quad() {
 		return;
 	( glBindFramebuffer(GL_FRAMEBUFFER, 0) ); // this return glError! is this normal?
 	glGetError();
+	GLuint shader_index = 0;
+	if( sdlwCurrentOrientation() == SDL_ORIENTATION_LANDSCAPE_FLIPPED )
+		shader_index = 1;
 	GL_CHECK( glViewport(0,0,sailfish_fbo.vh,sailfish_fbo.vw) );
-	// GL_CHECK( glViewport(0,0,sailfish_fbo.vw,sailfish_fbo.vh) );
 	GL_CHECK( glUseProgram(sailfish_fbo.quad_programID) );
 	GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
@@ -3651,7 +3655,7 @@ void draw_fbo_quad() {
 				sizeof(GLfloat) * 5,// stride
 				(void*)(sizeof(GLfloat) * 3)// array buffer offset
 				));
-	GL_CHECK( glUniform1i(sailfish_fbo.texID, 0) );
+	GL_CHECK( glUniform1i(sailfish_fbo.u_texID, 0) );
 
 	// GL_CHECK( glDisable(GL_DEPTH_TEST) );
 	GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.RenderedTexture) );
@@ -3680,7 +3684,44 @@ void create_fbo_quad() {
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
 	GL_CHECK( glBufferData(GL_ARRAY_BUFFER, sizeof(sailfish_fbo.g_quad_vertex_buffer_data), sailfish_fbo.g_quad_vertex_buffer_data, GL_STATIC_DRAW) );
 
-	const char *vp =
+	const char *attribs[] = {
+			"a_position",
+			"a_texcoord"
+		};
+
+	const char *fp =
+		//"#version 150 core\n"
+		#ifdef EGLW_GLES2
+		"precision mediump float;\n"
+		#endif
+		"varying vec2 v_texcoord;\n"
+		"uniform sampler2D u_texture;\n"
+
+		"void main()\n"
+		"{\n"
+		"  vec3 color = texture2D(u_texture, v_texcoord).rgb;\n"
+		"  \n"
+		"  gl_FragColor = vec4(color.rgb,1.0); \n"
+		"}\n";
+
+	{// landscape shader 
+		const char *vp =
+		"attribute vec3 a_position;\n"
+		"attribute vec2 a_texcoord;\n"
+		"varying vec2 v_texcoord;\n"
+
+		"void main()\n"
+		"{\n"
+		"  gl_Position = vec4(a_position.xy, 0.0, 1.0);\n"
+		"  v_texcoord = a_texcoord.yx;\n"
+		"}\n";
+		
+		// Create and compile our GLSL program from the shaders
+		GL_CHECK( sailfish_fbo.quad_programID = loadProgram( vp, fp , attribs, 2) );
+		GL_CHECK( sailfish_fbo.u_texID = glGetUniformLocation(sailfish_fbo.quad_programID, "u_texture") );
+	}
+	{// landscape inverted shader 
+		const char *vp2 =
 		//"#version 150 core\n"
 		"attribute vec3 a_position;\n"
 		"attribute vec2 a_texcoord;\n"
@@ -3691,42 +3732,15 @@ void create_fbo_quad() {
 		"void main()\n"
 		"{\n"
 		"  gl_Position = vec4(a_position.xy, 0.0, 1.0);\n"
-		"  v_texcoord = a_texcoord;\n"
+		"  v_texcoord = vec2(1.0 - a_texcoord.y, 1.0 - a_texcoord.x);\n"
 		"}\n";
-	// TODO modufy for right landscape orinetation 
-	const char *fp =
-		//"#version 150 core\n"
-		#ifdef EGLW_GLES2
-		"precision mediump float;\n"
-		#endif
-		"varying vec2 v_texcoord;\n"
-		"uniform sampler2D u_texture;\n"
-		// "out vec4 o_color;\n"
-
-		"void main()\n"
-		"{\n"
-		"  vec3 color = texture2D(u_texture, vec2(v_texcoord.x, v_texcoord.y).yx).rgb;\n"
-		// "  if( v_texcoord.y < 0.1 ) {\n"
-		// "    color.r = 0.0; color.g = 1.0; \n"
-		// "  } else if( v_texcoord.y > 0.9){\n"
-		// "    color.g = 0.0; color.r = 1.0; \n"
-		// "  }\n"
-		"  \n"
-		"  gl_FragColor = vec4(color.rgb,1.0); \n"
-		"}\n";
-
-	const char *attribs[] =
-	{
-		"a_position",
-		"a_texcoord"
-	};
-
-	// Create and compile our GLSL program from the shaders
-	GL_CHECK( sailfish_fbo.quad_programID = loadProgram( vp, fp , attribs, 2) );
-	GL_CHECK( sailfish_fbo.texID = glGetUniformLocation(sailfish_fbo.quad_programID, "u_texture") );
+		// Create and compile our GLSL program from the shaders
+		// GL_CHECK( sailfish_fbo.quad_programID[1] = loadProgram( vp2, fp , attribs, 2) );
+		// GL_CHECK( sailfish_fbo.u_texID[1] = glGetUniformLocation(sailfish_fbo.quad_programID[1], "u_texture") );
+	}
+	// GL_CHECK( sailfish_fbo.u_orientationID = glGetUniformLocation(sailfish_fbo.quad_programID, "u_orientation") );
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, GL_NONE) );
 	GL_CHECK( glBindVertexArray(GL_NONE) );
-	// GLuint timeID = glGetUniformLocation(quad_programID, "time");
 }
 
 /** Create FBO with color texture and depth render buffer
@@ -3737,6 +3751,8 @@ void create_fbo(GLuint w, GLuint h) {
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
 	//============================================================================= begin
 	if( sailfish_fbo.Framebuffer == 0 ) {
+		R_printf(PRINT_ALL, "Max Framebuffer texture size is %i x %i ;\n", (int)dims[0], (int)dims[1]);
+		sailfish_fbo.vs = 0.5f;
 		sailfish_fbo.vw =  w;
 		sailfish_fbo.vh =  h;
 		sailfish_fbo.bw =  ((GLfloat)w)*sailfish_fbo.vs;
