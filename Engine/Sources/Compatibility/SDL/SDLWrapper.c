@@ -7,6 +7,8 @@ SdlwContext *sdlwContext = NULL;
 
 #ifdef SAILFISHOS
 #include <SDL_hints.h>
+#include <SDL_events.h>
+#include <SDL_video.h>
 #endif
 //SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK
 
@@ -88,6 +90,7 @@ bool sdlwInitialize(SdlProcessEventFunction processEvent, Uint32 flags) {
     sdlw->window = NULL;
     sdlw->windowWidth = 0;
     sdlw->windowHeight = 0;
+    sdlw->orientation = SDL_ORIENTATION_LANDSCAPE;
 
     if (SDL_Init(flags) < 0) {
         printf("Unable to initialize SDL: %s\n", SDL_GetError());
@@ -222,7 +225,6 @@ static void sdlwManageEvent(SdlwContext *sdlw, SDL_Event *event) {
             break;
         }
         break;
-
     case SDL_KEYDOWN:
         switch (event->key.keysym.sym) {
         default:
@@ -250,3 +252,17 @@ void sdlwCheckEvents() {
             sdlwManageEvent(sdlw, &event);
 	}
 }
+
+#ifdef SAILFISHOS
+SDL_DisplayOrientation sdlwCurrentOrientation() {
+    SdlwContext *sdlw = sdlwContext;
+    if (sdlw == NULL) return SDL_ORIENTATION_UNKNOWN;
+    return sdlw->orientation;
+}
+
+void sdlwSetOrientation(SDL_DisplayOrientation orientation) {
+    SdlwContext *sdlw = sdlwContext;
+    if (sdlw == NULL) return;
+    sdlw->orientation = orientation;
+}
+#endif

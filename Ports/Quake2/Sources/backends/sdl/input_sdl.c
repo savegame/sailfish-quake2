@@ -372,7 +372,30 @@ bool IN_processEvent(SDL_Event *event)
 			break;
 		}
 		break;
-
+#ifdef SAILFISHOS
+    case SDL_DISPLAYEVENT:
+        if( event->display.event == SDL_DISPLAYEVENT_ORIENTATION ) {
+            switch (event->display.data1) {
+                case SDL_ORIENTATION_LANDSCAPE:
+                    printf("SDL_DisplayOrientation is SDL_ORIENTATION_LANDSCAPE\n");
+                    break;
+                case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+                    printf("SDL_DisplayOrientation is SDL_ORIENTATION_LANDSCAPE_FLIPPED\n");
+                    break;
+                case SDL_ORIENTATION_PORTRAIT:
+                    printf("SDL_DisplayOrientation is SDL_ORIENTATION_PORTRAIT\n");
+                    break;
+                case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+                    printf("SDL_DisplayOrientation is SDL_ORIENTATION_PORTRAIT_FLIPPED\n");
+                    break;
+                case SDL_ORIENTATION_UNKNOWN:
+                    printf("SDL_DisplayOrientation is SDL_ORIENTATION_UNKNOWN\n");
+                    break;
+            }
+            sdlwSetOrientation((SDL_DisplayOrientation)event->display.data1);
+        }
+        break;
+#endif
 	case SDL_MOUSEWHEEL:
 		Key_Event((event->wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), true);
 		Key_Event((event->wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), false);

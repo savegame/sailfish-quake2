@@ -5,6 +5,10 @@
 
 #include <stdbool.h>
 
+# ifdef SAILFISHOS
+#  include <SDL_video.h>
+# endif
+
 typedef bool (*SdlProcessEventFunction)(SDL_Event *event);
 
 typedef struct {
@@ -13,6 +17,9 @@ typedef struct {
 	SdlProcessEventFunction processEvent;
 	SDL_Window *window;
 	int windowWidth, windowHeight;
+# ifdef SAILFISHOS
+	SDL_DisplayOrientation orientation;
+# endif
 } SdlwContext;
 
 extern SdlwContext *sdlwContext;
@@ -29,5 +36,10 @@ bool sdlwResize(int w, int h);
 
 void sdlwEnableDefaultEventManagement(bool flag);
 void sdlwCheckEvents();
+
+# ifdef SAILFISHOS
+SDL_DisplayOrientation sdlwCurrentOrientation();
+void sdlwSetOrientation(SDL_DisplayOrientation orientation);
+# endif
 
 #endif
