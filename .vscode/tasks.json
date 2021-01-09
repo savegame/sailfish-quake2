@@ -51,7 +51,8 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Build armv7hl SailfishOS binary"
+            "detail": "Build armv7hl SailfishOS binary",
+            //"dependsOn" : ["GDB server stop Nemo"]
         },
         {
             "type": "shell",
@@ -210,6 +211,27 @@
             "dependsOn":[
                 "Deploy nemo"
             ],
+            "detail": "Run remote gdbserver",
+        },
+        {
+            "type": "shell",
+            "label": "GDB server stop Nemo",
+            "command": "ssh",
+            "args": [
+                "${device}",
+                "killall","gdbserver"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Output/Targets/Linux-x86-32/Debug/bin/"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "detail": "Run remote gdbserver",
         }
     ],
