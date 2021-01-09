@@ -375,7 +375,7 @@ bool IN_processEvent(SDL_Event *event)
 #ifdef SAILFISHOS
     case SDL_DISPLAYEVENT:
         if( event->display.event == SDL_DISPLAYEVENT_ORIENTATION ) {
-            switch (event->display.data1) {
+            /*switch (event->display.data1) {
                 case SDL_ORIENTATION_LANDSCAPE:
                     printf("SDL_DisplayOrientation is SDL_ORIENTATION_LANDSCAPE\n");
                     break;
@@ -391,8 +391,13 @@ bool IN_processEvent(SDL_Event *event)
                 case SDL_ORIENTATION_UNKNOWN:
                     printf("SDL_DisplayOrientation is SDL_ORIENTATION_UNKNOWN\n");
                     break;
-            }
-            sdlwSetOrientation((SDL_DisplayOrientation)event->display.data1);
+            }*/
+			// skip non landscape orinetations 
+			if( event->display.data1 == SDL_ORIENTATION_LANDSCAPE 
+			    || event->display.data1 == SDL_ORIENTATION_LANDSCAPE_FLIPPED ) 
+			{
+            	sdlwSetOrientation((SDL_DisplayOrientation)event->display.data1);
+			}
         }
         break;
 #endif

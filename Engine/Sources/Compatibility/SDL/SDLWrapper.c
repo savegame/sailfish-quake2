@@ -264,5 +264,25 @@ void sdlwSetOrientation(SDL_DisplayOrientation orientation) {
     SdlwContext *sdlw = sdlwContext;
     if (sdlw == NULL) return;
     sdlw->orientation = orientation;
+    // SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+    switch (sdlw->orientation) {
+        case SDL_ORIENTATION_LANDSCAPE:
+            SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+            break;
+        case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+            SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"inverted-landscape");
+            break;
+        case SDL_ORIENTATION_PORTRAIT:
+            SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"portrait");
+            break;
+        case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+            SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"inverted-portrait");
+            break;
+        default:
+        case SDL_ORIENTATION_UNKNOWN:
+            SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+            // printf("SDL_DisplayOrientation is SDL_ORIENTATION_UNKNOWN\n");
+            break;
+    }
 }
 #endif
