@@ -3702,9 +3702,7 @@ void create_fbo_quad() {
 
 		"void main()\n"
 		"{\n"
-		"  vec3 color = texture2D(u_texture, v_texcoord).rgb;\n"
-		"  \n"
-		"  gl_FragColor = vec4(color.rgb,1.0); \n"
+		"  gl_FragColor = vec4(texture2D(u_texture, v_texcoord).rgb,1.0);\n"
 		"}\n";
 
 	{// landscape shader 
