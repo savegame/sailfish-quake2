@@ -68,24 +68,67 @@ static TouchFinger fingers[5] = {
 	{0,0,0.0f,0.0f,0.0f,0.0f,false}
 };
 
-#define SCREEN_W 1280
-#define SCREEN_H 800
 static ScreenRect sr_mouse_look = {
-	641,0,640,SCREEN_H
+	0,0,0,0
 };
 
 static ScreenRect sr_joystick = {
-	0,0,640,SCREEN_H
+	0,0,0,0
 };
 
 bool is_PointInRect( float x, float y, ScreenRect *sr) {
 	return sr->x <= (int)x && sr->y <= (int)y && sr->x + sr->w >= (int)x && sr->y + sr->h >= (int)y;
 }
+// transform delta to FBO orientaton
+void transformDelta( float *dx, float *dy ) {
+	float tmp;
+	switch( sdlwCurrentOrientation() ) {
+	case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+		tmp = *dy;
+		*dy = *dx;
+		*dx = -tmp;
+		break;
+	default:
+	case SDL_ORIENTATION_LANDSCAPE:
+		tmp = *dy;
+		*dy = -*dx;
+		*dx = tmp;
+		break;
+	// do not use portrait orientations
+	}
+}
 // transform touch point to FBO orientation 
 void transformTouch( float *x, float *y ) {
-	float tmp = *y;
-	*y = SCREEN_H - *x;
-	*x = tmp;
+	int w,h;
+	float tmp;
+	sdlwGetWindowSize(&w, &h);
+	switch( sdlwCurrentOrientation() ) {
+	case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+		tmp = *y;
+		*y = *x;
+		*x = w - tmp;
+		break;
+	default:
+	case SDL_ORIENTATION_LANDSCAPE:
+		tmp = *y;
+		*y = h - *x;
+		*x = tmp;
+		break;
+	// do not use portrait orientations
+	}
+
+	if(sr_mouse_look.w != 0)
+		return;
+	int half_width = w / 2;
+	sr_mouse_look.x = half_width + 1;
+	sr_mouse_look.y = 0;
+	sr_mouse_look.w = half_width;
+	sr_mouse_look.h = h;
+
+	sr_joystick.x = 0;
+	sr_joystick.y = 0;
+	sr_joystick.w = half_width;
+	sr_joystick.h = h;
 }
 #endif
 
@@ -533,13 +576,14 @@ bool IN_processEvent(SDL_Event *event)
 		break;
 	case SDL_FINGERMOTION:
 		transformTouch(&event->tfinger.x, &event->tfinger.y);
+		transformDelta(&event->tfinger.dx, &event->tfinger.dy);
 		if (cls.key_dest == key_game && !cl_paused->value)
 		{
 			for(int i = 0; i < MAX_FINGER; i++ ) {
 				if( fingers[i].pressed && event->tfinger.fingerId == fingers[i].finger_id ) {
 					if ( is_PointInRect(fingers[i].x, fingers[i].y, &sr_mouse_look) ) {
-						l_mouseX += event->tfinger.dy * 2.0;
-						l_mouseY += -event->tfinger.dx * 2.0;
+						l_mouseX += event->tfinger.dx * 2.0;
+						l_mouseY += event->tfinger.dy * 2.0;
 					}
 					else if( is_PointInRect(fingers[i].x, fingers[i].y, &sr_joystick) ) {
 						float dx = event->tfinger.x - fingers[i].x;	

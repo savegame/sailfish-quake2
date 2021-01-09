@@ -285,4 +285,24 @@ void sdlwSetOrientation(SDL_DisplayOrientation orientation) {
             break;
     }
 }
+
+void sdlwGetWindowSize(int *w, int *h) {
+    SdlwContext *sdlw = sdlwContext;
+    if (sdlw == NULL) return; 
+
+    switch (sdlw->orientation) {
+        case SDL_ORIENTATION_PORTRAIT:
+        case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+            *h = sdlw->windowWidth;
+            *w = sdlw->windowHeight;
+            break;
+        case SDL_ORIENTATION_LANDSCAPE:
+        case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+        case SDL_ORIENTATION_UNKNOWN:
+        default:
+            *w = sdlw->windowWidth;
+            *h = sdlw->windowHeight;
+            break;
+    }
+}
 #endif
