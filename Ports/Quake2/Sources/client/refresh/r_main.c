@@ -164,8 +164,8 @@ extern cvar_t *gl_menuscale;
 struct _sailfish_fbo {
 	GLuint quad_VertexArrayID;
 	GLuint quad_vertexbuffer;
-	GLuint quad_programID;
-	GLuint u_texID;
+	GLuint quad_programID[2];
+	GLuint u_texID[2];
 	// GLuint u_orientationID;
 	GLuint Framebuffer;
 	GLuint ColorBuffer;
@@ -181,7 +181,10 @@ struct _sailfish_fbo {
 };
 typedef struct _sailfish_fbo SailfishFBO;
 SailfishFBO sailfish_fbo = {
-	0,0,0,0,0,0,0,0,0,0,
+	0,0, // quad vertex array id and vertex buffer
+	{0,0}, // program ID 
+	{0,0}, // texture ID 
+	0,0,0,0,0,0,
 	0,0,0,0, // vw, vh, bw, bh
 	0.5f, // fbo scale
 	{
@@ -3633,7 +3636,7 @@ void draw_fbo_quad() {
 	if( sdlwCurrentOrientation() == SDL_ORIENTATION_LANDSCAPE_FLIPPED )
 		shader_index = 1;
 	GL_CHECK( glViewport(0,0,sailfish_fbo.vh,sailfish_fbo.vw) );
-	GL_CHECK( glUseProgram(sailfish_fbo.quad_programID) );
+	GL_CHECK( glUseProgram(sailfish_fbo.quad_programID[shader_index]) );
 	GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
 
@@ -3655,7 +3658,7 @@ void draw_fbo_quad() {
 				sizeof(GLfloat) * 5,// stride
 				(void*)(sizeof(GLfloat) * 3)// array buffer offset
 				));
-	GL_CHECK( glUniform1i(sailfish_fbo.u_texID, 0) );
+	GL_CHECK( glUniform1i(sailfish_fbo.u_texID[shader_index], 0) );
 
 	// GL_CHECK( glDisable(GL_DEPTH_TEST) );
 	GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.RenderedTexture) );
@@ -3715,18 +3718,15 @@ void create_fbo_quad() {
 		"  gl_Position = vec4(a_position.xy, 0.0, 1.0);\n"
 		"  v_texcoord = a_texcoord.yx;\n"
 		"}\n";
-		
+
 		// Create and compile our GLSL program from the shaders
-		GL_CHECK( sailfish_fbo.quad_programID = loadProgram( vp, fp , attribs, 2) );
-		GL_CHECK( sailfish_fbo.u_texID = glGetUniformLocation(sailfish_fbo.quad_programID, "u_texture") );
+		GL_CHECK( sailfish_fbo.quad_programID[0] = loadProgram( vp, fp , attribs, 2) );
+		GL_CHECK( sailfish_fbo.u_texID[0] = glGetUniformLocation(sailfish_fbo.quad_programID[0], "u_texture") );
 	}
 	{// landscape inverted shader 
 		const char *vp2 =
-		//"#version 150 core\n"
 		"attribute vec3 a_position;\n"
 		"attribute vec2 a_texcoord;\n"
-		// "uniform mat4 u_view;\n"
-		// "uniform mat4 u_projection;\n"
 		"varying vec2 v_texcoord;\n"
 
 		"void main()\n"
@@ -3735,8 +3735,8 @@ void create_fbo_quad() {
 		"  v_texcoord = vec2(1.0 - a_texcoord.y, 1.0 - a_texcoord.x);\n"
 		"}\n";
 		// Create and compile our GLSL program from the shaders
-		// GL_CHECK( sailfish_fbo.quad_programID[1] = loadProgram( vp2, fp , attribs, 2) );
-		// GL_CHECK( sailfish_fbo.u_texID[1] = glGetUniformLocation(sailfish_fbo.quad_programID[1], "u_texture") );
+		GL_CHECK( sailfish_fbo.quad_programID[1] = loadProgram( vp2, fp , attribs, 2) );
+		GL_CHECK( sailfish_fbo.u_texID[1] = glGetUniformLocation(sailfish_fbo.quad_programID[1], "u_texture") );
 	}
 	// GL_CHECK( sailfish_fbo.u_orientationID = glGetUniformLocation(sailfish_fbo.quad_programID, "u_orientation") );
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, GL_NONE) );
