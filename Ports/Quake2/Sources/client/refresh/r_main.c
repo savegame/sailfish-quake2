@@ -9,6 +9,7 @@
 #include <GLES2/gl2ext.h>
 #include <GLES2/gl2platform.h>
 #include <SDL/SDLWrapper.h>
+#include <SDL/shader.h>
 // DEBUG _ GL
 #	define DEBUG_GL
 #endif // SAILFISH_FBO
@@ -3531,83 +3532,6 @@ void R_Frame_begin(float camera_separation, int eyeIndex)
 }
 
 #ifdef SAILFISH_FBO
-
-GLuint loadShader(GLenum type, const char *source)
-{
-	GLuint shader = glCreateShader(type);
-	if (shader == 0)
-	{
-		R_printf(PRINT_ALL, "Could not create %s shader!\n", type == GL_VERTEX_SHADER ? "Vertex" : "Fragment" );
-		return 0;
-	}
-	glShaderSource(shader, 1, &source, NULL);
-	glCompileShader(shader);
-	GLint compiled;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-	if (!compiled)
-	{
-		R_printf(PRINT_ALL, "Could not compile %s shader!\n", type == GL_VERTEX_SHADER ? "Vertex" : "Fragment");
-		GLint infoLen = 0;
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
-		if (infoLen)
-		{
-			char* infoLog = (char*)malloc(infoLen);
-			glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
-			R_printf(PRINT_ALL, "Error %s\n", infoLog);
-			free(infoLog);
-		}
-		glDeleteShader(shader);
-		return 0;
-	}
-	return shader;
-}
-
-GLuint loadProgram(const char *vp, const char *fp, const char **attributes, int attributeCount)
-{
-	GLuint vertexShader = loadShader(GL_VERTEX_SHADER, vp);
-	if (!vertexShader)
-		return 0;
-	GLuint fragmentShader = loadShader(GL_FRAGMENT_SHADER, fp);
-	if (!fragmentShader)
-	{
-		glDeleteShader(vertexShader);
-		return 0;
-	}
-
-	GLuint program = glCreateProgram();
-	if (program == 0)
-	{
-		R_printf(PRINT_ALL, "Could not create program!\n");
-		return 0;
-	}
-	glAttachShader(program, vertexShader);
-	glAttachShader(program, fragmentShader);
-
-	for (int i = 0; i < attributeCount; i++)
-		glBindAttribLocation(program, i, attributes[i]);
-
-	glLinkProgram(program);
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-	GLint linked;
-	glGetProgramiv(program, GL_LINK_STATUS, &linked);
-	if (!linked)
-	{
-		R_printf(PRINT_ALL, "Could not link program!\n");
-		GLint infoLen = 0;
-		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLen);
-		if (infoLen)
-		{
-			char* infoLog = (char*)malloc(sizeof(char) * infoLen);
-			glGetProgramInfoLog(program, infoLen, NULL, infoLog);
-			R_printf("Errors: %s\n", infoLog);
-			free(infoLog);
-		}
-		glDeleteProgram(program);
-		return 0;
-	}
-	return program;
-}
 
 void bind_fbo() {
 	if( sailfish_fbo.Framebuffer == 0 )
