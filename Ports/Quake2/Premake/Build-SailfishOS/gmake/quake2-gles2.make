@@ -26,8 +26,9 @@ endif
 # define SailfishOS platform first
 DEFINES += -DSAILFISHOS
 INCLUDES  += -I../../../../../SDL2/include
+INCLUDES  += -I../../../../../Ports/Quake2/Sources
 INCLUDES  += -I../../../../../
-INCLUDES  += -I/usr/include/dbus-1.0/ -I/usr/lib/dbus-1.0/include $(pkg-config dbus --cflags)
+INCLUDES  += $(pkg-config dbus --cflags)
 
 ifeq ($(sailfish_fbo),yes)
   DEFINES += -DSAILFISH_FBO
@@ -173,6 +174,9 @@ OBJECTS := \
 	$(OBJDIR)/EGLWrapper.o \
 	$(OBJDIR)/OpenGLWrapper.o \
 	$(OBJDIR)/SDLWrapper.o \
+	$(OBJDIR)/vkb.o \
+	$(OBJDIR)/q3_png.o \
+	$(OBJDIR)/gl_vkb.o \
 
 RESOURCES := \
 
@@ -597,6 +601,18 @@ $(OBJDIR)/OpenGLWrapper.o: ../../../../../Engine/Sources/Compatibility/OpenGLES/
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
 $(OBJDIR)/SDLWrapper.o: ../../../../../Engine/Sources/Compatibility/SDL/SDLWrapper.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
+
+$(OBJDIR)/vkb.o: ../../../../../Engine/Sources/Compatibility/SDL/vkb.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
+
+$(OBJDIR)/q3_png.o: ../../../../../Engine/Sources/Compatibility/SDL/q3_png.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
+
+$(OBJDIR)/gl_vkb.o: ../../../../../Engine/Sources/Compatibility/SDL/gl_vkb1.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
