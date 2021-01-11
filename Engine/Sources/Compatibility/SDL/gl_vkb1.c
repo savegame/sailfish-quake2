@@ -3,6 +3,7 @@
 #include <GLES2/gl2.h>
 
 #include "q3_png.h"
+#include "shader.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -116,21 +117,26 @@ typedef struct _vkb
 	boolean inited;
 	texture tex[VKB_TEX_COUNT];
 	virtual_control_item vb[TOTAL_VKB_COUNT];
+	GLuint  program_id; 
+	GLuint  tex_id; 
+	GLuint  translate_id; 
 } vkb;
 
-static void karinMakeJoystick(virtual_control_item *b, struct vkb_joystick *joystick, unsigned int width, unsigned int height);
-static void karinMakeSwipe(virtual_control_item *b, struct vkb_swipe *swipe, unsigned int width, unsigned int height);
-static void karinMakeButton(virtual_control_item *b, struct vkb_button *btn, unsigned int width, unsigned int height);
-static void karinMakeCursor(virtual_control_item *b, struct vkb_cursor *cursor, unsigned int width, unsigned int height);
-static void karinRenderVKBCursor(const virtual_cursor *b, const texture tex[]);
-static void karinRenderVKBJoystick(const virtual_joystick *b, const texture tex[]);
-static void karinRenderVKBSwipe(const virtual_swipe *b, const texture tex[]);
-static void karinRenderVKBButton(const virtual_button *b, const texture tex[]);
+static void vkb_MakeJoystick(virtual_control_item *b, struct vkb_joystick *joystick, unsigned int width, unsigned int height);
+static void vkb_MakeSwipe(virtual_control_item *b, struct vkb_swipe *swipe, unsigned int width, unsigned int height);
+static void vkb_MakeButton(virtual_control_item *b, struct vkb_button *btn, unsigned int width, unsigned int height);
+static void vkb_MakeCursor(virtual_control_item *b, struct vkb_cursor *cursor, unsigned int width, unsigned int height);
+static void vkb_RenderVKBCursor(const virtual_cursor *b, const texture tex[]);
+static void vkb_RenderVKBJoystick(const virtual_joystick *b, const texture tex[]);
+static void vkb_RenderVKBSwipe(const virtual_swipe *b, const texture tex[]);
+static void vkb_RenderVKBButton(const virtual_button *b, const texture tex[]);
+
+static void vkb_createShader();
 
 static vkb the_vkb;
 
-//void karinResizeVKB(float w, float h);
-static mouse_motion_button_status karinButtonMouseMotion(const virtual_control_item *b, int nx, int ny, int lx, int ly)
+//void vkb_ResizeVKB(float w, float h);
+static mouse_motion_button_status vkb_ButtonMouseMotion(const virtual_control_item *b, int nx, int ny, int lx, int ly)
 {
 	if(!b)
 		return all_out_range_status;
@@ -144,7 +150,7 @@ static mouse_motion_button_status karinButtonMouseMotion(const virtual_control_i
 	return s;
 }
 
-static circle_direction karinGetJoystickDirection(int x, int y, float cx, float cy, float ir, float or, float *angle, float *percent)
+static circle_direction vkb_GetJoystickDirection(int x, int y, float cx, float cy, float ir, float or, float *angle, float *percent)
 {
 	int oh = or / 2;
 	int ih = ir / 2;
@@ -171,8 +177,8 @@ static circle_direction karinGetJoystickDirection(int x, int y, float cx, float 
 
 	double a = (double)(xl);
 	double b = (double)(yl);
-	//float ra = karinFormatAngle(atan2(xl, yl) * (180.0 / M_PI));
-	float rb = karinFormatAngle(atan2(b, a) * (180.0 / M_PI));
+	//float ra = vkb_FormatAngle(atan2(xl, yl) * (180.0 / M_PI));
+	float rb = vkb_FormatAngle(atan2(b, a) * (180.0 / M_PI));
 	if(angle)
 		*angle = rb;
 	if(percent)
@@ -200,7 +206,7 @@ static circle_direction karinGetJoystickDirection(int x, int y, float cx, float 
 		return circle_lefttop_direction;
 }
 
-static circle_direction karinGetSwipeDirection(int dx, int dy, float *angle, float *distance)
+static circle_direction vkb_GetSwipeDirection(int dx, int dy, float *angle, float *distance)
 {
 	if(dx == 0 && dy == 0)
 	{
@@ -215,8 +221,8 @@ static circle_direction karinGetSwipeDirection(int dx, int dy, float *angle, flo
 	double c = sqrt(a * a + b * b);
 	if(distance)
 		*distance = (float)c;
-	//float ra = karinFormatAngle(atan2(xl, yl) * (180.0 / M_PI));
-	float rb = karinFormatAngle(atan2(b, a) * (180.0 / M_PI));
+	//float ra = vkb_FormatAngle(atan2(xl, yl) * (180.0 / M_PI));
+	float rb = vkb_FormatAngle(atan2(b, a) * (180.0 / M_PI));
 	if(*angle)
 		*angle = rb;
 	//printf("%f - %f\n", ra, rb);
@@ -239,7 +245,7 @@ static circle_direction karinGetSwipeDirection(int dx, int dy, float *angle, flo
 		return circle_lefttop_direction;
 }
 
-static int karinGetControlItemOnPosition(int x, int y, int *r)
+static int vkb_GetControlItemOnPosition(int x, int y, int *r)
 {
 	if(!the_vkb.inited)
 		return -1;
@@ -282,7 +288,7 @@ static int karinGetControlItemOnPosition(int x, int y, int *r)
 	return c;
 }
 
-static int karinGetControlItemOnPosition2(int x, int y, int lx, int ly, int *r, mouse_motion_button_status *s)
+static int vkb_GetControlItemOnPosition2(int x, int y, int lx, int ly, int *r, mouse_motion_button_status *s)
 {
 	if(!the_vkb.inited)
 		return -1;
@@ -296,7 +302,7 @@ static int karinGetControlItemOnPosition2(int x, int y, int lx, int ly, int *r, 
 			continue;
 		if(!b->base.enabled)
 			continue;
-		mouse_motion_button_status status = karinButtonMouseMotion(b, x, y, lx, ly);
+		mouse_motion_button_status status = vkb_ButtonMouseMotion(b, x, y, lx, ly);
 		if(status == all_out_range_status)
 			continue;
 		if(r)
@@ -330,7 +336,7 @@ static int karinGetControlItemOnPosition2(int x, int y, int lx, int ly, int *r, 
 	return c;
 }
 
-static unsigned karinVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int dy, VKB_Key_Action_Function f)
+static unsigned vkb_VKBMouseMotionEvent(int b, int p, int x, int y, int dx, int dy, VKB_Key_Action_Function f)
 {
 	if(!the_vkb.inited)
 		return 0;
@@ -344,7 +350,7 @@ static unsigned karinVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int
 	int last_nz = INT_MIN;
 	int clicked[TOTAL_VKB_COUNT];
 	mouse_motion_button_status status[TOTAL_VKB_COUNT];
-	int count = karinGetControlItemOnPosition2(x, y, last_x, last_y, clicked, status);
+	int count = vkb_GetControlItemOnPosition2(x, y, last_x, last_y, clicked, status);
 	if(count > 0)
 	{
 		int i;
@@ -395,7 +401,7 @@ static unsigned karinVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int
 					b->joystick.base.pressed = btrue;
 					float cx = b->joystick.base.x + b->joystick.base.width / 2;
 					float cy = b->joystick.base.y + b->joystick.base.height / 2;
-					circle_direction d = karinGetJoystickDirection(x, y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, &b->joystick.angle, &b->joystick.percent);
+					circle_direction d = vkb_GetJoystickDirection(x, y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, &b->joystick.angle, &b->joystick.percent);
 					if(d != circle_outside)
 					{
 						b->joystick.pos_x = x - cx;
@@ -451,7 +457,7 @@ static unsigned karinVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int
 					{
 						float cx = b->joystick.base.x + b->joystick.base.width / 2;
 						float cy = b->joystick.base.y + b->joystick.base.height / 2;
-						circle_direction d = karinGetJoystickDirection(last_x, last_y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, NULL, NULL);
+						circle_direction d = vkb_GetJoystickDirection(last_x, last_y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, NULL, NULL);
 						switch(d)
 						{
 							case circle_top_direction:
@@ -500,7 +506,7 @@ static unsigned karinVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int
 						{
 							float cx = b->joystick.base.x + b->joystick.base.width / 2;
 							float cy = b->joystick.base.y + b->joystick.base.height / 2;
-							circle_direction d = karinGetJoystickDirection(last_x, last_y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, NULL, NULL);
+							circle_direction d = vkb_GetJoystickDirection(last_x, last_y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, NULL, NULL);
 							switch(d)
 							{
 								case circle_top_direction:
@@ -545,8 +551,8 @@ static unsigned karinVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int
 						last_nz = b->joystick.base.z;
 						float cx = b->joystick.base.x + b->joystick.base.width / 2;
 						float cy = b->joystick.base.y + b->joystick.base.height / 2;
-						circle_direction ld = karinGetJoystickDirection(last_x, last_y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, NULL, NULL);
-						circle_direction d = karinGetJoystickDirection(x, y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, &b->joystick.angle, &b->joystick.percent);
+						circle_direction ld = vkb_GetJoystickDirection(last_x, last_y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, NULL, NULL);
+						circle_direction d = vkb_GetJoystickDirection(x, y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, &b->joystick.angle, &b->joystick.percent);
 						if(d != ld)
 						{
 							if(f)
@@ -744,7 +750,7 @@ static unsigned karinVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int
 					{
 						last_nz = b->swipe.base.z;
 						b->swipe.base.pressed = btrue;
-						circle_direction d = karinGetSwipeDirection(dx, dy, &b->swipe.angle, &b->swipe.distance);
+						circle_direction d = vkb_GetSwipeDirection(dx, dy, &b->swipe.angle, &b->swipe.distance);
 						if(d != circle_center)
 						{
 							if(b->swipe.distance < b->swipe.ignore_distance)
@@ -893,7 +899,7 @@ static unsigned karinVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int
 						if(b->cursor.base.pressed)
 						{
 							last_nz = b->cursor.base.z;
-							circle_direction d = karinGetSwipeDirection(dx, dy, &b->cursor.angle, &b->cursor.distance);
+							circle_direction d = vkb_GetSwipeDirection(dx, dy, &b->cursor.angle, &b->cursor.distance);
 							if(d != circle_center)
 							{
 								if(b->cursor.distance < b->cursor.ignore_distance)
@@ -979,14 +985,14 @@ static unsigned karinVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int
 	return 0;
 }
 
-static unsigned karinVKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Function f)
+static unsigned vkb_VKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Function f)
 {
 	if(!the_vkb.inited)
 		return 0;
 	int last_z = INT_MIN;
 	int res = 0;
 	int clicked[TOTAL_VKB_COUNT];
-	int count = karinGetControlItemOnPosition(x, y, clicked);
+	int count = vkb_GetControlItemOnPosition(x, y, clicked);
 	if(count > 0)
 	{
 		int i;
@@ -1009,7 +1015,7 @@ static unsigned karinVKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Fu
 				b->joystick.base.pressed = pr;
 				float cx = b->joystick.base.x + b->joystick.base.width / 2;
 				float cy = b->joystick.base.y + b->joystick.base.width / 2;
-				circle_direction d = karinGetJoystickDirection(x, y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, &b->joystick.angle, &b->joystick.percent);
+				circle_direction d = vkb_GetJoystickDirection(x, y, cx, cy, b->joystick.e_ignore_radius, b->joystick.e_radius, &b->joystick.angle, &b->joystick.percent);
 				if(f)
 				{
 					switch(d)
@@ -1159,7 +1165,7 @@ static unsigned karinVKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Fu
 				}
 				float cx = b->cursor.base.x + b->cursor.base.width / 2;
 				float cy = b->cursor.base.y + b->cursor.base.height / 2;
-				circle_direction d = karinGetJoystickDirection(x, y, cx, cy, 0, b->cursor.e_radius, NULL, NULL);
+				circle_direction d = vkb_GetJoystickDirection(x, y, cx, cy, 0, b->cursor.e_radius, NULL, NULL);
 				if(!pr)
 				{
 					if(b->cursor.mask[0] > 0)
@@ -1215,7 +1221,7 @@ static unsigned karinVKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Fu
 	return res;
 }
 
-void karinUpdateP(int w, int h)
+void vkb_UpdateP(int w, int h)
 {
 	float wp;
 	float hp;
@@ -1230,7 +1236,7 @@ void karinUpdateP(int w, int h)
 	vb_p = wp > hp ? hp : wp;
 }
 
-static texture karinNewTexture2D(const char *file)
+static texture vkb_NewTexture2D(const char *file)
 {
 	texture tex;
 	memset(&tex, 0, sizeof(texture));
@@ -1239,7 +1245,7 @@ static texture karinNewTexture2D(const char *file)
 	int width = 0;
 	int height = 0;
 	unsigned char *data = NULL;
-	karinLoadPNG(file, &data, &width, &height);
+	vkb_LoadPNG(file, &data, &width, &height);
 	//printf("%s %p %d %d\n", file, data, width, height);
 	if(!data)
 		return tex;
@@ -1271,7 +1277,7 @@ static texture karinNewTexture2D(const char *file)
 	return tex;
 }
 
-static buffer_t karinNewBuffer(uenum buffer, sizei size, const void *data, uenum solution)
+static buffer_t vkb_NewBuffer(uenum buffer, sizei size, const void *data, uenum solution)
 {
 	buffer_t bufid;
 	glGenBuffers(1, &bufid);
@@ -1281,7 +1287,7 @@ static buffer_t karinNewBuffer(uenum buffer, sizei size, const void *data, uenum
 	return bufid;
 }
 
-void karinNewGLVKB(float x, float y, float z, float w, float h)
+void vkb_NewGLVKB(float x, float y, float z, float w, float h)
 {
 	if(the_vkb.inited)
 		return;
@@ -1290,47 +1296,50 @@ void karinNewGLVKB(float x, float y, float z, float w, float h)
 	the_vkb.z = z;
 	the_vkb.width = w;
 	the_vkb.height = h;
-	karinUpdateP(w, h);
+	vkb_UpdateP(w, h);
 	
 	int k;
 	for(k = 0; k < VKB_TEX_COUNT; k++)
-		the_vkb.tex[k] = karinNewTexture2D(Tex_Files[k]);
+		the_vkb.tex[k] = vkb_NewTexture2D(Tex_Files[k]);
 
 	int i;
 	int j = 0;
 
+	// compile shader
+	vkb_createShader();
+
 	// btn
 	for(i = 0; i < VKB_COUNT; i++)
 	{
-		karinMakeButton(the_vkb.vb + j, VKB_Button + i, the_vkb.width, the_vkb.height);
+		vkb_MakeButton(the_vkb.vb + j, VKB_Button + i, the_vkb.width, the_vkb.height);
 		j++;
 	}
 
 	// joy
 	for(i = 0; i < JOYSTICK_COUNT; i++)
 	{
-		karinMakeJoystick(the_vkb.vb + j, VKB_Joystick + i, the_vkb.width, the_vkb.height);
+		vkb_MakeJoystick(the_vkb.vb + j, VKB_Joystick + i, the_vkb.width, the_vkb.height);
 		j++;
 	}
 
 	// cursor
 	for(i = 0; i < CURSOR_COUNT; i++)
 	{
-		karinMakeCursor(the_vkb.vb + j, VKB_Cursor + i, the_vkb.width, the_vkb.height);
+		vkb_MakeCursor(the_vkb.vb + j, VKB_Cursor + i, the_vkb.width, the_vkb.height);
 		j++;
 	}
 
 	// swipe
 	for(i = 0; i < SWIPE_COUNT; i++)
 	{
-		karinMakeSwipe(the_vkb.vb + j, VKB_Swipe + i, the_vkb.width, the_vkb.height);
+		vkb_MakeSwipe(the_vkb.vb + j, VKB_Swipe + i, the_vkb.width, the_vkb.height);
 		j++;
 	}
 
 	the_vkb.inited = btrue;
 }
 
-void karinDeleteGLVKB(void)
+void vkb_DeleteGLVKB(void)
 {
 	if(!the_vkb.inited)
 		return;
@@ -1355,7 +1364,7 @@ void karinDeleteGLVKB(void)
 	the_vkb.inited = bfalse;
 }
 
-void karinRenderGLVKB(void)
+void vkb_RenderGLVKB(void)
 {
 	if(!the_vkb.inited)
 	{
@@ -1379,6 +1388,8 @@ void karinRenderGLVKB(void)
 
 			glEnable(GL_BLEND);
 			glEnable(GL_ALPHA_TEST);
+#else 
+			glUseProgram(the_vkb.program_id);
 #endif
 		}
 		int i;
@@ -1391,16 +1402,16 @@ void karinRenderGLVKB(void)
 			switch(b->type)
 			{
 				case vkb_button_type:
-					karinRenderVKBButton(&b->button, the_vkb.tex);
+					vkb_RenderVKBButton(&b->button, the_vkb.tex);
 					break;
 				case vkb_joystick_type:
-					karinRenderVKBJoystick(&b->joystick, the_vkb.tex);
+					vkb_RenderVKBJoystick(&b->joystick, the_vkb.tex);
 					break;
 				case vkb_swipe_type:
-					karinRenderVKBSwipe(&b->swipe, the_vkb.tex);
+					vkb_RenderVKBSwipe(&b->swipe, the_vkb.tex);
 					break;
 				case vkb_cursor_type:
-					karinRenderVKBCursor(&b->cursor, the_vkb.tex);
+					vkb_RenderVKBCursor(&b->cursor, the_vkb.tex);
 					break;
 				default:
 					continue;
@@ -1443,14 +1454,14 @@ void karinRenderGLVKB(void)
 	}
 }
 
-unsigned karinGLVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int dy, VKB_Key_Action_Function f)
+unsigned vkb_GLVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int dy, VKB_Key_Action_Function f)
 {
-	return karinVKBMouseMotionEvent(b, p, x, y, dx, dy, f);
+	return vkb_VKBMouseMotionEvent(b, p, x, y, dx, dy, f);
 }
 
-unsigned karinGLVKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Function f)
+unsigned vkb_GLVKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Function f)
 {
-	return karinVKBMouseEvent(b, p, x, y, f);
+	return vkb_VKBMouseEvent(b, p, x, y, f);
 }
 #define GET_JOY_XY(r, v, s, w, b) \
 	switch(b) \
@@ -1489,7 +1500,44 @@ unsigned karinGLVKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Functio
 #define GET_TEX_S(t, v, w) (float)(v + w) / (float)t
 #define GET_TEX_T(t, v, h) (float)(v - h) / (float)t
 
-void karinMakeCursor(virtual_control_item *b, struct vkb_cursor *d, unsigned int width, unsigned int height)
+void vkb_createShader() {
+	const char *attribs[] = {
+			"a_position",
+			"a_texcoord"
+		};
+	// TODO add uniform Translation 
+	const char *vp =
+		"attribute vec2 a_position;\n"
+		// "attribute vec2 a_texcoord;\n"
+		// "varying vec2 v_texcoord;\n"
+		"uniform vec2 u_translation;\n"
+
+		"void main()\n"
+		"{\n"
+		"  gl_Position = vec4(a_position + u_translation, 0.0, 1.0);\n"
+		// "  v_texcoord = a_texcoord.xy;\n"
+		"}\n";
+
+	const char *fp =
+		//"#version 150 core\n"
+		#ifdef EGLW_GLES2
+		"precision mediump float;\n"
+		#endif
+		// "varying vec2 v_texcoord;\n"
+		"uniform sampler2D u_texture;\n"
+
+		"void main()\n"
+		"{\n"
+		// "  gl_FragColor = vec4(texture2D(u_texture, v_texcoord).rgb,1.0);\n"
+		"  gl_FragColor = vec4(1.0,1.0,1.0,0.3);\n"
+		"}\n";
+
+	the_vkb.program_id = loadProgram( vp, fp , attribs, 1);
+	the_vkb.tex_id = glGetUniformLocation(the_vkb.program_id, "u_texture");
+	the_vkb.translate_id = glGetUniformLocation(the_vkb.program_id, "u_translation");
+}
+
+void vkb_MakeCursor(virtual_control_item *b, struct vkb_cursor *d, unsigned int width, unsigned int height)
 {
 	if(!b || !d)
 		return;
@@ -1568,11 +1616,11 @@ void karinMakeCursor(virtual_control_item *b, struct vkb_cursor *d, unsigned int
 		GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->tw),
 		GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->tw)
 	};
-	b->cursor.base.buffers[Position_Coord] = karinNewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, vertex, GL_STATIC_DRAW);
-	b->cursor.base.buffers[Texture_Coord] = karinNewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 24, texcoord, GL_STATIC_DRAW);
+	b->cursor.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, vertex, GL_STATIC_DRAW);
+	b->cursor.base.buffers[Texture_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 24, texcoord, GL_STATIC_DRAW);
 }
 
-void karinMakeJoystick(virtual_control_item *b, struct vkb_joystick *d, unsigned int width, unsigned int height)
+void vkb_MakeJoystick(virtual_control_item *b, struct vkb_joystick *d, unsigned int width, unsigned int height)
 {
 	if(!b || !d)
 		return;
@@ -1640,11 +1688,11 @@ void karinMakeJoystick(virtual_control_item *b, struct vkb_joystick *d, unsigned
 		GET_TEX_S(TEX_FULL_WIDTH, d->joy_tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->joy_ty, d->joy_tw),
 		GET_TEX_S(TEX_FULL_WIDTH, d->joy_tx, d->joy_tw), GET_TEX_T(TEX_FULL_HEIGHT, d->joy_ty, d->joy_tw),
 	};
-	b->joystick.base.buffers[Position_Coord] = karinNewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, vertex, GL_STATIC_DRAW);
-	b->joystick.base.buffers[Texture_Coord] = karinNewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, texcoord, GL_STATIC_DRAW);
+	b->joystick.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, vertex, GL_STATIC_DRAW);
+	b->joystick.base.buffers[Texture_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, texcoord, GL_STATIC_DRAW);
 }
 
-void karinMakeSwipe(virtual_control_item *b, struct vkb_swipe *d, unsigned int width, unsigned int height)
+void vkb_MakeSwipe(virtual_control_item *b, struct vkb_swipe *d, unsigned int width, unsigned int height)
 {
 	if(!b || !d)
 		return;
@@ -1694,12 +1742,12 @@ void karinMakeSwipe(virtual_control_item *b, struct vkb_swipe *d, unsigned int w
 			GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->tw),
 			GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->tw),
 		};
-		b->swipe.base.buffers[Position_Coord] = karinNewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, vertex, GL_STATIC_DRAW);
-		b->swipe.base.buffers[Texture_Coord] = karinNewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, texcoord, GL_STATIC_DRAW);
+		b->swipe.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, vertex, GL_STATIC_DRAW);
+		b->swipe.base.buffers[Texture_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, texcoord, GL_STATIC_DRAW);
 	}
 }
 
-void karinMakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int width, unsigned int height)
+void vkb_MakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int width, unsigned int height)
 {
 	if(!b || !d)
 		return;
@@ -1742,14 +1790,14 @@ void karinMakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int
 		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth),
 		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, d->ptw), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth)
 	};
-	b->button.base.buffers[Position_Coord] = karinNewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, vertex, GL_STATIC_DRAW);
-	b->button.base.buffers[Texture_Coord] = karinNewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, texcoord, GL_STATIC_DRAW);
+	b->button.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, vertex, GL_STATIC_DRAW);
+	b->button.base.buffers[Texture_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, texcoord, GL_STATIC_DRAW);
 }
 #undef GET_VB_XY
 #undef GET_TEX_S
 #undef GET_TEX_T
 
-void karinRenderVKBButton(const virtual_button *b, const texture const tex[])
+void vkb_RenderVKBButton(const virtual_button *b, const texture const tex[])
 {
 	if(!b)
 		return;
@@ -1774,7 +1822,7 @@ void karinRenderVKBButton(const virtual_button *b, const texture const tex[])
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void karinRenderVKBSwipe(const virtual_swipe *b, const texture const tex[])
+void vkb_RenderVKBSwipe(const virtual_swipe *b, const texture const tex[])
 {
 	if(!b)
 		return;
@@ -1798,7 +1846,7 @@ void karinRenderVKBSwipe(const virtual_swipe *b, const texture const tex[])
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void karinRenderVKBJoystick(const virtual_joystick *b, const texture const tex[])
+void vkb_RenderVKBJoystick(const virtual_joystick *b, const texture const tex[])
 {
 	if(!b)
 		return;
@@ -1810,8 +1858,8 @@ void karinRenderVKBJoystick(const virtual_joystick *b, const texture const tex[]
 		return;
 	if(!glIsBuffer(b->base.buffers[Texture_Coord]) || !glIsBuffer(b->base.buffers[Position_Coord]))
 		return;
-	glBindTexture(GL_TEXTURE_2D, tex[b->base.tex_index].imaged);
 #ifdef FIX_GLESv2
+	glBindTexture(GL_TEXTURE_2D, tex[b->base.tex_index].imaged);
 	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Texture_Coord]);
 	glTexCoordPointer(2, GL_FLOAT, 0, NULL);
 	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord]);
@@ -1825,12 +1873,44 @@ void karinRenderVKBJoystick(const virtual_joystick *b, const texture const tex[]
 		glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
 	}
 	glPopMatrix();
+#else
+	GLfloat c[2];
+	c[0] = b->base.x + b->base.width / 2 + b->pos_x;
+	c[1] = b->base.y + b->base.height / 2 + b->pos_y;
+	glBindVertexArray(0);
+	// glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord]);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(
+				0,                  // attribute 0
+				2,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				sizeof(GLfloat) * 2,// stride
+				(void*)(0) // array buffer offset
+				);
+	// glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Texture_Coord]);
+	// glEnableVertexAttribArray(Texture_Coord);
+	// glVertexAttribPointer(
+	// 			1,                  // attribute 1
+	// 			2,                  // size
+	// 			GL_FLOAT,           // type
+	// 			GL_FALSE,           // normalized?
+	// 			sizeof(GLfloat) * 2,// stride
+	// 			(void*)(sizeof(GLfloat) * 0)// array buffer offset
+	// 			);
+	// glUniform1i(the_vkb.tex_id, 0);
+	// ( glDisable(GL_DEPTH_TEST) );
+	glBindTexture(GL_TEXTURE_2D, tex[b->base.tex_index].imaged);
+	glUniform2fv(the_vkb.translate_id, 2, c );
+	// ( glBindTexture(GL_TEXTURE_2D,DepthTexture) );
+	glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
 #endif
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void karinRenderVKBCursor(const virtual_cursor *b, const texture tex[])
+void vkb_RenderVKBCursor(const virtual_cursor *b, const texture tex[])
 {
 	if(!b)
 		return;
@@ -1872,7 +1952,7 @@ void karinRenderVKBCursor(const virtual_cursor *b, const texture tex[])
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void karinResizeGLVKB(float w, float h)
+void vkb_ResizeGLVKB(float w, float h)
 {
 	if(!the_vkb.inited)
 		return;
@@ -1884,7 +1964,7 @@ void karinResizeGLVKB(float w, float h)
 	the_vkb.width = w;
 	the_vkb.height = h;
 
-	karinUpdateP(w, h);
+	vkb_UpdateP(w, h);
 	
 	int count = TOTAL_VKB_COUNT;
 	int i;
@@ -1904,28 +1984,28 @@ void karinResizeGLVKB(float w, float h)
 	// btn
 	for(i = 0; i < VKB_COUNT; i++)
 	{
-		karinMakeButton(the_vkb.vb + j, VKB_Button + i, the_vkb.width, the_vkb.height);
+		vkb_MakeButton(the_vkb.vb + j, VKB_Button + i, the_vkb.width, the_vkb.height);
 		j++;
 	}
 
 	// joy
 	for(i = 0; i < JOYSTICK_COUNT; i++)
 	{
-		karinMakeJoystick(the_vkb.vb + j, VKB_Joystick + i, the_vkb.width, the_vkb.height);
+		vkb_MakeJoystick(the_vkb.vb + j, VKB_Joystick + i, the_vkb.width, the_vkb.height);
 		j++;
 	}
 
 	// cursor
 	for(i = 0; i < CURSOR_COUNT; i++)
 	{
-		karinMakeCursor(the_vkb.vb + j, VKB_Cursor + i, the_vkb.width, the_vkb.height);
+		vkb_MakeCursor(the_vkb.vb + j, VKB_Cursor + i, the_vkb.width, the_vkb.height);
 		j++;
 	}
 
 	// swipe
 	for(i = 0; i < SWIPE_COUNT; i++)
 	{
-		karinMakeSwipe(the_vkb.vb + j, VKB_Swipe + i, the_vkb.width, the_vkb.height);
+		vkb_MakeSwipe(the_vkb.vb + j, VKB_Swipe + i, the_vkb.width, the_vkb.height);
 		j++;
 	}
 

@@ -2219,7 +2219,7 @@ static qboolean DecodeImageInterlaced(struct PNG_Chunk_IHDR *IHDR,
 	return(qtrue);
 }
 
-void karinLoadPNG(const char *name, unsigned char **pic, int *width, int *height)
+void vkb_LoadPNG(const char *name, unsigned char **pic, int *width, int *height)
 {
 	struct BufferedFile *ThePNG;
 	byte *OutBuffer;

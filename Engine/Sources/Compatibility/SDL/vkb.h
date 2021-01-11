@@ -90,7 +90,7 @@ typedef enum _mouse_motion_button_status
 
 enum{
 	Invalid_Data = 0,
-	Cmd_Data, // call karinAddCommand
+	Cmd_Data, // call vkb_AddCommand
 	Key_Data, // call Key_Event
 	Button_Data, // set mx, my, buttonstate
 };
@@ -320,7 +320,7 @@ typedef unsigned (* VKB_Key_Action_Function)(int, unsigned, int, int);
 typedef void (* VKB_Add_Command_Function)(char *text);
 
 extern unsigned client_state;
-extern void (* karinAddCommand) (char *cmd);
+extern void (* vkb_AddCommand) (char *cmd);
 extern const char *Tex_Files[VKB_TEX_COUNT];
 extern struct vkb_button VKB_Button[VKB_COUNT];
 extern struct vkb_joystick VKB_Joystick[JOYSTICK_COUNT];
@@ -329,10 +329,10 @@ extern struct vkb_cursor VKB_Cursor[CURSOR_COUNT];
 extern unsigned VKB_States[Client_In_Invalid];
 extern boolean render_lock;
 
-float karinFormatAngle(float angle);
-void karinSetKeyBindinds(char ** kbs);
-void karinGetClientState(unsigned state);
-void karinSetAddCommandFunction(void (* f)(char *));
-int karinGetActionData(unsigned action, int *keys, unsigned int key_max, unsigned int *key_count, char *cmd, unsigned int cmd_max);
+float vkb_FormatAngle(float angle);
+void vkb_SetKeyBindinds(char ** kbs);
+void vkb_GetClientState(unsigned state);
+void vkb_SetAddCommandFunction(void (* f)(char *));
+int vkb_GetActionData(unsigned action, int *keys, unsigned int key_max, unsigned int *key_count, char *cmd, unsigned int cmd_max);
 
 #endif

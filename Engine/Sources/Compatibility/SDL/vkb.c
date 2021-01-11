@@ -10,7 +10,11 @@
 #ifdef _HARMATTAN_RESC
 #define RESC _HARMATTAN_RESC
 #else
-#define RESC "resc/"
+#ifdef SAILFISHOS // TODO - this for tests only, better compile png to res file
+#define RESC "/home/nemo/Projects/quake2/res/"
+#else
+#define RESC "res/"
+#endif
 #endif
 
 #define VB_S(n) (n * VB_SPACING)
@@ -47,7 +51,7 @@
 
 static char **keybinding_map = NULL;
 unsigned client_state = Client_In_Invalid;
-VKB_Add_Command_Function karinAddCommand = NULL;
+VKB_Add_Command_Function vkb_AddCommand = NULL;
 boolean render_lock = bfalse;
 
 // sort by setting in Q2
@@ -669,7 +673,7 @@ unsigned VKB_States[Client_In_Invalid] = {
 	VKB_In_Menu
 };
 
-int karinGetActionData(unsigned action, int *keys, unsigned int key_max, unsigned int *key_count, char *cmd, unsigned int cmd_max)
+int vkb_GetActionData(unsigned action, int *keys, unsigned int key_max, unsigned int *key_count, char *cmd, unsigned int cmd_max)
 {
 	if(!keys || key_max == 0 || !key_count || !cmd || cmd_max == 0)
 		return -1; // data is null
@@ -750,7 +754,7 @@ int karinGetActionData(unsigned action, int *keys, unsigned int key_max, unsigne
 	return r;
 }
 
-float karinFormatAngle(float angle)
+float vkb_FormatAngle(float angle)
 {
 	int i = (int)angle;
 	float f = angle - i;
@@ -770,17 +774,17 @@ float karinFormatAngle(float angle)
 	return r;
 }
 
-void karinSetKeyBindinds(char **kbs)
+void vkb_SetKeyBindinds(char **kbs)
 {
 	keybinding_map = kbs;
 }
 
-void karinGetClientState(unsigned state)
+void vkb_GetClientState(unsigned state)
 {
 	client_state = state > Client_In_Invalid ? Client_In_Invalid : state;
 }
 
-void karinSetAddCommandFunction(void (* f)(char *))
+void vkb_SetAddCommandFunction(void (* f)(char *))
 {
-	karinAddCommand = f;
+	vkb_AddCommand = f;
 }

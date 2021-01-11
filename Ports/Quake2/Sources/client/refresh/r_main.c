@@ -10,6 +10,7 @@
 #include <GLES2/gl2platform.h>
 #include <SDL/SDLWrapper.h>
 #include <SDL/shader.h>
+#include <SDL/gl_vkb.h>
 // DEBUG _ GL
 #	define DEBUG_GL
 #endif // SAILFISH_FBO
@@ -3554,6 +3555,9 @@ void bind_fbo() {
 void draw_fbo_quad() {
 	if( sailfish_fbo.RenderedTexture == 0)
 		return;
+	// here we draw virtual keyboard layer
+	vkb_RenderGLVKB();
+	// than we draw result frame on screen
 	( glBindFramebuffer(GL_FRAMEBUFFER, 0) ); // this return glError! is this normal?
 	glGetError();
 	GLuint shader_index = 0;
@@ -3582,7 +3586,7 @@ void draw_fbo_quad() {
 				sizeof(GLfloat) * 5,// stride
 				(void*)(sizeof(GLfloat) * 3)// array buffer offset
 				));
-	GL_CHECK( glUniform1i(sailfish_fbo.u_texID[shader_index], 0) );
+	// GL_CHECK( glUniform1i(sailfish_fbo.u_texID[shader_index], 0) );
 
 	// GL_CHECK( glDisable(GL_DEPTH_TEST) );
 	GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.RenderedTexture) );
@@ -3757,6 +3761,9 @@ void create_fbo(GLuint w, GLuint h) {
 		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER,  GL_NONE) );
 		// GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, GL_NONE) );
 		// GL_CHECK( glBindTexture(GL_TEXTURE_2D, GL_NONE) );
+
+		// create VKB 
+		vkb_NewGLVKB(0,0,1, sailfish_fbo.bw, sailfish_fbo.bh);
 	}
 }
 #endif
