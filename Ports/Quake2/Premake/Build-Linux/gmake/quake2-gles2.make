@@ -167,6 +167,10 @@ OBJECTS := \
 	$(OBJDIR)/EGLWrapper.o \
 	$(OBJDIR)/OpenGLWrapper.o \
 	$(OBJDIR)/SDLWrapper.o \
+	$(OBJDIR)/vkb.o \
+	$(OBJDIR)/q3_png.o \
+	$(OBJDIR)/gl_vkb.o \
+	$(OBJDIR)/shader.o \
 
 RESOURCES := \
 
@@ -594,6 +598,22 @@ $(OBJDIR)/SDLWrapper.o: ../../../../../Engine/Sources/Compatibility/SDL/SDLWrapp
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
+$(OBJDIR)/vkb.o: ../../../../../Engine/Sources/Compatibility/SDL/vkb.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
+
+$(OBJDIR)/q3_png.o: ../../../../../Engine/Sources/Compatibility/SDL/q3_png.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
+
+$(OBJDIR)/gl_vkb.o: ../../../../../Engine/Sources/Compatibility/SDL/gl_vkb1.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
+
+$(OBJDIR)/shader.o: ../../../../../Engine/Sources/Compatibility/SDL/shader.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
+	
 -include $(OBJECTS:%.o=%.d)
 ifneq (,$(PCH))
   -include $(OBJDIR)/$(notdir $(PCH)).d
