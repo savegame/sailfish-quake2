@@ -1810,13 +1810,15 @@ void vkb_RenderVKBButton(const virtual_button *b, const texture const tex[])
 	if(!glIsBuffer(b->base.buffers[Texture_Coord]) || !glIsBuffer(b->base.buffers[Position_Coord]))
 		return;
 	glBindTexture(GL_TEXTURE_2D, tex[b->base.tex_index].imaged);
-	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Texture_Coord]);
+	// glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Texture_Coord]);
 	GLvoid *ptr = (b->base.pressed && b->base.enabled) ? (float *)NULL + 8 : NULL;
 #ifdef FIX_GLESv2
 	glTexCoordPointer(2, GL_FLOAT, 0, ptr);
 	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord]);
 	glVertexPointer(2, GL_FLOAT, 0, NULL);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+#else
+	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord]);
 #endif
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
