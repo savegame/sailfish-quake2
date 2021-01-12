@@ -90,8 +90,9 @@ bool sdlwInitialize(SdlProcessEventFunction processEvent, Uint32 flags) {
     sdlw->window = NULL;
     sdlw->windowWidth = 0;
     sdlw->windowHeight = 0;
+#ifdef SAILFISHOS
     sdlw->orientation = SDL_ORIENTATION_LANDSCAPE;
-
+#endif
     if (SDL_Init(flags) < 0) {
         printf("Unable to initialize SDL: %s\n", SDL_GetError());
         goto on_error;

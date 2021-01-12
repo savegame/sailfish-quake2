@@ -3770,9 +3770,9 @@ void create_fbo(GLuint w, GLuint h) {
 
 void R_Frame_end()
 {
-#ifdef SAILFISH_FBO
-	static unsigned long long frame_Count = 0;
-#else
+// #ifdef SAILFISH_FBO
+	// static unsigned long long frame_Count = 0;
+// #endif
 	if (r_discardframebuffer->value && gl_config.discardFramebuffer)
 	{
 		static const GLenum attachements[] = { GL_DEPTH_EXT, GL_STENCIL_EXT };
@@ -3782,7 +3782,6 @@ void R_Frame_end()
 		gl_config.discardFramebuffer(GL_FRAMEBUFFER_OES, 2, attachements);
         #endif
 	}
-#endif
 
 #ifdef SAILFISH_FBO
 	// TODO Sailfish here we should unbind our buffer and draw it on quad
@@ -3801,7 +3800,6 @@ void R_Frame_end()
 
 	// Render to our framebuffer
 #ifdef SAILFISH_FBO
-	// frame_Count++;
 	bind_fbo();
 	// =============================================================================
 #endif
