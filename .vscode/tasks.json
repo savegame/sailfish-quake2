@@ -81,7 +81,27 @@
             "label": "Build Desktop",
             "command": "make",
             "args": [
-                "-j4","config=debug","sailfish_fbo=yes","quake2-gles2"
+                "-j${num_cpu}","config=debug","sailfish_fbo=yes","quake2-gles2",
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-Linux/gmake"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Build Linux Desktop binary"
+        },
+        {
+            "type": "shell",
+            "label": "Clean Desktop",
+            "command": "make",
+            "args": [
+                "-j${num_cpu}","config=debug","sailfish_fbo=yes","clean",
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
