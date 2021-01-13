@@ -12,7 +12,7 @@
 #else
 #ifdef SAILFISHOS // TODO - this for tests only, better compile png to res file
 #define RESC "/home/nemo/Projects/quake2/res/"
-#else
+#elif !defined(RESC)
 #define RESC "res/"
 #endif
 #endif
