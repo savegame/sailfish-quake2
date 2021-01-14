@@ -3691,6 +3691,8 @@ void create_fbo(GLuint w, GLuint h) {
 		sailfish_fbo.vh =  h;
 		sailfish_fbo.bw =  ((GLfloat)w)*sailfish_fbo.vs;
 		sailfish_fbo.bh =  ((GLfloat)h)*sailfish_fbo.vs;
+		viddef.width = sailfish_fbo.bw;
+		viddef.height = sailfish_fbo.bh;
 		// create framebuffer 
 		GL_CHECK( glGenFramebuffers(1, &sailfish_fbo.Framebuffer) );
 		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) )
@@ -4340,8 +4342,18 @@ static bool R_Window_update(bool forceFlag)
 #else
 	SDL_GetWindowSize(sdlw->window, &effectiveWidth, &effectiveHeight);
 #endif
+#if defined(SAILFISH_FBO)
+	if( sailfish_fbo.bw > 0 && sailfish_fbo.bw > 0 ) {
+		viddef.width = sailfish_fbo.bw;
+		viddef.height = sailfish_fbo.bh;
+	} else {
+		viddef.width = effectiveWidth;
+		viddef.height = effectiveHeight;	
+	}
+#else
 	viddef.width = effectiveWidth;
 	viddef.height = effectiveHeight;
+#endif
 	sdlwResize(effectiveWidth, effectiveHeight);
     return false;
 }
