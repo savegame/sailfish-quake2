@@ -9,6 +9,7 @@ SdlwContext *sdlwContext = NULL;
 #include <SDL_hints.h>
 #include <SDL_events.h>
 #include <SDL_video.h>
+#include "gl_vkb.h"
 #endif
 //SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK
 

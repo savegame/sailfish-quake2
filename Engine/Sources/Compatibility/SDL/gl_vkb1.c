@@ -2008,6 +2008,14 @@ void vkb_RenderVKBJoystick(const virtual_joystick *b, const texture const tex[])
 	// joy
 	c[0] = b->base.x + b->base.width / 2 + b->pos_x;
 	c[1] = b->base.y + b->base.height / 2 + b->pos_y;
+	{
+		int w,h;
+		sdlwGetWindowSize(&w,&h);
+		GLfloat hw = (GLfloat)w * 0.5f;
+		GLfloat hh = (GLfloat)h * 0.5f;
+		c[0] = (c[0] - hw)/hw;
+		c[1] = (c[1] - hh)/hh;
+	}
 	glUniform2fv(the_vkb.translate_id, 2, c );
 	GL_CHECK( glEnableVertexAttribArray(0));
 	GL_CHECK( glVertexAttribPointer(
