@@ -1547,7 +1547,7 @@ void vkb_createShader() {
 		"void main()\n"
 		"{\n"
 		// "  gl_FragColor = vec4(texture2D(u_texture, v_texcoord).rgb,1.0);\n"
-		"  gl_FragColor = vec4(1.0,1.0,1.0,0.3);\n"
+		"  gl_FragColor = vec4(1.0,1.0,1.0,1.0);\n"
 		"}\n";
 
 	the_vkb.program_id = loadProgram( vp, fp , attribs, 1);
@@ -1783,13 +1783,13 @@ void vkb_MakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int 
 		return;
 	}
 
-	GET_VB_XY(b->button.base.x, width, VB_P(d->x), d->x_base)
-		GET_VB_XY(b->button.base.y, height, VB_P(d->y), d->y_base)
-		b->button.base.width = VB_P(d->w);
+	GET_VB_XY(b->button.base.x, width, VB_P(d->x), d->x_base);
+	GET_VB_XY(b->button.base.y, height, VB_P(d->y), d->y_base);
+	b->button.base.width = VB_P(d->w);
 	b->button.base.height = VB_P(d->h);
-	GET_VB_XY(b->button.base.e_min_x, width, VB_P(d->ex), d->x_base)
-		GET_VB_XY(b->button.base.e_min_y, height, VB_P(d->ey), d->y_base)
-		b->button.base.e_max_x = b->button.base.e_min_x + VB_P(d->ew);
+	GET_VB_XY(b->button.base.e_min_x, width, VB_P(d->ex), d->x_base);
+	GET_VB_XY(b->button.base.e_min_y, height, VB_P(d->ey), d->y_base);
+	b->button.base.e_max_x = b->button.base.e_min_x + VB_P(d->ew);
 	b->button.base.e_max_y = b->button.base.e_min_y + VB_P(d->eh);
 	float vertex[] = {
 		b->button.base.x, b->button.base.y,
@@ -1797,6 +1797,10 @@ void vkb_MakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int 
 		b->button.base.x, b->button.base.y + b->button.base.height,
 		b->button.base.x + b->button.base.width, b->button.base.y + b->button.base.height
 	};
+	for(int i = 0 ; i < 4; i++) {
+		vertex[i*2] = vertex[i*2] / width;
+		vertex[i*2+1] = vertex[i*2+1] / height;
+	}
 	float texcoord[] = {
 		GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
 		GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
@@ -1808,6 +1812,7 @@ void vkb_MakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int 
 		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth),
 		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, d->ptw), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth)
 	};
+
 	b->button.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, vertex, GL_STATIC_DRAW);
 	b->button.base.buffers[Texture_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, texcoord, GL_STATIC_DRAW);
 }
@@ -1857,6 +1862,8 @@ void vkb_RenderVKBButton(const virtual_button *b, const texture const tex[])
 	// 			sizeof(GLfloat) * 5,// stride
 	// 			(void*)(sizeof(GLfloat) * 3)// array buffer offset
 	// 			));
+	GLfloat c[2] = {0.0, 0.0};
+	glUniform2fv(the_vkb.translate_id, 2, c );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 #endif
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

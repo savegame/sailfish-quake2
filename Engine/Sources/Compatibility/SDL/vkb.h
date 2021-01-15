@@ -331,7 +331,7 @@ extern boolean render_lock;
 
 float vkb_FormatAngle(float angle);
 void vkb_SetKeyBindinds(char ** kbs);
-void vkb_GetClientState(unsigned state);
+void vkb_SetClientState(unsigned state);
 void vkb_SetAddCommandFunction(void (* f)(char *));
 int vkb_GetActionData(unsigned action, int *keys, unsigned int key_max, unsigned int *key_count, char *cmd, unsigned int cmd_max);
 

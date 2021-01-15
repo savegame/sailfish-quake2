@@ -28,7 +28,7 @@ DEFINES += -DSAILFISHOS
 INCLUDES  += -I../../../../../SDL2/include
 INCLUDES  += -I../../../../../Ports/Quake2/Sources
 INCLUDES  += -I../../../../../
-INCLUDES  += $(pkg-config dbus --cflags)
+INCLUDES  += -I/usr/include/dbus-1.0/ -I/usr/lib/dbus-1.0/include
 
 ifeq ($(sailfish_fbo),yes)
   DEFINES += -DSAILFISH_FBO
