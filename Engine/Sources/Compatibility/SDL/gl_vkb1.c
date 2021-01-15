@@ -1526,14 +1526,14 @@ void vkb_createShader() {
 	// TODO add uniform Translation 
 	const char *vp =
 		"attribute vec2 a_position;\n"
-		// "attribute vec2 a_texcoord;\n"
-		// "varying vec2 v_texcoord;\n"
+		"attribute vec2 a_texcoord;\n"
+		"varying vec2 v_texcoord;\n"
 		"uniform vec2 u_translation;\n"
 
 		"void main()\n"
 		"{\n"
 		"  gl_Position = vec4(a_position + u_translation, 0.0, 1.0);\n"
-		// "  v_texcoord = a_texcoord.xy;\n"
+		"  v_texcoord = a_texcoord.xy;\n"
 		"}\n";
 
 	const char *fp =
@@ -1541,16 +1541,16 @@ void vkb_createShader() {
 		#ifdef EGLW_GLES2
 		"precision mediump float;\n"
 		#endif
-		// "varying vec2 v_texcoord;\n"
+		"varying vec2 v_texcoord;\n"
 		"uniform sampler2D u_texture;\n"
 
 		"void main()\n"
 		"{\n"
-		// "  gl_FragColor = vec4(texture2D(u_texture, v_texcoord).rgb,1.0);\n"
-		"  gl_FragColor = vec4(1.0,1.0,1.0,1.0);\n"
+		"  gl_FragColor = texture2D(u_texture, v_texcoord).rgba;\n"
+		// "  gl_FragColor = vec4(1.0,1.0,1.0,1.0);\n"
 		"}\n";
 
-	the_vkb.program_id = loadProgram( vp, fp , attribs, 1);
+	the_vkb.program_id = loadProgram( vp, fp , attribs, 2);
 	the_vkb.tex_id = glGetUniformLocation(the_vkb.program_id, "u_texture");
 	the_vkb.translate_id = glGetUniformLocation(the_vkb.program_id, "u_translation");
 }
@@ -1797,10 +1797,6 @@ void vkb_MakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int 
 		b->button.base.x, b->button.base.y + b->button.base.height,
 		b->button.base.x + b->button.base.width, b->button.base.y + b->button.base.height
 	};
-	for(int i = 0 ; i < 4; i++) {
-		vertex[i*2] = vertex[i*2] / width;
-		vertex[i*2+1] = vertex[i*2+1] / height;
-	}
 	float texcoord[] = {
 		GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
 		GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
@@ -1813,8 +1809,29 @@ void vkb_MakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int 
 		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, d->ptw), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth)
 	};
 
-	b->button.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, vertex, GL_STATIC_DRAW);
-	b->button.base.buffers[Texture_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, texcoord, GL_STATIC_DRAW);
+	float vertex_uv[] = {
+		b->button.base.x, b->button.base.y,
+		b->button.base.x + b->button.base.width, b->button.base.y,
+		b->button.base.x, b->button.base.y + b->button.base.height,
+		b->button.base.x + b->button.base.width, b->button.base.y + b->button.base.height,
+		GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
+		GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
+		GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->th),
+		GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->th),
+
+		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, 0),
+		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, d->ptw), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, 0),
+		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth),
+		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, d->ptw), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth)
+	};
+	for(int i = 0 ; i < 4; i++) {
+		vertex_uv[i*2] = vertex_uv[i*2] / width;
+		vertex_uv[i*2+1] = vertex_uv[i*2+1] / height;
+	}
+
+	b->button.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 24, vertex_uv, GL_STATIC_DRAW);
+	// b->button.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, vertex, GL_STATIC_DRAW);
+	// b->button.base.buffers[Texture_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, texcoord, GL_STATIC_DRAW);
 }
 #undef GET_VB_XY
 #undef GET_TEX_S
@@ -1834,7 +1851,7 @@ void vkb_RenderVKBButton(const virtual_button *b, const texture const tex[])
 		return;
 	glBindTexture(GL_TEXTURE_2D, tex[b->base.tex_index].imaged);
 	// glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Texture_Coord].vbo_id);
-	GLvoid *ptr = (b->base.pressed && b->base.enabled) ? (float *)NULL + 8 : NULL;
+	GLuint tcoord_offset = (b->base.pressed && b->base.enabled) ? 16 : 8;
 #ifdef FIX_GLESv2
 	glTexCoordPointer(2, GL_FLOAT, 0, ptr);
 	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord].vbo_id);
@@ -1853,15 +1870,15 @@ void vkb_RenderVKBButton(const virtual_button *b, const texture const tex[])
 				sizeof(GLfloat) * 2,// stride
 				(void*)(0) // array buffer offset
 				));
-	// GL_CHECK( glEnableVertexAttribArray(1) );
-	// GL_CHECK( glVertexAttribPointer(
-	// 			1,                  // attribute 1
-	// 			2,                  // size
-	// 			GL_FLOAT,           // type
-	// 			GL_FALSE,           // normalized?
-	// 			sizeof(GLfloat) * 5,// stride
-	// 			(void*)(sizeof(GLfloat) * 3)// array buffer offset
-	// 			));
+	GL_CHECK( glEnableVertexAttribArray(1) );
+	GL_CHECK( glVertexAttribPointer(
+				1,                  // attribute 1
+				2,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				sizeof(GLfloat) * 2,// stride
+				(void*)(sizeof(GLfloat) * tcoord_offset)// array buffer offset
+				));
 	GLfloat c[2] = {0.0, 0.0};
 	glUniform2fv(the_vkb.translate_id, 2, c );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
