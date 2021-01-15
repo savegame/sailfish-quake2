@@ -1,6 +1,7 @@
 #include "gl_vkb.h"
 
 #include <GLES2/gl2.h>
+#include "SDLWrapper.h"
 
 #include "q3_png.h"
 #include "shader.h"
@@ -1236,6 +1237,8 @@ void vkb_UpdateP(int w, int h)
 
 	wp = hp = 1.0f;
 
+	sdlwGetWindowSize(&w,&h);
+
 	if(w > 0)
 		wp = (float)w / (float)N950_W;
 	if(h > 0)
@@ -1422,9 +1425,9 @@ void vkb_RenderGLVKB(void)
 				case vkb_button_type:
 					vkb_RenderVKBButton(&b->button, the_vkb.tex);
 					break;
-				// case vkb_joystick_type:
-				// 	vkb_RenderVKBJoystick(&b->joystick, the_vkb.tex);
-				// 	break;
+				case vkb_joystick_type:
+					vkb_RenderVKBJoystick(&b->joystick, the_vkb.tex);
+					break;
 				// case vkb_swipe_type:
 				// 	vkb_RenderVKBSwipe(&b->swipe, the_vkb.tex);
 				// 	break;
@@ -1683,6 +1686,7 @@ void vkb_MakeJoystick(virtual_control_item *b, struct vkb_joystick *d, unsigned 
 
 	float jw = b->joystick.base.width * d->joy_r / 2.0;
 	float jh = b->joystick.base.height * d->joy_r / 2.0;
+#ifdef fix_GLESv2
 	float vertex[] = {
 		b->joystick.base.x, b->joystick.base.y,
 		b->joystick.base.x + b->joystick.base.width, b->joystick.base.y,
@@ -1706,8 +1710,42 @@ void vkb_MakeJoystick(virtual_control_item *b, struct vkb_joystick *d, unsigned 
 		GET_TEX_S(TEX_FULL_WIDTH, d->joy_tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->joy_ty, d->joy_tw),
 		GET_TEX_S(TEX_FULL_WIDTH, d->joy_tx, d->joy_tw), GET_TEX_T(TEX_FULL_HEIGHT, d->joy_ty, d->joy_tw),
 	};
+
 	b->joystick.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, vertex, GL_STATIC_DRAW);
 	b->joystick.base.buffers[Texture_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, texcoord, GL_STATIC_DRAW);
+#else
+	float vertex[] = {
+		b->joystick.base.x, b->joystick.base.y,
+		b->joystick.base.x + b->joystick.base.width, b->joystick.base.y,
+		b->joystick.base.x, b->joystick.base.y + b->joystick.base.height,
+		b->joystick.base.x + b->joystick.base.width, b->joystick.base.y + b->joystick.base.height,
+		// joy
+		-jw, -jh,
+		jw, -jh,
+		-jw, jh,
+		jw, jh,
+
+		GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
+		GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
+		GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->tw),
+		GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->tw),
+
+		// joy
+		GET_TEX_S(TEX_FULL_WIDTH, d->joy_tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->joy_ty, 0),
+		GET_TEX_S(TEX_FULL_WIDTH, d->joy_tx, d->joy_tw), GET_TEX_T(TEX_FULL_HEIGHT, d->joy_ty, 0),
+		GET_TEX_S(TEX_FULL_WIDTH, d->joy_tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->joy_ty, d->joy_tw),
+		GET_TEX_S(TEX_FULL_WIDTH, d->joy_tx, d->joy_tw), GET_TEX_T(TEX_FULL_HEIGHT, d->joy_ty, d->joy_tw),
+	};
+
+	GLfloat hw = width * 0.5;
+	GLfloat hh = height * 0.5;
+	for(int i = 0 ; i < 8; i++) {
+		vertex[i*2] = (vertex[i*2] - hw) / hw;
+		vertex[i*2+1] = (vertex[i*2+1] - hh) / hh;
+	}
+
+	b->joystick.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 32, vertex, GL_STATIC_DRAW);
+#endif
 }
 
 void vkb_MakeSwipe(virtual_control_item *b, struct vkb_swipe *d, unsigned int width, unsigned int height)
@@ -1824,9 +1862,11 @@ void vkb_MakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int 
 		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth),
 		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, d->ptw), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth)
 	};
+	GLfloat hw = width * 0.5;
+	GLfloat hh = height * 0.5;
 	for(int i = 0 ; i < 4; i++) {
-		vertex_uv[i*2] = vertex_uv[i*2] / width;
-		vertex_uv[i*2+1] = vertex_uv[i*2+1] / height;
+		vertex_uv[i*2] = (vertex_uv[i*2] - hw) / hw;
+		vertex_uv[i*2+1] = (vertex_uv[i*2+1] - hh) / hh;
 	}
 
 	b->button.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 24, vertex_uv, GL_STATIC_DRAW);
@@ -1921,7 +1961,7 @@ void vkb_RenderVKBJoystick(const virtual_joystick *b, const texture const tex[])
 		return;
 	if(!b->base.visible)
 		return;
-	if(!glIsBuffer(b->base.buffers[Texture_Coord].vbo_id) || !glIsBuffer(b->base.buffers[Position_Coord].vbo_id))
+	if(/*!glIsBuffer(b->base.buffers[Texture_Coord].vbo_id) || */!glIsBuffer(b->base.buffers[Position_Coord].vbo_id))
 		return;
 #ifdef FIX_GLESv2
 	glBindTexture(GL_TEXTURE_2D, tex[b->base.tex_index].imaged);
@@ -1939,36 +1979,54 @@ void vkb_RenderVKBJoystick(const virtual_joystick *b, const texture const tex[])
 	}
 	glPopMatrix();
 #else
-	GLfloat c[2];
-	c[0] = b->base.x + b->base.width / 2 + b->pos_x;
-	c[1] = b->base.y + b->base.height / 2 + b->pos_y;
-	glBindVertexArray(0);
-	// glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord].vbo_id);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(
+	GLfloat c[] = { 0.0, 0.0 };
+	glBindTexture(GL_TEXTURE_2D, tex[b->base.tex_index].imaged);
+	GL_CHECK( glBindVertexArray( b->base.buffers[Position_Coord].vao_id) );
+	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord].vbo_id) );
+
+	GL_CHECK( glEnableVertexAttribArray(0));
+	GL_CHECK( glVertexAttribPointer(
 				0,                  // attribute 0
 				2,                  // size
 				GL_FLOAT,           // type
 				GL_FALSE,           // normalized?
 				sizeof(GLfloat) * 2,// stride
 				(void*)(0) // array buffer offset
-				);
-	// glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Texture_Coord].vbo_id);
-	// glEnableVertexAttribArray(Texture_Coord);
-	// glVertexAttribPointer(
-	// 			1,                  // attribute 1
-	// 			2,                  // size
-	// 			GL_FLOAT,           // type
-	// 			GL_FALSE,           // normalized?
-	// 			sizeof(GLfloat) * 2,// stride
-	// 			(void*)(sizeof(GLfloat) * 0)// array buffer offset
-	// 			);
-	// glUniform1i(the_vkb.tex_id, 0);
-	// ( glDisable(GL_DEPTH_TEST) );
-	glBindTexture(GL_TEXTURE_2D, tex[b->base.tex_index].imaged);
+				));
+	GL_CHECK( glEnableVertexAttribArray(1) );
+	GL_CHECK( glVertexAttribPointer(
+				1,                  // attribute 1
+				2,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				sizeof(GLfloat) * 2,// stride
+				(void*)(sizeof(GLfloat) * 16)// array buffer offset
+				));
+
 	glUniform2fv(the_vkb.translate_id, 2, c );
-	// ( glBindTexture(GL_TEXTURE_2D,DepthTexture) );
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	// joy
+	c[0] = b->base.x + b->base.width / 2 + b->pos_x;
+	c[1] = b->base.y + b->base.height / 2 + b->pos_y;
+	glUniform2fv(the_vkb.translate_id, 2, c );
+	GL_CHECK( glEnableVertexAttribArray(0));
+	GL_CHECK( glVertexAttribPointer(
+				0,                  // attribute 0
+				2,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				sizeof(GLfloat) * 2,// stride
+				(void*)(sizeof(GLfloat) * 8) // array buffer offset
+				));
+	GL_CHECK( glEnableVertexAttribArray(1) );
+	GL_CHECK( glVertexAttribPointer(
+				1,                  // attribute 1
+				2,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				sizeof(GLfloat) * 2,// stride
+				(void*)(sizeof(GLfloat) * 24)// array buffer offset
+				));
 	glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
 #endif
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
