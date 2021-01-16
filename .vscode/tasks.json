@@ -188,6 +188,27 @@
         },
         {
             "type": "shell",
+            "label": "Configure SDL2 (OSX)",
+            "command": "./configure",
+            "args": [
+                "--disable-video-x11","--disable-shared"
+                //"CFLAGS='-std=c99'", 
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/SDL2"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Generated task by Debugger"
+        },
+        {
+            "type": "shell",
             "label": "Build SDL2",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
