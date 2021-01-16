@@ -63,13 +63,14 @@ static unsigned vkb_HandleVKBAction(int action, unsigned pressed, int dx, int dy
 		// if (in_state && in_state->Key_Event_fp)
 		// {
 		// 	int i = 0;
-		// 	for(i = 0; i < key_count; i++)
-		// 	{
-		// 		in_state->Key_Event_fp (_keys[i], pressed);
-		// 		//printf("%c ", k[i]);
-		// 	}
-		// 	return 1;
+		for(int i = 0; i < key_count; i++)
+		{
+			Key_Event(_keys[i], pressed == btrue ? true : false);
+			// printf("%c ", k[i]);
+		}
+		return 1;
 		// }
+		// printf("Key Event!");
 	}
 	else if(r == Button_Data)
 	{

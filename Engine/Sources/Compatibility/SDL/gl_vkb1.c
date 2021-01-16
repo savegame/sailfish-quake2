@@ -1428,9 +1428,9 @@ void vkb_RenderGLVKB(void)
 				case vkb_joystick_type:
 					vkb_RenderVKBJoystick(&b->joystick, the_vkb.tex);
 					break;
-				// case vkb_swipe_type:
-				// 	vkb_RenderVKBSwipe(&b->swipe, the_vkb.tex);
-				// 	break;
+				case vkb_swipe_type:
+					vkb_RenderVKBSwipe(&b->swipe, the_vkb.tex);
+					break;
 				// case vkb_cursor_type:
 				// 	vkb_RenderVKBCursor(&b->cursor, the_vkb.tex);
 				// 	break;
@@ -1790,16 +1790,22 @@ void vkb_MakeSwipe(virtual_control_item *b, struct vkb_swipe *d, unsigned int wi
 			b->swipe.base.x, b->swipe.base.y,
 			b->swipe.base.x + b->swipe.base.width, b->swipe.base.y,
 			b->swipe.base.x, b->swipe.base.y + b->swipe.base.height,
-			b->swipe.base.x + b->swipe.base.width, b->swipe.base.y + b->swipe.base.height
-		};
-		float texcoord[] = {
+			b->swipe.base.x + b->swipe.base.width, b->swipe.base.y + b->swipe.base.height,
+		// };
+		// float texcoord[] = {
 			GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
 			GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
 			GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->tw),
 			GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->tw),
 		};
-		b->swipe.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, vertex, GL_STATIC_DRAW);
-		b->swipe.base.buffers[Texture_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, texcoord, GL_STATIC_DRAW);
+		GLfloat hw = width * 0.5;
+		GLfloat hh = height * 0.5;
+		for(int i = 0 ; i < 4; i++) {
+			vertex[i*2] = (vertex[i*2] - hw) / hw;
+			vertex[i*2+1] = (vertex[i*2+1] - hh) / hh;
+		}
+		b->swipe.base.buffers[Position_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 16, vertex, GL_STATIC_DRAW);
+		// b->swipe.base.buffers[Texture_Coord] = vkb_NewBuffer(GL_ARRAY_BUFFER, sizeof(float) * 8, texcoord, GL_STATIC_DRAW);
 	}
 }
 
@@ -1828,7 +1834,7 @@ void vkb_MakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int 
 	// GET_VB_XY(b->button.base.e_min_x, width, VB_P(d->ex), d->x_base);
 	// GET_VB_XY(b->button.base.e_min_y, height, VB_P(d->ey), d->y_base);
 	b->button.base.e_min_x = b->button.base.x;
-	b->button.base.e_min_y = height - b->button.base.y;
+	b->button.base.e_min_y = height - b->button.base.y - b->button.base.height;
 	// b->button.base.e_max_x = b->button.base.e_min_x + VB_P(d->ew);
 	// b->button.base.e_max_y = b->button.base.e_min_y + VB_P(d->eh);
 	b->button.base.e_max_x = b->button.base.e_min_x + b->button.base.width;
@@ -1947,11 +1953,36 @@ void vkb_RenderVKBSwipe(const virtual_swipe *b, const texture const tex[])
 	if(!glIsBuffer(b->base.buffers[Texture_Coord].vbo_id) || !glIsBuffer(b->base.buffers[Position_Coord].vbo_id))
 		return;
 	glBindTexture(GL_TEXTURE_2D, tex[b->base.tex_index].imaged);
-	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Texture_Coord].vbo_id);
 #ifdef FIX_GLESv2
+	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Texture_Coord].vbo_id);
 	glTexCoordPointer(2, GL_FLOAT, 0, NULL);
 	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord].vbo_id);
 	glVertexPointer(2, GL_FLOAT, 0, NULL);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+#else
+	GL_CHECK( glBindVertexArray( b->base.buffers[Position_Coord].vao_id) );
+	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord].vbo_id) );
+
+	GL_CHECK( glEnableVertexAttribArray(0));
+	GL_CHECK( glVertexAttribPointer(
+				0,                  // attribute 0
+				2,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				sizeof(GLfloat) * 2,// stride
+				(void*)(0) // array buffer offset
+				));
+	GL_CHECK( glEnableVertexAttribArray(1) );
+	GL_CHECK( glVertexAttribPointer(
+				1,                  // attribute 1
+				2,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				sizeof(GLfloat) * 2,// stride
+				(void*)(sizeof(GLfloat) * 8)// array buffer offset
+				));
+	GLfloat c[2] = {0.0, 0.0};
+	glUniform2fv(the_vkb.translate_id, 2, c );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 #endif
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -2068,6 +2099,31 @@ void vkb_RenderVKBCursor(const virtual_cursor *b, const texture tex[])
 		glTexCoordPointer(2, GL_FLOAT, 0, (float *)NULL + 16);
 		glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord].vbo_id);
 		glVertexPointer(2, GL_FLOAT, 0, (float *)NULL + 8);
+#else
+		GL_CHECK( glBindVertexArray( b->base.buffers[Position_Coord].vao_id) );
+		GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord].vbo_id) );
+
+		GL_CHECK( glEnableVertexAttribArray(0));
+		GL_CHECK( glVertexAttribPointer(
+					0,                  // attribute 0
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					sizeof(GLfloat) * 2,// stride
+					(void*)(0) // array buffer offset
+					));
+		GL_CHECK( glEnableVertexAttribArray(1) );
+		GL_CHECK( glVertexAttribPointer(
+					1,                  // attribute 1
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					sizeof(GLfloat) * 2,// stride
+					(void*)(sizeof(GLfloat) * 8)// array buffer offset
+					));
+		GLfloat c[2] = {0.0, 0.0};
+		glUniform2fv(the_vkb.translate_id, 2, c );
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 #endif
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}

@@ -3556,6 +3556,20 @@ void draw_fbo_quad() {
 	if( sailfish_fbo.RenderedTexture == 0)
 		return;
 	// here we draw virtual keyboard layer
+	switch(cls.key_dest) {
+	case key_menu:
+		vkb_SetClientState(Client_In_Menu);
+		break;
+	case key_console:
+		vkb_SetClientState(Client_In_Console);
+		break;
+	case key_game:
+		vkb_SetClientState(Client_In_Game);
+		break;
+	case key_message:
+		vkb_SetClientState(Client_In_Message);
+		break;
+	}
 	vkb_RenderGLVKB();
 	// than we draw result frame on screen
 	( glBindFramebuffer(GL_FRAMEBUFFER, 0) ); // this return glError! is this normal?
@@ -3686,7 +3700,7 @@ void create_fbo(GLuint w, GLuint h) {
 	//============================================================================= begin
 	if( sailfish_fbo.Framebuffer == 0 ) {
 		R_printf(PRINT_ALL, "Max Framebuffer texture size is %i x %i ;\n", (int)dims[0], (int)dims[1]);
-		sailfish_fbo.vs = 0.75f;
+		sailfish_fbo.vs = 1.0f;
 		sailfish_fbo.vw =  w;
 		sailfish_fbo.vh =  h;
 		sailfish_fbo.bw =  ((GLfloat)w)*sailfish_fbo.vs;
@@ -3775,7 +3789,7 @@ void create_fbo(GLuint w, GLuint h) {
 		// create VKB 
 		vkb_NewGLVKB(0,0,1, sailfish_fbo.bw, sailfish_fbo.bh);
 		vkb_SetKeyBindinds(keybindings);
-		vkb_AddCommand = Cbuf_AddText;
+		vkb_SetAddCommandFunction(Cbuf_AddText);
 		vkb_SetClientState(Client_In_Menu);
 	}
 }
@@ -4406,9 +4420,11 @@ static bool R_Window_createContext()
 		goto on_error;
 
 	R_Gamma_initialize();
-
+#ifdef SAILFISH_FBO
+	SDL_ShowCursor(1);
+#else
 	SDL_ShowCursor(0);
-
+#endif
 	return true;
 
 on_error:
