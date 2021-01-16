@@ -3,8 +3,11 @@
 #include "client/keyboard.h"
 #include "client/refresh/r_private.h"
 
-#include "SDL/SDLWrapper.h"
-
+#include <SDL/SDLWrapper.h>
+#ifdef SAILFISH_FBO
+#include <SDL/gl_vkb.h>
+#include "input_sdl_private.c"
+#endif
 #include <SDL.h>
 
 #define MOUSE_MAX 3000
@@ -474,8 +477,12 @@ bool IN_processEvent(SDL_Event *event)
                 key = K_MOUSE5;
                 break;
             }
-            if (key >= 0)
+            if (key >= 0) {
                 Key_Event(key, (event->type == SDL_MOUSEBUTTONDOWN));
+#ifdef SAILFISH_FBO
+				vkb_GLVKBMouseEvent(key, (event->type == SDL_MOUSEBUTTONDOWN) ? btrue : bfalse, event->button.x, event->button.y,  vkb_HandleVKBAction);
+#endif
+			}
         }
 		break;
 	case SDL_MOUSEMOTION:
@@ -489,8 +496,9 @@ bool IN_processEvent(SDL_Event *event)
 #ifdef SAILFISHOS
 	case SDL_FINGERDOWN:
 		{
-			int touch_count = 0;
+			//int touch_count = 0;
 			transformTouch(&event->tfinger.x, &event->tfinger.y);
+#if 0 // lock old code for a time
 			for(int i = 0; i < MAX_FINGER; i++) {
 				if( fingers[i].wait_double_tap ) {
 					fingers[i].pressed = true;
@@ -529,16 +537,29 @@ bool IN_processEvent(SDL_Event *event)
 					break;
 				}
 			}
-			// if( touch_count > 1 ) {
-			// 	printf("Hello world!\n");
-			// }
+#endif
+			for(int i = 0; i < MAX_FINGER; i++) {
+				if( fingers[i].finger_id == 0 ){
+					fingers[i].x = event->tfinger.x;
+					fingers[i].y = event->tfinger.y;
+					fingers[i].dx = event->tfinger.dx;
+					fingers[i].dy = event->tfinger.dy;
+					fingers[i].touch_id = event->tfinger.touchId;
+					fingers[i].finger_id = event->tfinger.fingerId;
+					fingers[i].timestamp = event->tfinger.timestamp;
+					fingers[i].pressed = true;
+					fingers[i].wait_double_tap = false; 
+					vkb_GLVKBMouseEvent(K_MOUSE1, btrue,event->tfinger.x, event->tfinger.y,  vkb_HandleVKBAction);
+					break;
+				}
+			}
 		}
 		break;
 	case SDL_FINGERUP:
 		{
 			int touch_count = 0;
 			transformTouch(&event->tfinger.x, &event->tfinger.y);
-			// if( event->type == SDL_FINGERDOWN )
+#if 0 /// old code
 			for(int i = 0; i < MAX_FINGER; i++) {
 				if( fingers[i].pressed && fingers[i].finger_id == event->tfinger.fingerId ) {
 					if( event->tfinger.timestamp - fingers[i].timestamp <= DOUBLE_TAP_TIME ) {
@@ -570,6 +591,22 @@ bool IN_processEvent(SDL_Event *event)
 					fingers[i].wait_double_tap = false;
 
 					break;
+				}
+			}
+#endif
+
+			for(int i = 0; i < MAX_FINGER; i++) {
+				if( fingers[i].finger_id == event->tfinger.fingerId ){
+					vkb_GLVKBMouseEvent(K_MOUSE1, bfalse, event->tfinger.x, event->tfinger.y,  vkb_HandleVKBAction);
+					fingers[i].x = 0;
+					fingers[i].y = 0;
+					fingers[i].dx = 0;
+					fingers[i].dy = 0;
+					fingers[i].touch_id = 0;
+					fingers[i].finger_id = 0;
+					fingers[i].timestamp = 0;
+					fingers[i].pressed = false;
+					fingers[i].wait_double_tap = false; 
 				}
 			}
         }

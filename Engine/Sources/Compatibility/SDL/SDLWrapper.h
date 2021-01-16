@@ -40,7 +40,7 @@ void sdlwCheckEvents();
 # ifdef SAILFISHOS
 SDL_DisplayOrientation sdlwCurrentOrientation();
 void sdlwSetOrientation(SDL_DisplayOrientation orientation);
-void sdlwGetWindowSize(int *w, int *h);
 # endif
+void sdlwGetWindowSize(int *w, int *h);
 
 #endif

@@ -3774,6 +3774,8 @@ void create_fbo(GLuint w, GLuint h) {
 
 		// create VKB 
 		vkb_NewGLVKB(0,0,1, sailfish_fbo.bw, sailfish_fbo.bh);
+		vkb_SetKeyBindinds(keybindings);
+		vkb_AddCommand = Cbuf_AddText;
 		vkb_SetClientState(Client_In_Menu);
 	}
 }

@@ -1237,7 +1237,7 @@ void vkb_UpdateP(int w, int h)
 
 	wp = hp = 1.0f;
 
-	sdlwGetWindowSize(&w,&h);
+	// sdlwGetWindowSize(&w,&h);
 
 	if(w > 0)
 		wp = (float)w / (float)N950_W;
@@ -1489,14 +1489,14 @@ unsigned vkb_GLVKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Function
 { \
 	case opengl_mf_base : \
 	case opengl_s_base : \
-											 r = v + (1.0 - s) * w / 2.0; \
+		r = v + (1.0 - s) * w / 2.0; \
 	break; \
 	case opengl_mb_base : \
 	case opengl_e_base : \
-											 r = v - (1.0 - s) * w / 2.0; \
+		 r = v - (1.0 - s) * w / 2.0; \
 	break; \
 	default : \
-						r = v; \
+		r = v; \
 	break; \
 }
 
@@ -1504,17 +1504,17 @@ unsigned vkb_GLVKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Function
 	switch(b) \
 { \
 	case opengl_mf_base : \
-												r = t / 2 + v; \
+		r = t / 2 + v; \
 	break; \
 	case opengl_mb_base : \
-												r = t / 2 - v; \
+		r = t / 2 - v; \
 	break; \
 	case opengl_e_base : \
-											 r = t - v; \
+		 r = t - v; \
 	break; \
 	case opengl_s_base : \
 	default : \
-						r = v; \
+		r = v; \
 	break; \
 }
 
@@ -1825,27 +1825,31 @@ void vkb_MakeButton(virtual_control_item *b, struct vkb_button *d, unsigned int 
 	GET_VB_XY(b->button.base.y, height, VB_P(d->y), d->y_base);
 	b->button.base.width = VB_P(d->w);
 	b->button.base.height = VB_P(d->h);
-	GET_VB_XY(b->button.base.e_min_x, width, VB_P(d->ex), d->x_base);
-	GET_VB_XY(b->button.base.e_min_y, height, VB_P(d->ey), d->y_base);
-	b->button.base.e_max_x = b->button.base.e_min_x + VB_P(d->ew);
-	b->button.base.e_max_y = b->button.base.e_min_y + VB_P(d->eh);
-	float vertex[] = {
-		b->button.base.x, b->button.base.y,
-		b->button.base.x + b->button.base.width, b->button.base.y,
-		b->button.base.x, b->button.base.y + b->button.base.height,
-		b->button.base.x + b->button.base.width, b->button.base.y + b->button.base.height
-	};
-	float texcoord[] = {
-		GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
-		GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
-		GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->th),
-		GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->th),
+	// GET_VB_XY(b->button.base.e_min_x, width, VB_P(d->ex), d->x_base);
+	// GET_VB_XY(b->button.base.e_min_y, height, VB_P(d->ey), d->y_base);
+	b->button.base.e_min_x = b->button.base.x;
+	b->button.base.e_min_y = height - b->button.base.y;
+	// b->button.base.e_max_x = b->button.base.e_min_x + VB_P(d->ew);
+	// b->button.base.e_max_y = b->button.base.e_min_y + VB_P(d->eh);
+	b->button.base.e_max_x = b->button.base.e_min_x + b->button.base.width;
+	b->button.base.e_max_y = b->button.base.e_min_y + b->button.base.height;
+	// float vertex[] = {
+	// 	b->button.base.x, b->button.base.y,
+	// 	b->button.base.x + b->button.base.width, b->button.base.y,
+	// 	b->button.base.x, b->button.base.y + b->button.base.height,
+	// 	b->button.base.x + b->button.base.width, b->button.base.y + b->button.base.height
+	// };
+	// float texcoord[] = {
+	// 	GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
+	// 	GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, 0),
+	// 	GET_TEX_S(TEX_FULL_WIDTH, d->tx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->th),
+	// 	GET_TEX_S(TEX_FULL_WIDTH, d->tx, d->tw), GET_TEX_T(TEX_FULL_HEIGHT, d->ty, d->th),
 
-		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, 0),
-		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, d->ptw), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, 0),
-		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth),
-		GET_TEX_S(TEX_FULL_WIDTH, d->ptx, d->ptw), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth)
-	};
+	// 	GET_TEX_S(TEX_FULL_WIDTH, d->ptx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, 0),
+	// 	GET_TEX_S(TEX_FULL_WIDTH, d->ptx, d->ptw), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, 0),
+	// 	GET_TEX_S(TEX_FULL_WIDTH, d->ptx, 0), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth),
+	// 	GET_TEX_S(TEX_FULL_WIDTH, d->ptx, d->ptw), GET_TEX_T(TEX_FULL_HEIGHT, d->pty, d->pth)
+	// };
 
 	float vertex_uv[] = {
 		b->button.base.x, b->button.base.y,
@@ -1891,7 +1895,10 @@ void vkb_RenderVKBButton(const virtual_button *b, const texture const tex[])
 		return;
 	glBindTexture(GL_TEXTURE_2D, tex[b->base.tex_index].imaged);
 	// glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Texture_Coord].vbo_id);
-	GLuint tcoord_offset = (b->base.pressed && b->base.enabled) ? 16 : 8;
+	GLuint tcoord_offset = 8; //(b->base.pressed && b->base.enabled) ? 16 : 8;
+	if( b->base.pressed && b->base.enabled ) {
+		tcoord_offset = 16;
+	}
 #ifdef FIX_GLESv2
 	glTexCoordPointer(2, GL_FLOAT, 0, ptr);
 	glBindBuffer(GL_ARRAY_BUFFER, b->base.buffers[Position_Coord].vbo_id);

@@ -9,7 +9,6 @@ SdlwContext *sdlwContext = NULL;
 #include <SDL_hints.h>
 #include <SDL_events.h>
 #include <SDL_video.h>
-#include "gl_vkb.h"
 #endif
 //SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK
 
@@ -288,10 +287,12 @@ void sdlwSetOrientation(SDL_DisplayOrientation orientation) {
     }
 }
 
+#endif
+
 void sdlwGetWindowSize(int *w, int *h) {
     SdlwContext *sdlw = sdlwContext;
     if (sdlw == NULL) return; 
-
+#ifdef SAILFISHOS
     switch (sdlw->orientation) {
         case SDL_ORIENTATION_PORTRAIT:
         case SDL_ORIENTATION_PORTRAIT_FLIPPED:
@@ -306,5 +307,8 @@ void sdlwGetWindowSize(int *w, int *h) {
             *h = sdlw->windowHeight;
             break;
     }
-}
+#else
+    *w = sdlw->windowWidth;
+    *h = sdlw->windowHeight;
 #endif
+}
