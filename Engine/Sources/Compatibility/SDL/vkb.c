@@ -290,7 +290,7 @@ struct vkb_button VKB_Button[VKB_COUNT] = {
 		TEX_W(0), TEX_W(3), TEX_W(1), TEX_W(1),
 		TEX_W(0), TEX_W(4), TEX_W(1), TEX_W(1),
 		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
-		ViewCenter_Action},
+		Attack_Action},
 	{VB_W(1) + VB_S(3), VB_S(2) + VB_W(2), VB_W(1), VB_H(1), 
 		VB_W(1) + VB_S(3), VB_S(2) + VB_W(2), VB_W(1), VB_H(1),  
 		TEX_W(4), TEX_W(5), TEX_W(1), TEX_W(1),
