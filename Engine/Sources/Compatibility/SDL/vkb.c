@@ -779,11 +779,6 @@ void vkb_SetKeyBindinds(char **kbs)
 	keybinding_map = kbs;
 }
 
-void vkb_SetClientState(unsigned state)
-{
-	client_state = state > Client_In_Invalid ? Client_In_Invalid : state;
-}
-
 void vkb_SetAddCommandFunction(void (* f)(char *))
 {
 	vkb_AddCommand = f;

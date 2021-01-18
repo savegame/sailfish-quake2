@@ -1475,6 +1475,21 @@ void vkb_RenderGLVKB(void)
 	}
 }
 
+void vkb_SetClientState(unsigned state)
+{
+	if( client_state != state && state < Client_In_Invalid  ) {
+		int count = TOTAL_VKB_COUNT;
+		for(int i = 0; i < count; i++)
+		{
+			virtual_control_item *b = &the_vkb.vb[i];
+			if((b->base.show_mask & client_state) == 0)
+				continue;
+			b->base.pressed = bfalse;
+		}
+	}
+	client_state = state > Client_In_Invalid ? Client_In_Invalid : state;
+}
+
 unsigned vkb_GLVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int dy, VKB_Key_Action_Function f)
 {
 	return vkb_VKBMouseMotionEvent(b, p, x, y, dx, dy, f);
