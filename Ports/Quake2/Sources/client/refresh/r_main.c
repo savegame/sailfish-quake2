@@ -188,7 +188,7 @@ SailfishFBO sailfish_fbo = {
 	{0,0}, // texture ID 
 	0,0,0,0,0,0,
 	0,0,0,0, // vw, vh, bw, bh
-	0.5f, // fbo scale
+	SAILFISH_FBO_DEFAULT_SCALE, // fbo scale
 	{
 		-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, //0
 	  	 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, //1
@@ -3700,7 +3700,8 @@ void create_fbo(GLuint w, GLuint h) {
 	//============================================================================= begin
 	if( sailfish_fbo.Framebuffer == 0 ) {
 		R_printf(PRINT_ALL, "Max Framebuffer texture size is %i x %i ;\n", (int)dims[0], (int)dims[1]);
-		sailfish_fbo.vs = 1.0f;
+		// sailfish_fbo.vs = 1.0f;
+		sdlwSetFboScale(sailfish_fbo.vs);
 		sailfish_fbo.vw =  w;
 		sailfish_fbo.vh =  h;
 		sailfish_fbo.bw =  ((GLfloat)w)*sailfish_fbo.vs;

@@ -287,6 +287,23 @@ void sdlwSetOrientation(SDL_DisplayOrientation orientation) {
     }
 }
 
+float sdlwGetFboScale() {
+    SdlwContext *sdlw = sdlwContext;
+    if (sdlw == NULL) return SAILFISH_FBO_DEFAULT_SCALE;
+    return sdlw->fbo_scale;
+}
+
+void sdlwSetFboScale(float scale) {
+    SdlwContext *sdlw = sdlwContext;
+    if (sdlw == NULL) return;
+    if( scale <= 0.0f )
+    // TODO should calculate min width 320
+        scale = 0.2f;
+    else if( scale > 1.0f )
+        scale = 1.0f;
+    sdlw->fbo_scale = scale;
+}
+
 #endif
 
 void sdlwGetWindowSize(int *w, int *h) {

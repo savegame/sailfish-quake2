@@ -9,6 +9,10 @@
 #  include <SDL_video.h>
 # endif
 
+#ifdef SAILFISH_FBO 
+# define SAILFISH_FBO_DEFAULT_SCALE 0.5f
+#endif
+
 typedef bool (*SdlProcessEventFunction)(SDL_Event *event);
 
 typedef struct {
@@ -20,6 +24,9 @@ typedef struct {
 # ifdef SAILFISHOS
 	SDL_DisplayOrientation orientation;
 # endif
+#ifdef SAILFISH_FBO
+	float fbo_scale;
+#endif
 } SdlwContext;
 
 extern SdlwContext *sdlwContext;
@@ -41,6 +48,10 @@ void sdlwCheckEvents();
 SDL_DisplayOrientation sdlwCurrentOrientation();
 void sdlwSetOrientation(SDL_DisplayOrientation orientation);
 # endif
+#ifdef SAILFISH_FBO
+float sdlwGetFboScale();
+void sdlwSetFboScale(float scale);
+#endif
 void sdlwGetWindowSize(int *w, int *h);
 
 #endif

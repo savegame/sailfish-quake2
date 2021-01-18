@@ -553,7 +553,8 @@ bool IN_processEvent(SDL_Event *event)
 					fingers[i].timestamp = event->tfinger.timestamp;
 					fingers[i].pressed = true;
 					fingers[i].wait_double_tap = false; 
-					vkb_GLVKBMouseEvent(K_MOUSE1, btrue,event->tfinger.x, event->tfinger.y,  vkb_HandleVKBAction);
+					float scale = sdlwGetFboScale();
+					vkb_GLVKBMouseEvent(K_MOUSE1, btrue,event->tfinger.x * scale, event->tfinger.y * scale,  vkb_HandleVKBAction);
 					break;
 				}
 			}
@@ -603,7 +604,8 @@ bool IN_processEvent(SDL_Event *event)
 				if( fingers[i].finger_id == event->tfinger.fingerId ){
 					// if( is_PointInRect(fingers[i].press_x, fingers[i].press_y, &sr_joystick) ) {
 					// }
-					vkb_GLVKBMouseEvent(K_MOUSE1, bfalse, event->tfinger.x, event->tfinger.y,  vkb_HandleVKBAction);
+					float scale = sdlwGetFboScale();
+					vkb_GLVKBMouseEvent(K_MOUSE1, bfalse, event->tfinger.x * scale, event->tfinger.y * scale,  vkb_HandleVKBAction);
 					fingers[i].x = 0;
 					fingers[i].y = 0;
 					fingers[i].press_x = 0;
@@ -677,19 +679,19 @@ bool IN_processEvent(SDL_Event *event)
 				}
 			}
 		}
-		else if( cls.key_dest == key_menu ) 
-		{
-			if( event->tfinger.dy > 15.0 ) {
-            	Key_Event(K_DOWNARROW, true);
-			}
-			else if( event->tfinger.dy < -15.0 ) {
-            	Key_Event(K_UPARROW, true);
-			}
-			else {
-				Key_Event(K_DOWNARROW, false);
-				Key_Event(K_UPARROW, false);
-			}
-		}
+		// else if( cls.key_dest == key_menu ) 
+		// {
+		// 	if( event->tfinger.dy > 15.0 ) {
+        //     	Key_Event(K_DOWNARROW, true);
+		// 	}
+		// 	else if( event->tfinger.dy < -15.0 ) {
+        //     	Key_Event(K_UPARROW, true);
+		// 	}
+		// 	else {
+		// 		Key_Event(K_DOWNARROW, false);
+		// 		Key_Event(K_UPARROW, false);
+		// 	}
+		// }
 		break;
 #endif // SAILFISHOS
 #if !defined(__GCW_ZERO__)
@@ -901,7 +903,7 @@ void IN_Move(usercmd_t *cmd)
 				float joyX, joyY;
 				int w,h;
 				sdlwGetWindowSize(&w, &h);
-				float joySize = (float)h * 0.25;
+				float joySize = (float)h * 0.15;
 				joyX = (float)(fingers[i].x - fingers[i].press_x);
 				joyY = (float)(fingers[i].y - fingers[i].press_y);
 				float angle = atan2f(joyX, joyY);
@@ -913,10 +915,10 @@ void IN_Move(usercmd_t *cmd)
 				// joyXFloat = ComputeStickValue(joyX);
 				// joyYFloat = ComputeStickValue(joyY);
 
-				cmd->sidemove += cl_speed_side->value * joyX * running;
+				cmd->sidemove    += cl_speed_side->value    *  joyX * running;
         		cmd->forwardmove += cl_speed_forward->value * -joyY * running;
+				break;
 			}
-			break;
 		}
 	}
 #else

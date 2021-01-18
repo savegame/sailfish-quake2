@@ -27,10 +27,11 @@
 #define TEX_FULL_HEIGHT 512
 
 enum{
-	VKB_In_Game = 1,
-	VKB_In_Console = 1 << 2,
-	VKB_In_Message = 1 << 3,
-	VKB_In_Menu = 1 << 4,
+	VKB_In_Game = 1 << 0,
+	VKB_In_Console = 1 << 1,
+	VKB_In_Message = 1 << 2,
+	VKB_In_Menu = 1 << 3,
+	VKB_Not_Use = 1 << 4,
 };
 
 typedef enum{

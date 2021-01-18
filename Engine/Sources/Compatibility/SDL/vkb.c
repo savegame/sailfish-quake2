@@ -171,14 +171,14 @@ struct vkb_cursor VKB_Cursor[CURSOR_COUNT] = {
 		BIGCIRCLEX, BIGCIRCLEY + BIGCIRCLEWIDTH, BIGCIRCLEWIDTH,
 		0.5, SMALLCIRCLEX, SMALLCIRCLEY + SMALLCIRCLEWIDTH, SMALLCIRCLEWIDTH,
 		SMALLCIRCLEX, SMALLCIRCLEY + SMALLCIRCLEWIDTH, SMALLCIRCLEWIDTH,
-		opengl_e_base, opengl_s_base, btrue, VKB_CURSOR_Z_BASE + 2, VKB_In_Game,
+		opengl_e_base, opengl_s_base, btrue, VKB_CURSOR_Z_BASE + 2, VKB_Not_Use/*VKB_In_Game*/,
 		KeyboardLook_Action, TurnUp_Action, TurnDown_Action, TurnLeft_Action, TurnRight_Action}, // ???
 	{VB_S(7) + VB_W(2), VB_S(5) + VB_W(1), VB_W(1) + VB_S(2),
 		1.0, 5.0, bfalse, 0, 0.0,
 		0, 0, 0,
 		1.0, TEX_W(2), TEX_W(3), TEX_W(1),
 		TEX_W(2), TEX_W(4), TEX_W(1),
-		opengl_e_base, opengl_s_base, btrue, VKB_CURSOR_Z_BASE + 1, VKB_In_Game,
+		opengl_e_base, opengl_s_base, btrue, VKB_CURSOR_Z_BASE + 1,  VKB_Not_Use/*VKB_In_Game*/,
 		Attack_Action, 
 		// TurnUp_Action, TurnDown_Action, TurnLeft_Action, TurnRight_Action
 		Mouse1_Button, Mouse1_Button, Mouse1_Button, Mouse1_Button
@@ -189,7 +189,7 @@ struct vkb_swipe VKB_Swipe[SWIPE_COUNT] = {
 	{HARMATTAN_WIDTH / 4 * 3, 0, HARMATTAN_WIDTH, HARMATTAN_HEIGHT,
 		HARMATTAN_WIDTH / 4 * 3, 0, HARMATTAN_WIDTH, HARMATTAN_HEIGHT, bfalse,
 		BIGCIRCLEX, BIGCIRCLEY + BIGCIRCLEWIDTH, BIGCIRCLEWIDTH, BIGCIRCLEWIDTH,
-		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 
+		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_Not_Use/*VKB_In_Game*/, 
 		//TurnUp_Action, TurnDown_Action, TurnLeft_Action, TurnRight_Action
 		MouseLook_Action,
 		Mouse1_Button, Mouse1_Button, Mouse1_Button, Mouse1_Button
@@ -201,13 +201,13 @@ struct vkb_joystick VKB_Joystick[JOYSTICK_COUNT] = {
 		0.0f, 1.8f,
 		BIGCIRCLEX, BIGCIRCLEY + BIGCIRCLEWIDTH, BIGCIRCLEWIDTH,
 		0.5, SMALLCIRCLEX, SMALLCIRCLEY + SMALLCIRCLEWIDTH, SMALLCIRCLEWIDTH,
-		opengl_s_base, opengl_s_base, btrue, VKB_CURSOR_Z_BASE + 1, VKB_In_Game, 
+		opengl_s_base, opengl_s_base, btrue, VKB_CURSOR_Z_BASE + 1, VKB_Not_Use/*VKB_In_Game*/, 
 		Forward_Action, Backward_Action, MoveLeft_Action, MoveRight_Action},
 	{VB_S(1), VB_S(1), VB_W(3) + VB_S(2), 
 		0.0f, 1.2f,
 		BIGCIRCLEX, BIGCIRCLEY + BIGCIRCLEWIDTH, BIGCIRCLEWIDTH,
 		0.5, SMALLCIRCLEX, SMALLCIRCLEY + SMALLCIRCLEWIDTH, SMALLCIRCLEWIDTH,
-		opengl_s_base, opengl_s_base, btrue, VKB_CURSOR_Z_BASE + 1, VKB_In_Menu | VKB_In_Console | VKB_In_Message, 
+		opengl_s_base, opengl_s_base, btrue, VKB_CURSOR_Z_BASE + 1, VKB_Not_Use/*VKB_In_Menu | VKB_In_Console | VKB_In_Message*/, 
 		Up_Key, Down_Key, Left_Key, Right_Key}
 };
 
@@ -225,12 +225,6 @@ struct vkb_button VKB_Button[VKB_COUNT] = {
 		TEX_W(4), TEX_W(3), TEX_W(1), -TEX_W(1),
 		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
 		Crouch_Action},
-	{VB_S(1) + VB_W(1), VB_S(1), VB_W(1), VB_H(1), 
-		VB_S(1) + VB_W(1), VB_S(1), VB_W(1), VB_H(1),  
-		TEX_W(2), TEX_W(5), TEX_W(1), TEX_W(1),
-		TEX_W(2), TEX_W(6), TEX_W(1), TEX_W(1),
-		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
-		Run_Action}, // ???
 	{VB_S(-1) + VB_W(2), VB_S(0), VB_W(1), VB_H(1), 
 		VB_S(-1) + VB_W(2), VB_S(0), VB_W(1), VB_H(1),  
 		TEX_W(2), TEX_W(1), TEX_W(1), TEX_W(1),
@@ -277,7 +271,7 @@ struct vkb_button VKB_Button[VKB_COUNT] = {
 		VB_W(2) + VB_S(4), VB_S(2) + VB_W(2), VB_W(1), VB_H(1),  
 		TEX_W(3), TEX_W(5), TEX_W(1), TEX_W(1),
 		TEX_W(3), TEX_W(6), TEX_W(1), TEX_W(1),
-		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
+		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_Not_Use, 0,
 		MouseLook_Action}, // ???
 	{VB_S(3) + VB_W(3), VB_S(1), VB_W(1), VB_H(1), 
 		VB_S(3) + VB_W(3), VB_S(1), VB_W(1), VB_H(1),  
@@ -291,14 +285,20 @@ struct vkb_button VKB_Button[VKB_COUNT] = {
 		TEX_W(0), TEX_W(4), TEX_W(1), TEX_W(1),
 		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
 		Attack_Action},
-	{VB_W(1) + VB_S(3), VB_S(2) + VB_W(2), VB_W(1), VB_H(1), 
-		VB_W(1) + VB_S(3), VB_S(2) + VB_W(2), VB_W(1), VB_H(1),  
-		TEX_W(4), TEX_W(5), TEX_W(1), TEX_W(1),
-		TEX_W(4), TEX_W(6), TEX_W(1), TEX_W(1),
-		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
-		SideStep_Action}, // ???
 
 	// menu
+	{VB_W(1) + VB_S(3), VB_S(2) + VB_W(2), VB_W(1), VB_H(1), 
+		VB_W(1) + VB_S(3), VB_S(2) + VB_W(2), VB_W(1), VB_H(1),  
+		TEX_W(5), TEX_W(1), TEX_W(1), TEX_W(1), // texture normal
+		TEX_W(5), TEX_W(2), TEX_W(1), TEX_W(1), // texture pushed
+		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Menu, 0,
+		Down_Key}, // ???
+	{VB_W(1) + VB_S(3), VB_S(2) + VB_W(3), VB_W(1), VB_H(1), 
+		VB_S(1) + VB_W(1), VB_S(1), VB_W(1), VB_H(1),  
+		TEX_W(3), TEX_W(1), TEX_W(1), TEX_W(1),
+		TEX_W(3), TEX_W(2), TEX_W(1), TEX_W(1),
+		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Menu /*VKB_In_Game*/, 0,
+		Up_Key}, // ???
 	{VB_S(6) + VB_W(2), VB_S(6) + VB_H(1), VB_W(1), VB_H(1),
 		VB_S(6) + VB_W(2), VB_S(6) + VB_H(1), VB_W(1), VB_H(1),
 		TEX_W(2), TEX_W(3), TEX_W(1), TEX_W(1),
@@ -323,7 +323,7 @@ struct vkb_button VKB_Button[VKB_COUNT] = {
 		0, VB_H(1), VB_W(1), VB_H(1),  
 		TEX_W(7), TEX_W(5), TEX_W(1), TEX_W(1),
 		TEX_W(7), TEX_W(6), TEX_W(1), TEX_W(1),
-		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Menu | VKB_In_Console | VKB_In_Game, 0,
+		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Menu | VKB_In_Console /*| VKB_In_Game*/, 0,
 		Console_Key},
 	{VB_W(1), VB_H(1), VB_W(1), VB_H(1), 
 		VB_W(1), VB_H(1), VB_W(1), VB_H(1),  
@@ -337,7 +337,7 @@ struct vkb_button VKB_Button[VKB_COUNT] = {
 		VB_S(2), VB_S(2) + VB_H(2), VB_W(1), VB_H(1),  
 		TEX_W(2), TEX_W(3), TEX_W(1), TEX_W(1),
 		TEX_W(2), TEX_W(4), TEX_W(1), TEX_W(1),
-		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
+		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_Not_Use/*VKB_In_Game*/, 0,
 		Attack_Action},
 
 	// 1 - 9 - 0
