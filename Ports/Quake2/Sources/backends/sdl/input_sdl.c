@@ -43,6 +43,8 @@ static SDL_GameController *l_controller = NULL;
 struct _TouchFinger {
 	SDL_TouchID  touch_id;
 	SDL_FingerID finger_id;
+	float press_x;
+	float press_y;
 	float x;
 	float y;
 	float dx;
@@ -64,11 +66,11 @@ typedef struct _ScreenRect ScreenRect;
 #define DOUBLE_TAP_SIZE 50.0f
 
 static TouchFinger fingers[5] = {
-	{0,0,0.0f,0.0f,0.0f,0.0f,false},
-	{0,0,0.0f,0.0f,0.0f,0.0f,false},
-	{0,0,0.0f,0.0f,0.0f,0.0f,false},
-	{0,0,0.0f,0.0f,0.0f,0.0f,false},
-	{0,0,0.0f,0.0f,0.0f,0.0f,false}
+	{0,0,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,false},
+	{0,0,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,false},
+	{0,0,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,false},
+	{0,0,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,false},
+	{0,0,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,false}
 };
 
 static ScreenRect sr_mouse_look = {
@@ -540,6 +542,8 @@ bool IN_processEvent(SDL_Event *event)
 #endif
 			for(int i = 0; i < MAX_FINGER; i++) {
 				if( fingers[i].finger_id == 0 ){
+					fingers[i].press_x = event->tfinger.x;
+					fingers[i].press_y = event->tfinger.y;
 					fingers[i].x = event->tfinger.x;
 					fingers[i].y = event->tfinger.y;
 					fingers[i].dx = event->tfinger.dx;
@@ -597,9 +601,13 @@ bool IN_processEvent(SDL_Event *event)
 
 			for(int i = 0; i < MAX_FINGER; i++) {
 				if( fingers[i].finger_id == event->tfinger.fingerId ){
+					// if( is_PointInRect(fingers[i].press_x, fingers[i].press_y, &sr_joystick) ) {
+					// }
 					vkb_GLVKBMouseEvent(K_MOUSE1, bfalse, event->tfinger.x, event->tfinger.y,  vkb_HandleVKBAction);
 					fingers[i].x = 0;
 					fingers[i].y = 0;
+					fingers[i].press_x = 0;
+					fingers[i].press_y = 0;
 					fingers[i].dx = 0;
 					fingers[i].dy = 0;
 					fingers[i].touch_id = 0;
@@ -618,51 +626,53 @@ bool IN_processEvent(SDL_Event *event)
 		{
 			for(int i = 0; i < MAX_FINGER; i++ ) {
 				if( fingers[i].pressed && event->tfinger.fingerId == fingers[i].finger_id ) {
-					if ( is_PointInRect(fingers[i].x, fingers[i].y, &sr_mouse_look) ) {
+					fingers[i].x = event->tfinger.x;
+					fingers[i].y = event->tfinger.y;
+					if ( is_PointInRect(fingers[i].press_x, fingers[i].press_y, &sr_mouse_look) ) {
 						l_mouseX += event->tfinger.dx * 2.0;
 						l_mouseY += event->tfinger.dy * 2.0;
 					}
-					else if( is_PointInRect(fingers[i].x, fingers[i].y, &sr_joystick) ) {
-						float dx = event->tfinger.x - fingers[i].x;	
-						float dy = event->tfinger.y - fingers[i].y;	
-						if( dy > 15.0 ) {
-							// Key_Event(K_GAMEPAD_DOWN, true);
-							// Key_Event(K_GAMEPAD_UP, false);
-							Key_Event(K_UPARROW, false);
-							Key_Event(K_DOWNARROW, true);
-						}
-						else if( dy < -15.0 ) {
-							// Key_Event(K_GAMEPAD_DOWN, false);
-							// Key_Event(K_GAMEPAD_UP, true);
-							Key_Event(K_UPARROW, true);
-							Key_Event(K_DOWNARROW, false);
-						}
-						else {
-							// Key_Event(K_GAMEPAD_DOWN, false);
-							// Key_Event(K_GAMEPAD_UP, false);
-							Key_Event(K_UPARROW, false);
-							Key_Event(K_DOWNARROW, false);
-						}
+					// else if( is_PointInRect(fingers[i].x, fingers[i].y, &sr_joystick) ) {
+				// 		float dx = event->tfinger.x - fingers[i].x;	
+				// 		float dy = event->tfinger.y - fingers[i].y;	
+				// 		if( dy > 15.0 ) {
+				// 			// Key_Event(K_GAMEPAD_DOWN, true);
+				// 			// Key_Event(K_GAMEPAD_UP, false);
+				// 			Key_Event(K_UPARROW, false);
+				// 			Key_Event(K_DOWNARROW, true);
+				// 		}
+				// 		else if( dy < -15.0 ) {
+				// 			// Key_Event(K_GAMEPAD_DOWN, false);
+				// 			// Key_Event(K_GAMEPAD_UP, true);
+				// 			Key_Event(K_UPARROW, true);
+				// 			Key_Event(K_DOWNARROW, false);
+				// 		}
+				// 		else {
+				// 			// Key_Event(K_GAMEPAD_DOWN, false);
+				// 			// Key_Event(K_GAMEPAD_UP, false);
+				// 			Key_Event(K_UPARROW, false);
+				// 			Key_Event(K_DOWNARROW, false);
+				// 		}
 
-						if( dx > 15.0 ) {
-							// Key_Event(K_GAMEPAD_LEFT, false);
-							// Key_Event(K_GAMEPAD_RIGHT, true);
-							Key_Event(K_GAMEPAD_LEFT, false);
-							Key_Event(SDLK_d, true);
-						}
-						else if( dx < -15.0 ) {
-							// Key_Event(K_GAMEPAD_LEFT, true);
-							// Key_Event(K_GAMEPAD_RIGHT, false);
-							Key_Event(K_GAMEPAD_LEFT, true);
-							Key_Event(SDLK_d, false);
-						}
-						else {
-							// Key_Event(K_GAMEPAD_LEFT, false);
-							// Key_Event(K_GAMEPAD_RIGHT, false);
-							Key_Event(K_GAMEPAD_LEFT, false);
-							Key_Event(SDLK_d, false);
-						}
-					}
+				// 		if( dx > 15.0 ) {
+				// 			// Key_Event(K_GAMEPAD_LEFT, false);
+				// 			// Key_Event(K_GAMEPAD_RIGHT, true);
+				// 			Key_Event(K_GAMEPAD_LEFT, false);
+				// 			Key_Event(SDLK_d, true);
+				// 		}
+				// 		else if( dx < -15.0 ) {
+				// 			// Key_Event(K_GAMEPAD_LEFT, true);
+				// 			// Key_Event(K_GAMEPAD_RIGHT, false);
+				// 			Key_Event(K_GAMEPAD_LEFT, true);
+				// 			Key_Event(SDLK_d, false);
+				// 		}
+				// 		else {
+				// 			// Key_Event(K_GAMEPAD_LEFT, false);
+				// 			// Key_Event(K_GAMEPAD_RIGHT, false);
+				// 			Key_Event(K_GAMEPAD_LEFT, false);
+				// 			Key_Event(SDLK_d, false);
+				// 		}
+					// }
 					break;
 				}
 			}
@@ -883,6 +893,34 @@ void IN_Move(usercmd_t *cmd)
         cmd->forwardmove += cl_speed_forward->value * joyY * running;
     }
 
+#ifdef SAILFISHOS
+	for(int i = 0; i < MAX_FINGER; i++ ) {
+		if( fingers[i].pressed ) {
+			if ( is_PointInRect(fingers[i].press_x, fingers[i].press_y, &sr_joystick) ) {
+				// here we should compute it as joystick
+				float joyX, joyY;
+				int w,h;
+				sdlwGetWindowSize(&w, &h);
+				float joySize = (float)h * 0.25;
+				joyX = (float)(fingers[i].x - fingers[i].press_x);
+				joyY = (float)(fingers[i].y - fingers[i].press_y);
+				float angle = atan2f(joyX, joyY);
+				float vec_len = sqrtf(joyX*joyX + joyY*joyY)/joySize;
+				if( vec_len > 1.0 ) 
+					vec_len = 1.0;
+				joyX = sin(angle) * vec_len;
+				joyY = cos(angle) * vec_len;
+				// joyXFloat = ComputeStickValue(joyX);
+				// joyYFloat = ComputeStickValue(joyY);
+
+				cmd->sidemove += cl_speed_side->value * joyX * running;
+        		cmd->forwardmove += cl_speed_forward->value * -joyY * running;
+			}
+			break;
+		}
+	}
+#else
+#endif
     /* add mouse X/Y movement to cmd */
     if ((in_strafe.state & 1) || (input_lookstrafe->value && (in_mlook.state & 1)))
     {
