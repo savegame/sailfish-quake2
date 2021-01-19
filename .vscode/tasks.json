@@ -5,7 +5,7 @@
             "RESC_PATH" : "${workspaceFolder}/Engine/Sources/Compatibility/SDL/res/",
             "device" : "nemo@192.168.2.15",// default developer mode IP
             "sb2_target" : "SailfishOS-3.4.0.24-armv7hl",
-            "SAILFISH_SDK" : "/home/developer/SailfishOS" // default SailfishSDK path
+            "sb2_part" : "SailfishOS-3.4.0.24-",
         }
     },
     "tasks": [
@@ -15,7 +15,7 @@
             "command": "rsync",
             "args": [
                 "-zavP",
-                "quake2-gles2","baseq2",
+                "quake2-gles2","baseq2","../../../../../../../Engine/Sources/Compatibility/SDL/res",
                 "${device}:/home/nemo/Projects/quake2/"
             ],
             "options": {
@@ -63,6 +63,30 @@
                 "engine",
                 "exec",
                 "sb2","-t","${sb2_target}","make","-j${num_cpu}","config=debug","quake2-game"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-SailfishOS/gmake"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Build GAME"
+        },
+        {
+            "type": "shell",
+            "label": "Build GAME i486",
+            "command": "${SAILFISH_SDK}/bin/sfdk",
+            "args": [
+                "engine",
+                "exec",
+                "sb2","-t","SailfishOS-3.4.0.24-i486","make","-j${num_cpu}","config=debug", 
+                "sailfish_x86=yes", "sailfish_fbo=yes",
+                "quake2-game", "quake2-gles2"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
@@ -164,12 +188,61 @@
         },
         {
             "type": "shell",
-            "label": "Configure SDL2",
+            "label": "i486: Install deps",
+            "command": "${SAILFISH_SDK}/bin/sfdk",
+            "args": [
+                "engine",
+                "exec",
+                "sb2","-t","${sb2_part}i486","-m","sdk-install","-R",
+                "zypper","in", "-y",
+                "pulseaudio-devel",  "wayland-devel", "libGLESv1-devel", "wayland-egl-devel", "wayland-protocols-devel", "libusb-devel", 
+                "libxkbcommon-devel", "mce-headers", "dbus-devel"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/Ports/Quake2/Premake/Build-Linux/gmake"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Generated task by Debugger"
+        },
+        {
+            "type": "shell",
+            "label": "Configure SDL2 (armv7)",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
                 "exec",
                 "sb2","-t","${sb2_target}",
+                "./configure", "--disable-video-x11","--enable-video-wayland","--enable-pulseaudio", "--disable-shared", "--enable-hidapi", "--enable-libudev"
+                //"CFLAGS='-std=c99'", 
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/SDL2"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Generated task by Debugger"
+        },
+        {
+            "type": "shell",
+            "label": "Configure SDL2 (i486)",
+            "command": "${SAILFISH_SDK}/bin/sfdk",
+            "args": [
+                "engine",
+                "exec",
+                "sb2","-t","${sb2_part}i486",
                 "./configure", "--disable-video-x11","--enable-video-wayland","--enable-pulseaudio", "--disable-shared", "--enable-hidapi", "--enable-libudev"
                 //"CFLAGS='-std=c99'", 
             ],
@@ -209,13 +282,59 @@
         },
         {
             "type": "shell",
-            "label": "Build SDL2",
+            "label": "Build SDL2 (armv7)",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
                 "exec",
                 "sb2","-t","${sb2_target}",
                 "make", "-j${num_cpu}"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/SDL2"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Generated task by Debugger"
+        },
+        {
+            "type": "shell",
+            "label": "Build SDL2 (i486)",
+            "command": "${SAILFISH_SDK}/bin/sfdk",
+            "args": [
+                "engine",
+                "exec",
+                "sb2","-t","${sb2_part}i486",
+                "make", "-j${num_cpu}"
+            ],
+            "options": {
+                // "cwd": "/usr/lib64/ccache"
+                "cwd": "${workspaceFolder}/SDL2"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Generated task by Debugger"
+        },
+        {
+            "type": "shell",
+            "label": "Clean SDL2",
+            "command": "${SAILFISH_SDK}/bin/sfdk",
+            "args": [
+                "engine",
+                "exec",
+                "sb2","-t","${sb2_part}i486",
+                "make", "clean"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"

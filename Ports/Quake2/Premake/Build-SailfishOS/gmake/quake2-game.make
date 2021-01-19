@@ -7,6 +7,11 @@ ifndef verbose
   SILENT = @
 endif
 
+
+ifndef sailfish_x86
+  sailfish_x86=no
+endif
+
 CC = gcc
 CXX = g++
 AR = ar
@@ -19,9 +24,15 @@ ifndef RESCOMP
   endif
 endif
 
+ifeq ($(sailfish_x86),yes)
+BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
+else
+BASEDIR   = ../../../Output/Targets/SailfishOS-32
+endif
+
 ifeq ($(config),release)
-  OBJDIR     = ../../../Output/Targets/SailfishOS-32/Release/obj/quake2-game
-  TARGETDIR  = ../../../Output/Targets/SailfishOS-32/Release/bin/baseq2
+  OBJDIR     = $(BASEDIR)/Release/obj/quake2-game
+  TARGETDIR  = $(BASEDIR)/Release/bin/baseq2
   TARGET     = $(TARGETDIR)/game.so
   DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -DSAILFISHOS
   INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources
@@ -29,7 +40,7 @@ ifeq ($(config),release)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -O2 -fPIC -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/SailfishOS-32/Release/lib -s -shared
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Release/lib -s -shared
   LDDEPS    +=
   LIBS      += $(LDDEPS)
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
@@ -42,8 +53,8 @@ ifeq ($(config),release)
 endif
 
 ifeq ($(config),debug)
-  OBJDIR     = ../../../Output/Targets/SailfishOS-32/Debug/obj/quake2-game
-  TARGETDIR  = ../../../Output/Targets/SailfishOS-32/Debug/bin/baseq2
+  OBJDIR     = $(BASEDIR)/Debug/obj/quake2-game
+  TARGETDIR  = $(BASEDIR)/Debug/bin/baseq2
   TARGET     = $(TARGETDIR)/game.so
   DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP
   INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources
@@ -51,7 +62,7 @@ ifeq ($(config),debug)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -g -fPIC -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/SailfishOS-32/Debug/lib -shared
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Debug/lib -shared
   LDDEPS    +=
   LIBS      += $(LDDEPS)
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)

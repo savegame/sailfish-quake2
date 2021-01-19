@@ -7,6 +7,10 @@ ifndef sailfish_fbo
   sailfish_fbo=no
 endif
 
+ifndef sailfish_x86
+  sailfish_x86=no
+endif
+
 ifndef verbose
   SILENT = @
 endif
@@ -34,9 +38,15 @@ ifeq ($(sailfish_fbo),yes)
   DEFINES += -DSAILFISH_FBO
 endif
 
+ifeq ($(sailfish_x86),yes)
+BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
+else
+BASEDIR   = ../../../Output/Targets/SailfishOS-32
+endif
+
 ifeq ($(config),release)
-  OBJDIR     = ../../../Output/Targets/SailfishOS-32/Release/obj/quake2-gles2
-  TARGETDIR  = ../../../Output/Targets/SailfishOS-32/Release/bin
+  OBJDIR     = $(BASEDIR)/Release/obj/quake2-gles2
+  TARGETDIR  = $(BASEDIR)/Release/bin
   TARGET     = $(TARGETDIR)/quake2-gles2
   DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2
   INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
@@ -44,8 +54,8 @@ ifeq ($(config),release)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -O2 -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/SailfishOS-32/Release/lib -L. -s
-  LDDEPS    += ../../../Output/Targets/SailfishOS-32/Release/lib/libZLib.a
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Release/lib -L. -s
+  LDDEPS    += $(BASEDIR)/Release/lib/libZLib.a
   LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a
   LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
@@ -58,8 +68,8 @@ ifeq ($(config),release)
 endif
 
 ifeq ($(config),debug)
-  OBJDIR     = ../../../Output/Targets/SailfishOS-32/Debug/obj/quake2-gles2
-  TARGETDIR  = ../../../Output/Targets/SailfishOS-32/Debug/bin
+  OBJDIR     = $(BASEDIR)/Debug/obj/quake2-gles2
+  TARGETDIR  = $(BASEDIR)/Debug/bin
   TARGET     = $(TARGETDIR)/quake2-gles2
   DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2  
   # DEFINES    += -DSDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH
@@ -68,8 +78,8 @@ ifeq ($(config),debug)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -g -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/SailfishOS-32/Debug/lib -L. -L../../../../../SDL2-src/SDL2/build/.libs
-  LDDEPS    += ../../../Output/Targets/SailfishOS-32/Debug/lib/libZLib.a
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Debug/lib -L. -L../../../../../SDL2-src/SDL2/build/.libs
+  LDDEPS    += $(BASEDIR)/Debug/lib/libZLib.a
   LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a
   LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)

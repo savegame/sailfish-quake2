@@ -7,6 +7,10 @@ ifndef verbose
   SILENT = @
 endif
 
+ifndef sailfish_x86
+  sailfish_x86=no
+endif
+
 CC = gcc
 CXX = g++
 AR = ar
@@ -19,9 +23,15 @@ ifndef RESCOMP
   endif
 endif
 
+ifeq ($(sailfish_x86),yes)
+BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
+else
+BASEDIR   = ../../../Output/Targets/SailfishOS-32
+endif
+
 ifeq ($(config),release)
-  OBJDIR     = ../../../Output/Targets/SailfishOS-32/Release/obj/ZLib
-  TARGETDIR  = ../../../Output/Targets/SailfishOS-32/Release/lib
+  OBJDIR     = $(BASEDIR)/Release/obj/ZLib
+  TARGETDIR  = $(BASEDIR)/Release/lib
   TARGET     = $(TARGETDIR)/libZLib.a
   DEFINES   +=
   INCLUDES  += -I../../../../../Engine/External/include -I../../../../../Engine/External/Sources/zlib
@@ -29,7 +39,7 @@ ifeq ($(config),release)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -O2 -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/SailfishOS-32/Release/lib -s
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Release/lib -s
   LDDEPS    +=
   LIBS      += $(LDDEPS)
   LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
@@ -42,8 +52,8 @@ ifeq ($(config),release)
 endif
 
 ifeq ($(config),debug)
-  OBJDIR     = ../../../Output/Targets/SailfishOS-32/Debug/obj/ZLib
-  TARGETDIR  = ../../../Output/Targets/SailfishOS-32/Debug/lib
+  OBJDIR     = $(BASEDIR)/Debug/obj/ZLib
+  TARGETDIR  = $(BASEDIR)/Debug/lib
   TARGET     = $(TARGETDIR)/libZLib.a
   DEFINES   +=
   INCLUDES  += -I../../../../../Engine/External/include -I../../../../../Engine/External/Sources/zlib
@@ -51,7 +61,7 @@ ifeq ($(config),debug)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -g -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/SailfishOS-32/Debug/lib
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Debug/lib
   LDDEPS    +=
   LIBS      += $(LDDEPS)
   LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)

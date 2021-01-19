@@ -1482,8 +1482,8 @@ void vkb_SetClientState(unsigned state)
 		for(int i = 0; i < count; i++)
 		{
 			virtual_control_item *b = &the_vkb.vb[i];
-			if((b->base.show_mask & client_state) == 0)
-				continue;
+			// if((b->base.show_mask & client_state) == 0)
+			// continue;
 			b->base.pressed = bfalse;
 		}
 	}

@@ -213,14 +213,14 @@ struct vkb_joystick VKB_Joystick[JOYSTICK_COUNT] = {
 
 struct vkb_button VKB_Button[VKB_COUNT] = {
 	// game
-	{VB_S(1) + VB_W(1), VB_S(3) + VB_H(2), VB_W(1), VB_H(1), 
-		VB_S(1) + VB_W(1), VB_S(3) + VB_H(2), VB_W(1), VB_H(1),  
+	{VB_S(1) + VB_W(1), VB_S(1) + VB_H(1), VB_W(1), VB_H(1), 
+		VB_S(1) + VB_W(1), VB_S(1) + VB_H(1), VB_W(1), VB_H(1),  
 		TEX_W(4), TEX_W(3), TEX_W(1), TEX_W(1),
 		TEX_W(4), TEX_W(4), TEX_W(1), TEX_W(1),
 		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
 		Jump_Action},
-	{VB_S(1) + VB_W(1), VB_S(2) + VB_H(1), VB_W(1), VB_H(1), 
-		VB_S(1) + VB_W(1), VB_S(2) + VB_H(1), VB_W(1), VB_H(1),  
+	{VB_S(1) + VB_W(1), VB_S(0) + VB_H(0), VB_W(1), VB_H(1), 
+		VB_S(1) + VB_W(1), VB_S(0) + VB_H(0), VB_W(1), VB_H(1),  
 		TEX_W(4), TEX_W(2), TEX_W(1), -TEX_W(1),
 		TEX_W(4), TEX_W(3), TEX_W(1), -TEX_W(1),
 		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
@@ -243,6 +243,12 @@ struct vkb_button VKB_Button[VKB_COUNT] = {
 		TEX_W(0), TEX_W(4), TEX_W(1), TEX_W(1),
 		opengl_e_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
 		DropItem_Action}, // ???
+	{VB_W(5) + VB_S(4), VB_H(1), VB_W(1), VB_H(1), 
+		VB_W(5) + VB_S(4), VB_H(1), VB_W(1), VB_H(1),  
+		TEX_W(3), TEX_W(5), TEX_W(1), TEX_W(1),
+		TEX_W(3), TEX_W(6), TEX_W(1), TEX_W(1),
+		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_Not_Use, 0,
+		MouseLook_Action}, // ???
 	{VB_S(3) + VB_W(3), VB_H(1), VB_W(1), VB_H(1), 
 		VB_S(3) + VB_W(3), VB_H(1), VB_W(1), VB_H(1),  
 		TEX_W(3), TEX_W(1), TEX_W(1), TEX_W(1),
@@ -267,44 +273,32 @@ struct vkb_button VKB_Button[VKB_COUNT] = {
 		TEX_W(3), TEX_W(6), TEX_W(1), TEX_W(1),
 		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
 		CmdHelp_Action}, // ???
-	{VB_W(2) + VB_S(4), VB_S(2) + VB_W(2), VB_W(1), VB_H(1), 
-		VB_W(2) + VB_S(4), VB_S(2) + VB_W(2), VB_W(1), VB_H(1),  
-		TEX_W(3), TEX_W(5), TEX_W(1), TEX_W(1),
-		TEX_W(3), TEX_W(6), TEX_W(1), TEX_W(1),
-		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_Not_Use, 0,
-		MouseLook_Action}, // ???
-	{VB_S(3) + VB_W(3), VB_S(1), VB_W(1), VB_H(1), 
-		VB_S(3) + VB_W(3), VB_S(1), VB_W(1), VB_H(1),  
+	{VB_S(5) + VB_W(5), VB_H(1), VB_W(1), VB_H(1), 
+		VB_S(5) + VB_W(5), VB_H(1), VB_W(1), VB_H(1),  
 		TEX_W(5), TEX_W(5), TEX_W(1), TEX_W(1),
 		TEX_W(5), TEX_W(6), TEX_W(1), TEX_W(1),
-		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
+		opengl_e_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
 		UseItem_Action}, // ???
-	{VB_S(2) + VB_W(2), VB_S(1), VB_W(1), VB_H(1), 
-		VB_S(2) + VB_W(2), VB_S(1), VB_W(1), VB_H(1),  
+	{VB_S(1) + VB_W(3), VB_H(3.3), VB_W(1.2), VB_H(1.2), 
+		VB_S(1) + VB_W(3), VB_H(3.3), VB_W(1.2), VB_H(1.2),  
 		TEX_W(0), TEX_W(3), TEX_W(1), TEX_W(1),
 		TEX_W(0), TEX_W(4), TEX_W(1), TEX_W(1),
 		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Game, 0,
 		Attack_Action},
 
 	// menu
-	{VB_W(1) + VB_S(3), VB_S(2) + VB_W(2), VB_W(1), VB_H(1), 
-		VB_W(1) + VB_S(3), VB_S(2) + VB_W(2), VB_W(1), VB_H(1),  
+	{VB_W(1) + VB_S(2), VB_S(1) + VB_H(5), VB_W(1), VB_H(1), 
+		VB_W(1) + VB_S(2), VB_S(1) + VB_H(5), VB_W(1), VB_H(1),  
 		TEX_W(5), TEX_W(1), TEX_W(1), TEX_W(1), // texture normal
 		TEX_W(5), TEX_W(2), TEX_W(1), TEX_W(1), // texture pushed
 		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Menu, 0,
 		Down_Key}, // ???
-	{VB_W(1) + VB_S(3), VB_S(2) + VB_W(3), VB_W(1), VB_H(1), 
-		VB_S(1) + VB_W(1), VB_S(1), VB_W(1), VB_H(1),  
+	{VB_W(1) + VB_S(2), VB_H(4), VB_W(1), VB_H(1), 
+		VB_W(1) + VB_S(2), VB_H(4),  VB_W(1), VB_H(1),  
 		TEX_W(3), TEX_W(1), TEX_W(1), TEX_W(1),
 		TEX_W(3), TEX_W(2), TEX_W(1), TEX_W(1),
-		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Menu /*VKB_In_Game*/, 0,
+		opengl_s_base, opengl_e_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Menu /*VKB_In_Game*/, 0,
 		Up_Key}, // ???
-	{VB_S(6) + VB_W(2), VB_S(6) + VB_H(1), VB_W(1), VB_H(1),
-		VB_S(6) + VB_W(2), VB_S(6) + VB_H(1), VB_W(1), VB_H(1),
-		TEX_W(2), TEX_W(3), TEX_W(1), TEX_W(1),
-		TEX_W(2), TEX_W(4), TEX_W(1), TEX_W(1),
-		opengl_e_base, opengl_s_base, btrue, VKB_CURSOR_Z_BASE + 1, VKB_In_Menu, 0,
-		Enter_Key},
 	{VB_S(1) + VB_W(1), VB_S(2) + VB_H(2), VB_W(1), VB_H(1), 
 		VB_S(1) + VB_W(1), VB_S(2) + VB_H(2), VB_W(1), VB_H(1),  
 		TEX_W(2), TEX_W(1), TEX_W(1), TEX_W(1),
@@ -317,6 +311,12 @@ struct vkb_button VKB_Button[VKB_COUNT] = {
 		TEX_W(4), TEX_W(2), TEX_W(1), TEX_W(1),
 		opengl_e_base, opengl_s_base, btrue, VKB_BUTTON_Z_BASE + 1, VKB_In_Menu, 0,
 		Right_Key},
+	{VB_S(6) + VB_W(2), VB_S(6) + VB_H(1), VB_W(1), VB_H(1),
+		VB_S(6) + VB_W(2), VB_S(6) + VB_H(1), VB_W(1), VB_H(1),
+		TEX_W(2), TEX_W(3), TEX_W(1), TEX_W(1),
+		TEX_W(2), TEX_W(4), TEX_W(1), TEX_W(1),
+		opengl_e_base, opengl_s_base, btrue, VKB_CURSOR_Z_BASE + 1, VKB_In_Menu, 0,
+		Enter_Key},
 	
 	// general
 	{0, VB_H(1), VB_W(1), VB_H(1), 
