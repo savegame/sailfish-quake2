@@ -1011,6 +1011,9 @@ static void FS_AddGameDirectories(const char * dir)
 	#if defined(__GCW_ZERO__)
 	FS_AddGameDirectory(va("%s/%s", "/media/data/Quake2", dir)); // Internal SD card.
 //	FS_AddGameDirectory(va("%s/%s", "../../Quake2", dir)); // External SD card when using an OPK from the /apps directory.
+	#elif SAILFISHOS
+	FS_AddGameDirectory(va("%s/%s", "/usr/share/harbour-quake2", dir)); // Internal SD card.
+	FS_AddGameDirectory(va("%s/%s", "/usr/nemo/.local/share/harbour-quake2", dir)); // Internal SD card.
 	#endif
 }
 

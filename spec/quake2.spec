@@ -8,7 +8,7 @@ BuildArch:  %{_arch}
 URL:        https://github.com/savegame/lp-public
 Source0:    %{name}.tar.gz
 # Requires:   SDL2
-Requires:   GLESv2
+Requires:   libGLESv2
 Requires:   dbus
 # Requires:   openssl
 # Requires:   zlib
@@ -46,26 +46,28 @@ make -j8
 cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
 make -j8 \
     config=release\
-    sailfish_x86=no\
+    sailfish_x86=$( [[ "%{_arch}" == "armv7hl" ]] && echo no || echo yes )\
     sailfish_fbo=yes\
     quake2-game\
     quake2-gles2\
-    CFLAGS=-DRESC='\\\"%{_datadir}/%{name}/res\\\"'
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res\"'
+# exit 0
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/{bin,share/%{name}}
-cp %{_topdir}/BUILD/Ports/Quake2/Targets/SailfishOS-32/bin/quake2-gles2 %{buildroot}%{_bindir}/%{name}
-cp %{_topdir}/BUILD/Engine/Sources/SDL/res %{buildroot}%{_datadir}/%{name}/res
-cp %{_topdir}/BUILD/spec/harbour-quake2.desktop %{buildroot}%{_bindir}/%{name}
+mkdir -p %{buildroot}/usr/{bin,share/%{name},share/applications}
+cp %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32/Release/bin/quake2-gles2 %{buildroot}%{_bindir}/%{name}
+cp -r %{_topdir}/BUILD/Engine/Sources/Compatibility/SDL/res %{buildroot}%{_datadir}/%{name}/res
+cp %{_topdir}/BUILD/spec/harbour-quake2.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
 cp %{_topdir}/BUILD/spec/Quake2.png %{buildroot}%{_datadir}/%{name}/%{name}.png
-cp -r %{_topdir}/BUILD/Ports/Quake2/Targets/SailfishOS-32/bin/baseq2 %{buildroot}%{_datadir}/applications/%{name}.desktop
+cp -r %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32/Release/bin/baseq2 %{buildroot}%{_datadir}/%{name}/baseq2
 
 %files
 %defattr(644,root,root,-)
 %attr(755,root,root) %{_bindir}/%{name}
 %attr(644,root,root) %{_datadir}/%{name}/%{name}.png
 %attr(644,root,root) %{_datadir}/%{name}/baseq2
+%attr(644,root,root) %{_datadir}/%{name}/res
 %attr(644,root,root) %{_datadir}/applications/%{name}.desktop
 
 %changelog 
