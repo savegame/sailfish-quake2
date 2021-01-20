@@ -10,11 +10,13 @@
 #ifdef _HARMATTAN_RESC
 #define RESC _HARMATTAN_RESC
 #else
-#ifdef SAILFISHOS // TODO - this for tests only, better compile png to res file
-#define RESC "/home/nemo/Projects/quake2/res/"
-#elif !defined(RESC)
-#define RESC "res/"
-#endif
+# if !defined(RESC)
+#  ifdef SAILFISHOS // TODO - this for tests only, better compile png to res file
+#   define RESC "/home/nemo/Projects/quake2/res/"
+#  else
+#   define RESC "res/"
+#  endif
+# endif
 #endif
 
 #define VB_S(n) (n * VB_SPACING)
