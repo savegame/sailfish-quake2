@@ -1257,7 +1257,7 @@ static texture vkb_NewTexture2D(const char *file)
 	int height = 0;
 	unsigned char *data = NULL;
 	vkb_LoadPNG(file, &data, &width, &height);
-	//printf("%s %p %d %d\n", file, data, width, height);
+	printf("%s %p %d %d\n", file, data, width, height);
 	if(!data)
 		return tex;
 	GLint active_texture;
@@ -1320,8 +1320,9 @@ void vkb_NewGLVKB(float x, float y, float z, float w, float h)
 	vkb_UpdateP(w, h);
 	
 	int k;
-	for(k = 0; k < VKB_TEX_COUNT; k++)
+	for(k = 0; k < VKB_TEX_COUNT; k++) {
 		the_vkb.tex[k] = vkb_NewTexture2D(Tex_Files[k]);
+	}
 
 	int i;
 	int j = 0;
