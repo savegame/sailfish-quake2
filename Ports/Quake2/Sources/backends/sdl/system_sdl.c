@@ -161,7 +161,11 @@ char* Sys_GetHomeDir()
 	static char *homeDir = NULL;
 	if (homeDir == NULL)
 	{
-		homeDir = SDL_GetPrefPath(QUAKE2_TEAM_NAME, "Quake2");
+		#ifdef SAILFISHOS
+			homeDir = SDL_GetPrefPath("harbour-quake2", "");
+		#else
+			homeDir = SDL_GetPrefPath(QUAKE2_TEAM_NAME, "Quake2");
+		#endif
 
 		#ifdef _WIN32
 		while (1)

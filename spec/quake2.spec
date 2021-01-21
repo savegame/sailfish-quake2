@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    7
+Release:    11
 Version:    1.1
 Group:      Amusements/Games
 License:    GPLv2
@@ -57,7 +57,7 @@ make -j8 \
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/{bin,share/%{name}/baseq2,share/applications}
 rsync -avP %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32/Release/bin/quake2-gles2 %{buildroot}%{_bindir}/%{name}
-rsync -avP %{_topdir}/BUILD/Engine/Sources/Compatibility/SDL/res %{buildroot}%{_datadir}/%{name}/res
+rsync -avP %{_topdir}/BUILD/Engine/Sources/Compatibility/SDL/res %{buildroot}%{_datadir}/%{name}/
 rsync -avP %{_topdir}/BUILD/spec/harbour-quake2.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
 rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}%{_datadir}/%{name}/%{name}.png
 rsync -avP %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{name}/baseq2/
@@ -66,8 +66,10 @@ rsync -avP %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32/Release/bi
 %defattr(644,root,root,-)
 %attr(755,root,root) %{_bindir}/%{name}
 %attr(644,root,root) %{_datadir}/%{name}/%{name}.png
-%attr(777,root,root) %{_datadir}/%{name}/baseq2/game.so
-%attr(644,root,root) %{_datadir}/%{name}/res
+%dir %{_datadir}/%{name}/baseq2
+%attr(755,root,root) %{_datadir}/%{name}/baseq2/*
+%dir %{_datadir}/%{name}/res
+%attr(644,root,root) %{_datadir}/%{name}/res/*
 %attr(644,root,root) %{_datadir}/applications/%{name}.desktop
 
 %changelog 
