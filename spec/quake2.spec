@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    11
+Release:    12
 Version:    1.1
 Group:      Amusements/Games
 License:    GPLv2
@@ -75,6 +75,7 @@ rsync -avP %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32/Release/bi
 %changelog 
 * Thu Jan 21 2021 sashikknox <sashikknox@gmail.com>
 - Thenesis Quake2 GLESv2 SailfishOS Port by sashikknox
+- move config to harbour-quake2 dir
 - add touch screen controls (based on https://github.com/glKarin/glquake2wayland4nemo - GLESv1 port)
 - add rendering to buffer, for landscape drawing 
 - add disable display blanking while game run
