@@ -1,7 +1,7 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
+Release:    7
 Version:    1.1
-Release:    1
 Group:      Amusements/Games
 License:    GPLv2
 BuildArch:  %{_arch}
@@ -15,7 +15,7 @@ Requires:   dbus
 # Requires:   glib2
 Requires:   libaudioresource
 
-BuildRequires: pulseaudio-devel,  wayland-devel
+BuildRequires: pulseaudio-devel,  wayland-devel, rsync
 BuildRequires: libGLESv2-devel, wayland-egl-devel
 BuildRequires: wayland-protocols-devel, libusb-devel
 BuildRequires: libxkbcommon-devel, mce-headers, dbus-devel
@@ -50,23 +50,23 @@ make -j8 \
     sailfish_fbo=yes\
     quake2-game\
     quake2-gles2\
-    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res\"'
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'
 # exit 0
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/{bin,share/%{name},share/applications}
-cp %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32/Release/bin/quake2-gles2 %{buildroot}%{_bindir}/%{name}
-cp -r %{_topdir}/BUILD/Engine/Sources/Compatibility/SDL/res %{buildroot}%{_datadir}/%{name}/res
-cp %{_topdir}/BUILD/spec/harbour-quake2.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
-cp %{_topdir}/BUILD/spec/Quake2.png %{buildroot}%{_datadir}/%{name}/%{name}.png
-cp -r %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32/Release/bin/baseq2 %{buildroot}%{_datadir}/%{name}/baseq2
+mkdir -p %{buildroot}/usr/{bin,share/%{name}/baseq2,share/applications}
+rsync -avP %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32/Release/bin/quake2-gles2 %{buildroot}%{_bindir}/%{name}
+rsync -avP %{_topdir}/BUILD/Engine/Sources/Compatibility/SDL/res %{buildroot}%{_datadir}/%{name}/res
+rsync -avP %{_topdir}/BUILD/spec/harbour-quake2.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
+rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}%{_datadir}/%{name}/%{name}.png
+rsync -avP %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{name}/baseq2/
 
 %files
 %defattr(644,root,root,-)
 %attr(755,root,root) %{_bindir}/%{name}
 %attr(644,root,root) %{_datadir}/%{name}/%{name}.png
-%attr(644,root,root) %{_datadir}/%{name}/baseq2
+%attr(777,root,root) %{_datadir}/%{name}/baseq2/game.so
 %attr(644,root,root) %{_datadir}/%{name}/res
 %attr(644,root,root) %{_datadir}/applications/%{name}.desktop
 
