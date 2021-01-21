@@ -163,6 +163,7 @@ char* Sys_GetHomeDir()
 	{
 		#ifdef SAILFISHOS
 			homeDir = SDL_GetPrefPath("harbour-quake2", "");
+			homeDir[strlen(homeDir) - 1] = '\0';
 		#else
 			homeDir = SDL_GetPrefPath(QUAKE2_TEAM_NAME, "Quake2");
 		#endif

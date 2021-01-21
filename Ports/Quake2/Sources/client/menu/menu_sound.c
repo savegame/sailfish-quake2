@@ -164,7 +164,7 @@ static menulist_s MenuSound_musicShuffling_list;
 
 static void MenuSound_musicShuffling_apply()
 {
-	menulist_s *list = MenuSound_musicShuffling_list;
+	menulist_s *list = &MenuSound_musicShuffling_list;
 	Cvar_SetValue("cd_shuffle", list->curvalue);
 
 	cvar_t *ogg;
@@ -214,7 +214,7 @@ static int MenuSound_musicShuffling_init(int y)
 		0
 	};
 
-	menulist_s *list = MenuSound_musicShuffling_list;
+	menulist_s *list = &MenuSound_musicShuffling_list;
 	list->generic.type = MTYPE_SPINCONTROL;
 	list->generic.x = 0;
 	list->generic.y = y;
@@ -251,7 +251,7 @@ static menuslider_s MenuSound_musicVolume_slider;
 
 static void MenuSound_musicVolume_apply()
 {
-	menuslider_s *slider = MenuSound_musicVolume_slider;
+	menuslider_s *slider = &MenuSound_musicVolume_slider;
 	Cvar_SetValue("ogg_volume", slider->curvalue / 10);
 }
 
@@ -262,7 +262,7 @@ static void MenuSound_musicVolume_callback(void *unused)
 
 static int MenuSound_musicVolume_init(int y)
 {
-	menuslider_s *slider = MenuSound_musicVolume_slider;
+	menuslider_s *slider = &MenuSound_musicVolume_slider;
 	slider->generic.type = MTYPE_SLIDER;
 	slider->generic.x = 0;
 	slider->generic.y = y;

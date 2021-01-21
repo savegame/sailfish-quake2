@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    12
+Release:    13
 Version:    1.1
 Group:      Amusements/Games
 License:    GPLv2
@@ -10,7 +10,7 @@ Source0:    %{name}.tar.gz
 # Requires:   SDL2
 Requires:   libGLESv2
 Requires:   dbus
-# Requires:   openssl
+Requires:   libogg libvorbis
 # Requires:   zlib
 # Requires:   glib2
 Requires:   libaudioresource
@@ -19,6 +19,7 @@ BuildRequires: pulseaudio-devel,  wayland-devel, rsync
 BuildRequires: libGLESv2-devel, wayland-egl-devel
 BuildRequires: wayland-protocols-devel, libusb-devel
 BuildRequires: libxkbcommon-devel, mce-headers, dbus-devel
+BuildRequires: libogg-devel libvorbis-devel
 
 
 %description

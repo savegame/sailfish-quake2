@@ -29,6 +29,8 @@ endif
 
 # define SailfishOS platform first
 DEFINES += -DSAILFISHOS
+DEFINES += -DOGG
+LIBS    += -logg -lvorbis -lvorbisfile
 INCLUDES  += -I../../../../../SDL2/include
 INCLUDES  += -I../../../../../Ports/Quake2/Sources
 INCLUDES  += -I../../../../../

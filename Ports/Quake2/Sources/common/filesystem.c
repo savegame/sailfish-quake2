@@ -990,15 +990,17 @@ static void FS_AddBinaryDirAsGameDirectory(const char * dir)
 static void FS_AddGameDirectories(const char * dir)
 {
 	Com_sprintf(fs_gamedir, sizeof(fs_gamedir), "%s/%s", fs_basedir->string, dir);
+	printf("Game path: %s", fs_basedir->string);
 
 	{
 		char *home = Sys_GetHomeDir();
+		printf("Home path: %s", home);
 		if (home == NULL || home[0] == '\0')
 			Com_sprintf(fs_writableGamedir, sizeof(fs_writableGamedir), "%s/%s", fs_basedir->string, dir);
 		else
 			Com_sprintf(fs_writableGamedir, sizeof(fs_writableGamedir), "%s%s", home, dir);
 	}
-
+	printf("Game path: %s", fs_writableGamedir);
 	// Create directory if it does not exist.
 	FS_CreatePath(va("%s/", fs_writableGamedir));
 	Com_Printf("Using '%s' for writing.\n", fs_writableGamedir);
