@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    13
+Release:    14
 Version:    1.1
 Group:      Amusements/Games
 License:    GPLv2
@@ -10,7 +10,7 @@ Source0:    %{name}.tar.gz
 # Requires:   SDL2
 Requires:   libGLESv2
 Requires:   dbus
-Requires:   libogg libvorbis libvorbisfile
+Requires:   libogg libvorbis
 # Requires:   zlib
 # Requires:   glib2
 Requires:   libaudioresource

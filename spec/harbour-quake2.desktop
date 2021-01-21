@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-X-Nemo-Application-Type=Amusements/Games
+Group=Amusements/Games
 Icon=/usr/share/harbour-quake2/harbour-quake2.png
 Exec=/usr/bin/harbour-quake2
 Name=Quake 2
