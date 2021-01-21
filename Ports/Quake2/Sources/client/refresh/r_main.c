@@ -3699,8 +3699,10 @@ void create_fbo(GLuint w, GLuint h) {
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
 	//============================================================================= begin
 	if( sailfish_fbo.Framebuffer == 0 ) {
-		R_printf(PRINT_ALL, "Max Framebuffer texture size is %i x %i ;\n", (int)dims[0], (int)dims[1]);
+		// R_printf(PRINT_ALL, "Max Framebuffer texture size is %i x %i ;\n", (int)dims[0], (int)dims[1]);
 		// sailfish_fbo.vs = 1.0f;
+		if( sailfish_fbo.vs > 1.0f || sailfish_fbo.vs < 0.15f )
+			sailfish_fbo.vs = SAILFISH_FBO_DEFAULT_SCALE;
 		sdlwSetFboScale(sailfish_fbo.vs);
 		sailfish_fbo.vw =  w;
 		sailfish_fbo.vh =  h;
