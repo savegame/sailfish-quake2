@@ -10,7 +10,7 @@ Source0:    %{name}.tar.gz
 # Requires:   SDL2
 Requires:   libGLESv2
 Requires:   dbus
-Requires:   libogg libvorbis
+Requires:   libogg libvorbis libvorbisfile
 # Requires:   zlib
 # Requires:   glib2
 Requires:   libaudioresource
