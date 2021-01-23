@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    16
+Release:    17
 Version:    1.1
 Group:      Amusements/Games
 License:    GPLv2
@@ -88,6 +88,8 @@ rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{
 %attr(644,root,root) %{_datadir}/applications/%{name}.desktop
 
 %changelog 
+* Sat Jan 23 2021 sashikknox <sashikknox@gmail.com>
+- add gamma correction to shader (now brightness setup has effect)
 * Fri Jan 22 2021 sashikknox <sashikknox@gmail.com>
 - build and strip debug version, because relese not work on XA2+ (and some oter devices)
 * Thu Jan 21 2021 sashikknox <sashikknox@gmail.com>

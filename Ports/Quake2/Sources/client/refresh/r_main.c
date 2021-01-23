@@ -12,7 +12,7 @@
 #include <SDL/shader.h>
 #include <SDL/gl_vkb.h>
 // DEBUG _ GL
-#	define DEBUG_GL
+// #	define DEBUG_GL
 #endif // SAILFISH_FBO
 
 #ifdef DEBUG_GL
@@ -168,6 +168,7 @@ struct _sailfish_fbo {
 	GLuint quad_vertexbuffer;
 	GLuint quad_programID[2];
 	GLuint u_texID[2];
+	GLuint u_gammaID[2];
 	// GLuint u_orientationID;
 	GLuint Framebuffer;
 	GLuint ColorBuffer;
@@ -186,6 +187,7 @@ SailfishFBO sailfish_fbo = {
 	0,0, // quad vertex array id and vertex buffer
 	{0,0}, // program ID 
 	{0,0}, // texture ID 
+	{0,0}, // gamma ID 
 	0,0,0,0,0,0,
 	0,0,0,0, // vw, vh, bw, bh
 	SAILFISH_FBO_DEFAULT_SCALE, // fbo scale
@@ -3405,7 +3407,7 @@ static void R_Gamma_calculateRamp(float gamma, Uint16 * ramp, int len)
 // Sets the hardware gamma
 static void R_Gamma_update()
 {
-	#if defined(HARDWARE_GAMMA_ENABLED)
+	#if defined(HARDWARE_GAMMA_ENABLED) && !defined(SAILFISHOS)
 	float gamma = (r_gamma->value);
 
 	Uint16 ramp[256];
@@ -3604,9 +3606,10 @@ void draw_fbo_quad() {
 				sizeof(GLfloat) * 5,// stride
 				(void*)(sizeof(GLfloat) * 3)// array buffer offset
 				));
-	// GL_CHECK( glUniform1i(sailfish_fbo.u_texID[shader_index], 0) );
 
 	// GL_CHECK( glDisable(GL_DEPTH_TEST) );
+	// GL_CHECK( glUniform1i(sailfish_fbo.u_texID[shader_index], 0) );
+	GL_CHECK( glUniform1f(sailfish_fbo.u_gammaID[shader_index], r_gamma->value ) ); // TODO make gamma setupable
 	GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.RenderedTexture) );
 	// GL_CHECK( glBindTexture(GL_TEXTURE_2D,DepthTexture) );
 
@@ -3645,10 +3648,15 @@ void create_fbo_quad() {
 		#endif
 		"varying vec2 v_texcoord;\n"
 		"uniform sampler2D u_texture;\n"
+		"uniform float u_gamma;\n"
 
 		"void main()\n"
 		"{\n"
-		"  gl_FragColor = vec4(texture2D(u_texture, v_texcoord).rgb,1.0);\n"
+		// "  float u_gamma = 1.25;//u_gamma;\n"
+		// "  if( gamma != 1.25 ) {\n"
+		// "    gamma = 1.25;"
+		// "  }\n"
+		"  gl_FragColor = vec4( pow(texture2D(u_texture, v_texcoord).rgb, vec3(1.0/u_gamma)),1.0);\n"
 		"}\n";
 
 	{// landscape shader 
@@ -3670,6 +3678,7 @@ void create_fbo_quad() {
 		// Create and compile our GLSL program from the shaders
 		GL_CHECK( sailfish_fbo.quad_programID[0] = loadProgram( vp, fp , attribs, 2) );
 		GL_CHECK( sailfish_fbo.u_texID[0] = glGetUniformLocation(sailfish_fbo.quad_programID[0], "u_texture") );
+		GL_CHECK( sailfish_fbo.u_gammaID[0] = glGetUniformLocation(sailfish_fbo.quad_programID[0], "u_gamma") );
 	}
 	{// landscape inverted shader 
 		const char *vp2 =
@@ -3685,6 +3694,7 @@ void create_fbo_quad() {
 		// Create and compile our GLSL program from the shaders
 		GL_CHECK( sailfish_fbo.quad_programID[1] = loadProgram( vp2, fp , attribs, 2) );
 		GL_CHECK( sailfish_fbo.u_texID[1] = glGetUniformLocation(sailfish_fbo.quad_programID[1], "u_texture") );
+		GL_CHECK( sailfish_fbo.u_gammaID[1] = glGetUniformLocation(sailfish_fbo.quad_programID[1], "u_gamma") );
 	}
 	// GL_CHECK( sailfish_fbo.u_orientationID = glGetUniformLocation(sailfish_fbo.quad_programID, "u_orientation") );
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, GL_NONE) );
@@ -3712,7 +3722,7 @@ void create_fbo(GLuint w, GLuint h) {
 		viddef.height = sailfish_fbo.bh;
 		// create framebuffer 
 		GL_CHECK( glGenFramebuffers(1, &sailfish_fbo.Framebuffer) );
-		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) )
+		GL_CHECK( glBindFramebuffer(GL_FRAMEBUFFER, sailfish_fbo.Framebuffer) );
 		// ======================
 		// create Render Texture
 		GL_CHECK(glGenTextures(1, &sailfish_fbo.RenderedTexture));
@@ -3739,7 +3749,7 @@ void create_fbo(GLuint w, GLuint h) {
 		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST) );
 		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
 		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE) );
-		GL_CHECK( glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, viddef.width, viddef.height, 0,
+		GL_CHECK( glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, sailfish_fbo.bw, sailfish_fbo.bw, 0,
 			GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 0) );
 		GL_CHECK( glBindTexture(GL_TEXTURE_2D, 0) );
 
@@ -3750,7 +3760,7 @@ void create_fbo(GLuint w, GLuint h) {
 		// Stencil - just skip it
 		// glGenFramebuffers(1, &StencilBuffer);
 		// glBindFramebuffer(GL_FRAMEBUFFER, StencilBuffer); 
-		// glRenderbufferStorage(GL_FRAMEBUFFER, 	GL_STENCIL_INDEX8, viddef.width, viddef.height);  
+		// glRenderbufferStorage(GL_FRAMEBUFFER, 	GL_STENCIL_INDEX8, sailfish_fbo.bw, sailfish_fbo.bw);  
 		// glBindFramebuffer(GL_FRAMEBUFFER,Framebuffer);	
 
 		// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER, StencilBuffer);
