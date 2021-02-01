@@ -3738,10 +3738,11 @@ void create_fbo(GLuint w, GLuint h) {
 #if 1 // RenderBuffer as depth buffer
 		GL_CHECK( glGenRenderbuffers(1, &sailfish_fbo.DepthBuffer) );
 		GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) ); 
-		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, sailfish_fbo.bw, sailfish_fbo.bh) );  
+		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, sailfish_fbo.bw, sailfish_fbo.bh) );  
 
 		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sailfish_fbo.RenderedTexture, 0) );
 		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
+		GL_CHECK( glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) );
 #else // or as Depth texture
 		GL_CHECK(glGenTextures(1, &sailfish_fbo.DepthTexture));
 		GL_CHECK( glBindTexture(GL_TEXTURE_2D, sailfish_fbo.DepthTexture) );
@@ -3769,8 +3770,8 @@ void create_fbo(GLuint w, GLuint h) {
 		// sailfish_fbo.vw =  viddef.width;
 		// sailfish_fbo.vh =  viddef.height;
 
-		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-		GL_CHECK(glDrawBuffers(1, DrawBuffers));
+		GLenum DrawBuffers[3] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT, GL_STENCIL_ATTACHMENT};
+		GL_CHECK(glDrawBuffers(3, DrawBuffers));
 
 		// Check that our FBO creation was successful
         GLuint uStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
