@@ -286,7 +286,9 @@ void sdlwSetOrientation(SDL_DisplayOrientation orientation) {
             break;
     }
 }
+#endif
 
+#ifdef SAILFISH_FBO
 float sdlwGetFboScale() {
     SdlwContext *sdlw = sdlwContext;
     if (sdlw == NULL) return SAILFISH_FBO_DEFAULT_SCALE;
