@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    17
+Release:    18
 Version:    1.1
 Group:      Amusements/Games
 License:    GPLv2
@@ -88,6 +88,8 @@ rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{
 %attr(644,root,root) %{_datadir}/applications/%{name}.desktop
 
 %changelog 
+* Mon Feb 1  2021 sashikknox <sashikknos@gmail.com>
+- use OES_packed_depth_stencil GL_EXTENSION for support stencil shadows in FBO
 * Sat Jan 23 2021 sashikknox <sashikknox@gmail.com>
 - add gamma correction to shader (now brightness setup has effect)
 * Fri Jan 22 2021 sashikknox <sashikknox@gmail.com>
