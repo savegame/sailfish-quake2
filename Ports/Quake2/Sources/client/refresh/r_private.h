@@ -166,6 +166,9 @@ extern cvar_t *r_subdivision;
 
 extern cvar_t *r_lightflash;
 extern cvar_t *r_fullscreenflash;
+#ifdef SAILFISH_FBO
+extern cvar_t *r_rotaterender;
+#endif
 
 //--------------------------------------------------------------------------------
 // Textures.

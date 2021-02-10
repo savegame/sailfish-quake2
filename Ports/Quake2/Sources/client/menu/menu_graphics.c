@@ -747,6 +747,40 @@ static int MenuGraphics_flash_init(int y)
 	return y;
 }
 
+#ifdef SAILFISH_FBO
+//----------------------------------------
+// Full screen flash.
+//----------------------------------------
+static menulist_s MenuGraphics_rotaterender_list;
+
+static void MenuGraphics_rotaterender_apply()
+{
+	menulist_s *list = &MenuGraphics_rotaterender_list;
+	Cvar_SetValue("r_rotaterender", list->curvalue);
+}
+
+static void MenuGraphics_rotaterender_callback(void *s)
+{
+	MenuGraphics_rotaterender_apply();
+}
+
+static int MenuGraphics_rotaterender_init(int y)
+{
+	menulist_s *list = &MenuGraphics_rotaterender_list;
+	list->generic.type = MTYPE_SPINCONTROL;
+	list->generic.name = "rotate render 180";
+	list->generic.x = 0;
+	list->generic.y = y;
+	list->generic.callback = MenuGraphics_rotaterender_callback;
+	list->itemnames = yesno_names;
+	list->curvalue = (r_rotaterender->value != 0);
+	list->savedValue = list->curvalue;
+	Menu_AddItem(&MenuGraphics_menu, (void *)list);
+	y += 10;
+	return y;
+}
+#endif 
+
 //----------------------------------------
 // MenuGraphics.
 //----------------------------------------
@@ -804,6 +838,9 @@ void MenuGraphics_init()
     y = MenuGraphics_backface_lighting_init(y);
 	y = MenuGraphics_lightflash_init(y);
 	y = MenuGraphics_flash_init(y);
+	#ifdef SAILFISH_FBO
+	y = MenuGraphics_rotaterender_init(y);
+	#endif
 
 	Menu_CenterWithBanner(&MenuGraphics_menu, "m_banner_video");
 	MenuGraphics_menu.x -= 8;
@@ -839,4 +876,5 @@ void MenuGraphics_apply()
     MenuGraphics_backface_lighting_apply();
 	MenuGraphics_lightflash_apply();
 	MenuGraphics_flash_apply();
+	MenuGraphics_rotaterender_apply();
 }

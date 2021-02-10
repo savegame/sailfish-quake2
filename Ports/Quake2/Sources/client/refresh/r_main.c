@@ -157,6 +157,9 @@ cvar_t *r_subdivision;
 
 cvar_t *r_fullscreenflash;
 cvar_t *r_lightflash;
+#ifdef SAILFISH_FBO
+cvar_t *r_rotaterender;
+#endif
 
 extern cvar_t *gl_hudscale; /* named for consistency with R1Q2 */
 extern cvar_t *gl_consolescale;
@@ -3584,6 +3587,10 @@ void draw_fbo_quad() {
 #else 
 	GL_CHECK( glViewport(0,0,sailfish_fbo.vw,sailfish_fbo.vh) );
 #endif
+#if defined(SAILFISH_FBO) && !defined(SAILFISHOS)
+	if( r_rotaterender->value == 1)
+		shader_index = 1 - shader_index;
+#endif 
 	GL_CHECK( glUseProgram(sailfish_fbo.quad_programID[shader_index]) );
 	GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
@@ -3689,7 +3696,11 @@ void create_fbo_quad() {
 		"void main()\n"
 		"{\n"
 		"  gl_Position = vec4(a_position.xy, 0.0, 1.0);\n"
+#ifdef SAILFISHOS
 		"  v_texcoord = vec2(1.0 - a_texcoord.y, 1.0 - a_texcoord.x);\n"
+#else
+		"  v_texcoord = vec2(1.0 - a_texcoord.x, a_texcoord.y);\n"
+#endif
 		"}\n";
 		// Create and compile our GLSL program from the shaders
 		GL_CHECK( sailfish_fbo.quad_programID[1] = loadProgram( vp2, fp , attribs, 2) );
@@ -4588,6 +4599,9 @@ static void R_Register()
     r_subdivision = Cvar_Get("r_subdivision", "64", CVAR_ARCHIVE);
 
 	r_fullscreenflash = Cvar_Get("r_fullscreenflash", "1", 0);
+	#if defined(SAILFISH_FBO)
+	r_rotaterender = Cvar_Get("r_rotaterender", "0", CVAR_ARCHIVE);
+	#endif
 
 	r_texture_retexturing = Cvar_Get("r_texture_retexturing", "1", CVAR_ARCHIVE);
 	r_texture_filter = Cvar_Get("r_texture_filter", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE);
