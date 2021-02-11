@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    19
+Release:    20
 Version:    1.1
 Group:      Amusements/Games
 License:    GPLv2
@@ -88,6 +88,8 @@ rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{
 %attr(644,root,root) %{_datadir}/applications/%{name}.desktop
 
 %changelog 
+* Fri Feb 12 2021 sashikknox <sashikknox@gmail.com>
+- rotate render dynamic when change settings
 * Wed Feb 10 2021 sashikknox <sashikknox@gmail.com>
 - Add advanced graphics option for rotating render to 180 degrees (for gemini PDA)
 * Mon Feb 1  2021 sashikknox <sashikknos@gmail.com>

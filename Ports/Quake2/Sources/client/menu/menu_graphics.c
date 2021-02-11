@@ -4,6 +4,11 @@
 
 #include "OpenGLES/EGLWrapper.h"
 
+#ifdef SAILFISHOS
+#include "SDL/SDLWrapper.h"
+#include <SDL2/SDL.h>
+#endif
+
 extern cvar_t *cl_drawfps;
 
 static menuframework_s MenuGraphics_menu;
@@ -757,6 +762,12 @@ static void MenuGraphics_rotaterender_apply()
 {
 	menulist_s *list = &MenuGraphics_rotaterender_list;
 	Cvar_SetValue("r_rotaterender", list->curvalue);
+#ifdef SAILFISHOS
+	if( sdlwCurrentOrientation() == SDL_ORIENTATION_LANDSCAPE_FLIPPED ) 
+		sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE);
+	else
+		sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE_FLIPPED);
+#endif
 }
 
 static void MenuGraphics_rotaterender_callback(void *s)
