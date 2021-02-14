@@ -6,7 +6,7 @@
 
 #ifdef SAILFISHOS
 #include "SDL/SDLWrapper.h"
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #endif
 
 extern cvar_t *cl_drawfps;
@@ -763,10 +763,20 @@ static void MenuGraphics_rotaterender_apply()
 	menulist_s *list = &MenuGraphics_rotaterender_list;
 	Cvar_SetValue("r_rotaterender", list->curvalue);
 #ifdef SAILFISHOS
-	if( sdlwCurrentOrientation() == SDL_ORIENTATION_LANDSCAPE_FLIPPED ) 
-		sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE);
-	else
-		sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE_FLIPPED);
+	if( (int)(list->curvalue) == 1 ) {
+		const char *hint = SDL_GetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION);
+		if( strcmp(hint,"inverted-landscape") == 0 )
+			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE);
+		else if( strcmp(hint, "landscape") == 0 )
+			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE_FLIPPED);
+	}
+	else {
+		const char *hint = SDL_GetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION);
+		if( strcmp(hint,"landscape") == 0 )
+			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE);
+		else if( strcmp(hint, "inverted-landscape") == 0 )
+			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE_FLIPPED);
+	}
 #endif
 }
 

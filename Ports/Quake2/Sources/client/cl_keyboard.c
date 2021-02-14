@@ -853,7 +853,7 @@ static bool Key_isSpecial(int key)
  */
 void Char_Event(int key, bool specialOnlyFlag)
 {
-    #if defined(__GCW_ZERO__)
+    #if defined(__GCW_ZERO__) || defined(SAILFISH_FBO)
     bool specialFlag = specialOnlyFlag;
     #else
     bool specialFlag = Key_isSpecial(key);

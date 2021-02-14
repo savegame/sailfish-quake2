@@ -489,7 +489,7 @@ bool IN_processEvent(SDL_Event *event)
             if (key >= 0) {
                 Key_Event(key, (event->type == SDL_MOUSEBUTTONDOWN));
 #ifdef SAILFISH_FBO
-				vkb_GLVKBMouseEvent(key, (event->type == SDL_MOUSEBUTTONDOWN) ? btrue : bfalse, event->button.x, event->button.y,  vkb_HandleVKBAction);
+				vkb_GLVKBMouseEvent(key, (event->type == SDL_MOUSEBUTTONDOWN) ? btrue : bfalse, event->button.x * sdlwGetFboScale(), event->button.y * sdlwGetFboScale(),  vkb_HandleVKBAction);
 #endif
 			}
         }
@@ -507,7 +507,6 @@ bool IN_processEvent(SDL_Event *event)
 		{
 			//int touch_count = 0;
 			transformTouch(&event->tfinger.x, &event->tfinger.y);
-			
 			for(int i = 0; i < MAX_FINGER; i++) {
 				if( fingers[i].finger_id == 0 ){
 					fingers[i].press_x = event->tfinger.x;
