@@ -23,6 +23,7 @@ typedef struct {
 	int windowWidth, windowHeight;
 # ifdef SAILFISHOS
 	SDL_DisplayOrientation orientation;
+	SDL_DisplayOrientation real_orientation;
 # endif
 #ifdef SAILFISH_FBO
 	float fbo_scale;
@@ -47,6 +48,9 @@ void sdlwCheckEvents();
 # ifdef SAILFISHOS
 SDL_DisplayOrientation sdlwCurrentOrientation();
 void sdlwSetOrientation(SDL_DisplayOrientation orientation);
+
+SDL_DisplayOrientation sdlwGetRealOrientation();
+void sdlwSetRealOrientation(SDL_DisplayOrientation orientation);
 # endif
 #ifdef SAILFISH_FBO
 float sdlwGetFboScale();

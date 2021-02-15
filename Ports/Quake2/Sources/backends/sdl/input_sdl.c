@@ -444,6 +444,7 @@ bool IN_processEvent(SDL_Event *event)
 			if( event->display.data1 == SDL_ORIENTATION_LANDSCAPE 
 			    || event->display.data1 == SDL_ORIENTATION_LANDSCAPE_FLIPPED ) 
 			{
+				sdlwSetRealOrientation((SDL_DisplayOrientation)event->display.data1);
 				if( (int)(r_rotaterender->value) == 1 ) {
 					if( event->display.data1 == SDL_ORIENTATION_LANDSCAPE )
             			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE_FLIPPED);

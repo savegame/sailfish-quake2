@@ -261,6 +261,12 @@ SDL_DisplayOrientation sdlwCurrentOrientation() {
     return sdlw->orientation;
 }
 
+SDL_DisplayOrientation sdlwGetRealOrientation() {
+    SdlwContext *sdlw = sdlwContext;
+    if (sdlw == NULL) return SDL_ORIENTATION_UNKNOWN;
+    return sdlw->real_orientation;
+}
+
 void sdlwSetOrientation(SDL_DisplayOrientation orientation) {
     SdlwContext *sdlw = sdlwContext;
     if (sdlw == NULL) return;
@@ -285,6 +291,12 @@ void sdlwSetOrientation(SDL_DisplayOrientation orientation) {
             // printf("SDL_DisplayOrientation is SDL_ORIENTATION_UNKNOWN\n");
             break;
     }
+}
+
+void sdlwSetRealOrientation(SDL_DisplayOrientation orientation) {
+    SdlwContext *sdlw = sdlwContext;
+    if (sdlw == NULL) return;
+    sdlw->real_orientation = orientation;
 }
 #endif
 

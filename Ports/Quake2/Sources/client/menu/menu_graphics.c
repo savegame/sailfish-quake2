@@ -754,7 +754,7 @@ static int MenuGraphics_flash_init(int y)
 
 #ifdef SAILFISH_FBO
 //----------------------------------------
-// Full screen flash.
+// Rotate framebuffer render.
 //----------------------------------------
 static menulist_s MenuGraphics_rotaterender_list;
 
@@ -764,18 +764,13 @@ static void MenuGraphics_rotaterender_apply()
 	Cvar_SetValue("r_rotaterender", list->curvalue);
 #ifdef SAILFISHOS
 	if( (int)(list->curvalue) == 1 ) {
-		const char *hint = SDL_GetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION);
-		if( strcmp(hint,"inverted-landscape") == 0 )
+		if( sdlwGetRealOrientation() == SDL_ORIENTATION_LANDSCAPE_FLIPPED )
 			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE);
-		else if( strcmp(hint, "landscape") == 0 )
+		else if( sdlwGetRealOrientation() == SDL_ORIENTATION_LANDSCAPE )
 			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE_FLIPPED);
 	}
 	else {
-		const char *hint = SDL_GetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION);
-		if( strcmp(hint,"landscape") == 0 )
-			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE);
-		else if( strcmp(hint, "inverted-landscape") == 0 )
-			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE_FLIPPED);
+		sdlwSetOrientation(sdlwGetRealOrientation());
 	}
 #endif
 }
