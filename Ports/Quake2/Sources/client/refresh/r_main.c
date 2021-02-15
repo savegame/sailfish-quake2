@@ -3712,6 +3712,16 @@ void create_fbo_quad() {
 	GL_CHECK( glBindVertexArray(GL_NONE) );
 }
 
+void remove_fbo() {
+	if( sailfish_fbo.Framebuffer == 0 )
+		return;
+	glDeleteTextures(1, &sailfish_fbo.RenderedTexture);
+	sailfish_fbo.RenderedTexture = GL_NONE;
+	glDeleteRenderbuffers(1, &sailfish_fbo.DepthBuffer);
+	sailfish_fbo.DepthBuffer = GL_NONE;
+	glDeleteFramebuffers(1, &sailfish_fbo.Framebuffer);
+	sailfish_fbo.Framebuffer = GL_NONE;
+}
 /** Create FBO with color texture and depth render buffer
  * 
  */
@@ -3719,6 +3729,9 @@ void create_fbo(GLuint w, GLuint h) {
 	GLuint dims[2];
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
 	//============================================================================= begin
+	if( sailfish_fbo.Framebuffer != 0 ) {
+		remove_fbo();
+	}
 	if( sailfish_fbo.Framebuffer == 0 ) {
 		// R_printf(PRINT_ALL, "Max Framebuffer texture size is %i x %i ;\n", (int)dims[0], (int)dims[1]);
 		// sailfish_fbo.vs = 1.0f;
@@ -3761,12 +3774,13 @@ void create_fbo(GLuint w, GLuint h) {
 		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST) );
 		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) );
 		GL_CHECK( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE) );
-		GL_CHECK( glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, sailfish_fbo.bw, sailfish_fbo.bw, 0,
-			GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 0) );
+		GL_CHECK( glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8_OES, sailfish_fbo.bw, sailfish_fbo.bw, 0,
+			GL_DEPTH_STENCIL_OES, GL_UNSIGNED_INT_24_8_OES, 0) );
 		GL_CHECK( glBindTexture(GL_TEXTURE_2D, 0) );
 
 		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderedTexture, 0) );
 		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthTexture, 0) );
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, sailfish_fbo.DepthBuffer) );
 #endif
 
 		// Stencil - just skip it
