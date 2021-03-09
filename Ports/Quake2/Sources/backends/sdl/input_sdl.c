@@ -445,6 +445,7 @@ bool IN_processEvent(SDL_Event *event)
 			    || event->display.data1 == SDL_ORIENTATION_LANDSCAPE_FLIPPED ) 
 			{
 				sdlwSetRealOrientation((SDL_DisplayOrientation)event->display.data1);
+				#ifdef SAILFISH_FBO
 				if( (int)(r_rotaterender->value) == 1 ) {
 					if( event->display.data1 == SDL_ORIENTATION_LANDSCAPE )
             			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE_FLIPPED);
@@ -452,6 +453,7 @@ bool IN_processEvent(SDL_Event *event)
 						sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE);
 				}
 				else
+				#endif
 					sdlwSetOrientation((SDL_DisplayOrientation)event->display.data1);
 			}
         }
@@ -520,10 +522,10 @@ bool IN_processEvent(SDL_Event *event)
 					fingers[i].finger_id = event->tfinger.fingerId;
 					fingers[i].timestamp = event->tfinger.timestamp;
 					fingers[i].pressed = true;
-					fingers[i].wait_double_tap = false;
+					fingers[i].wait_double_tap = false; 
 					#ifdef SAILFISH_FBO
 					float scale = sdlwGetFboScale();
-					vkb_GLVKBMouseEvent(K_MOUSE1, btrue, event->tfinger.x * scale, event->tfinger.y * scale,  vkb_HandleVKBAction);
+					vkb_GLVKBMouseEvent(K_MOUSE1, btrue,event->tfinger.x * scale, event->tfinger.y * scale,  vkb_HandleVKBAction);
 					#endif
 					break;
 				}
@@ -874,9 +876,10 @@ void IN_Init()
 	stick_deadzone = Cvar_Get("stick_deadzone", "0.2", CVAR_ARCHIVE);
 
 	r_fullscreen = Cvar_Get("r_fullscreen", GL_FULLSCREEN_DEFAULT_STRING, CVAR_ARCHIVE);
-#ifdef SAILFISH_FBO
+	#ifdef SAILFISH_FBO
 	r_rotaterender = Cvar_Get("r_rotaterender", "0", CVAR_ARCHIVE);
-#endif
+	#endif
+
 	SDL_StartTextInput();
 
 	if (!SDL_WasInit(SDL_INIT_JOYSTICK))

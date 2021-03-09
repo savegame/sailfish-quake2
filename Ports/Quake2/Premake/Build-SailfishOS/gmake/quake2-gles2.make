@@ -3,6 +3,10 @@ ifndef config
   config=release
 endif
 
+ifndef sailfish
+  sailfish=yes
+endif
+
 ifndef sailfish_fbo
   sailfish_fbo=no
 endif
@@ -28,7 +32,9 @@ ifndef RESCOMP
 endif
 
 # define SailfishOS platform first
+ifeq ($(sailfish),yes)
 DEFINES += -DSAILFISHOS
+endif
 DEFINES += -DOGG
 LIBS    += -logg -lvorbis -lvorbisfile
 INCLUDES  += -I../../../../../SDL2/include
