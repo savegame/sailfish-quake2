@@ -167,7 +167,7 @@ extern cvar_t *gl_menuscale;
 
 #ifdef SAILFISH_FBO 
 struct _sailfish_fbo {
-	GLuint quad_VertexArrayID;
+	// GLuint quad_VertexArrayID;
 	GLuint quad_vertexbuffer;
 	GLuint quad_programID[2];
 	GLuint u_texID[2];
@@ -187,7 +187,8 @@ struct _sailfish_fbo {
 };
 typedef struct _sailfish_fbo SailfishFBO;
 SailfishFBO sailfish_fbo = {
-	0,0, // quad vertex array id and vertex buffer
+	//0, //quad vertex array id 
+	0, //vertex buffer
 	{0,0}, // program ID 
 	{0,0}, // texture ID 
 	{0,0}, // gamma ID 
@@ -3592,7 +3593,7 @@ void draw_fbo_quad() {
 		shader_index = 1 - shader_index;
 #endif 
 	GL_CHECK( glUseProgram(sailfish_fbo.quad_programID[shader_index]) );
-	GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
+	// GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
 
 	GL_CHECK( glEnableVertexAttribArray(0));
@@ -3633,11 +3634,11 @@ void draw_fbo_quad() {
  * 
  */
 void create_fbo_quad() {
-	if(sailfish_fbo.quad_VertexArrayID != 0)
+	if(sailfish_fbo.quad_vertexbuffer != 0)
 		return;
 	// The fullscreen quad's FBO
-	GL_CHECK( glGenVertexArrays(1, &sailfish_fbo.quad_VertexArrayID) );
-	GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
+	// GL_CHECK( glGenVertexArrays(1, &sailfish_fbo.quad_VertexArrayID) );
+	// GL_CHECK( glBindVertexArray(sailfish_fbo.quad_VertexArrayID) );
 
 	GL_CHECK( glGenBuffers(1, &sailfish_fbo.quad_vertexbuffer) );
 	GL_CHECK( glBindBuffer(GL_ARRAY_BUFFER, sailfish_fbo.quad_vertexbuffer) );
@@ -3853,7 +3854,7 @@ void R_Frame_end()
 	// TODO Sailfish here we should unbind our buffer and draw it on quad
 	// ============================================================================= begin
 
-	if(sailfish_fbo.quad_VertexArrayID == 0)
+	if(sailfish_fbo.quad_vertexbuffer == 0)
 		create_fbo_quad();
 
 	draw_fbo_quad();
