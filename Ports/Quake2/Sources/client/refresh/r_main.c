@@ -12,7 +12,7 @@
 #include <SDL/shader.h>
 #include <SDL/gl_vkb.h>
 // DEBUG _ GL
-// #	define DEBUG_GL
+#	define DEBUG_GL
 #endif // SAILFISH_FBO
 
 #ifdef DEBUG_GL
