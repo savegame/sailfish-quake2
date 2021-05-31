@@ -420,7 +420,7 @@ bool IN_processEvent(SDL_Event *event)
 			break;
 		}
 		break;
-#ifdef SAILFISHOS
+#if defined(SAILFISHOS) && defined(SAILFISH_FBO)
     case SDL_DISPLAYEVENT:
         if( event->display.event == SDL_DISPLAYEVENT_ORIENTATION ) {
             /*switch (event->display.data1) {
@@ -520,9 +520,11 @@ bool IN_processEvent(SDL_Event *event)
 					fingers[i].finger_id = event->tfinger.fingerId;
 					fingers[i].timestamp = event->tfinger.timestamp;
 					fingers[i].pressed = true;
-					fingers[i].wait_double_tap = false; 
+					fingers[i].wait_double_tap = false;
+					#ifdef SAILFISH_FBO
 					float scale = sdlwGetFboScale();
-					vkb_GLVKBMouseEvent(K_MOUSE1, btrue,event->tfinger.x * scale, event->tfinger.y * scale,  vkb_HandleVKBAction);
+					vkb_GLVKBMouseEvent(K_MOUSE1, btrue, event->tfinger.x * scale, event->tfinger.y * scale,  vkb_HandleVKBAction);
+					#endif
 					break;
 				}
 			}
@@ -537,8 +539,10 @@ bool IN_processEvent(SDL_Event *event)
 				if( fingers[i].finger_id == event->tfinger.fingerId ){
 					// if( is_PointInRect(fingers[i].press_x, fingers[i].press_y, &sr_joystick) ) {
 					// }
+					#ifdef SAILFISH_FBO
 					float scale = sdlwGetFboScale();
 					vkb_GLVKBMouseEvent(K_MOUSE1, bfalse, event->tfinger.x * scale, event->tfinger.y * scale,  vkb_HandleVKBAction);
+					#endif
 					fingers[i].x = 0;
 					fingers[i].y = 0;
 					fingers[i].press_x = 0;
@@ -870,8 +874,9 @@ void IN_Init()
 	stick_deadzone = Cvar_Get("stick_deadzone", "0.2", CVAR_ARCHIVE);
 
 	r_fullscreen = Cvar_Get("r_fullscreen", GL_FULLSCREEN_DEFAULT_STRING, CVAR_ARCHIVE);
+#ifdef SAILFISH_FBO
 	r_rotaterender = Cvar_Get("r_rotaterender", "0", CVAR_ARCHIVE);
-
+#endif
 	SDL_StartTextInput();
 
 	if (!SDL_WasInit(SDL_INIT_JOYSTICK))

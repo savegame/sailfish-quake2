@@ -9,9 +9,8 @@
         }
     },
     "tasks": [
-        {
+        {"label": "Deploy nemo",
             "type": "shell",
-            "label": "Deploy nemo",
             "command": "rsync",
             "args": [
                 "-zavP",
@@ -32,9 +31,8 @@
             "detail": "Copy compiled ARM build to device",
             "dependsOn":["Build armv7hl"]
         },
-        {
+        {"label": "Build armv7hl",
             "type": "shell",
-            "label": "Build armv7hl",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
@@ -55,9 +53,8 @@
             "detail": "Build armv7hl SailfishOS binary",
             //"dependsOn" : ["GDB server stop Nemo"]
         },
-        {
+        {"label": "Build GAME armv7hl",
             "type": "shell",
-            "label": "Build GAME armv7hl",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
@@ -77,9 +74,8 @@
             },
             "detail": "Build GAME"
         },
-        {
+        {"label": "Build GAME i486",
             "type": "shell",
-            "label": "Build GAME i486",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
@@ -101,9 +97,8 @@
             },
             "detail": "Build GAME"
         },
-        {
+        {"label": "Build Desktop",
             "type": "shell",
-            "label": "Build Desktop",
             "command": "make",
             "args": [
                 "-j${num_cpu}","config=debug","sailfish_fbo=yes","quake2-gles2","CFLAGS=-DRESC='\\\"${RESC_PATH}\\\"'"
@@ -121,9 +116,8 @@
             },
             "detail": "Build Linux Desktop binary"
         },
-        {
+        {"label": "Clean Desktop",
             "type": "shell",
-            "label": "Clean Desktop",
             "command": "make",
             "args": [
                 "-j${num_cpu}","config=debug","sailfish_fbo=yes","clean",
@@ -141,9 +135,8 @@
             },
             "detail": "Build Linux Desktop binary"
         },        
-        {
+        {"label": "Build Desktop Game",
             "type": "shell",
-            "label": "Build Desktop Game",
             "command": "make",
             "args": [
                 "-j${num_cpu}","config=debug","quake2-game"
@@ -161,9 +154,8 @@
             },
             "detail": "Build Linux Desktop binary"
         },
-        {
+        {"label": "armv7hl: Install deps",
             "type": "shell",
-            "label": "armv7hl: Install deps",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
@@ -186,9 +178,8 @@
             },
             "detail": "Generated task by Debugger"
         },
-        {
+        {"label": "i486: Install deps",
             "type": "shell",
-            "label": "i486: Install deps",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
@@ -211,19 +202,17 @@
             },
             "detail": "Generated task by Debugger"
         },
-        {
+        {"label": "Configure SDL2 (armv7)",
             "type": "shell",
-            "label": "Configure SDL2 (armv7)",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
                 "exec",
                 "sb2","-t","${sb2_target}",
                 "./configure", "--disable-video-x11","--enable-video-wayland","--enable-pulseaudio", "--disable-shared", "--enable-hidapi", "--enable-libudev"
-                //"CFLAGS='-std=c99'", 
+                //,"CFLAGS='-ggdb'","CXXFLAGS='-ggdb'"
             ],
             "options": {
-                // "cwd": "/usr/lib64/ccache"
                 "cwd": "${workspaceFolder}/SDL2"
             },
             "problemMatcher": [
@@ -235,9 +224,8 @@
             },
             "detail": "Generated task by Debugger"
         },
-        {
+        {"label": "Configure SDL2 (i486)",
             "type": "shell",
-            "label": "Configure SDL2 (i486)",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
@@ -259,9 +247,8 @@
             },
             "detail": "Generated task by Debugger"
         },
-        {
+        {"label": "Configure SDL2 (OSX)",
             "type": "shell",
-            "label": "Configure SDL2 (OSX)",
             "command": "./configure",
             "args": [
                 "--disable-video-x11","--disable-shared"
@@ -280,15 +267,15 @@
             },
             "detail": "Generated task by Debugger"
         },
-        {
+        {"label": "Build SDL2 (armv7)",
             "type": "shell",
-            "label": "Build SDL2 (armv7)",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
                 "exec",
                 "sb2","-t","${sb2_target}",
                 "make", "-j${num_cpu}"
+                // , "CXXFLAGS='-ggdb'"
             ],
             "options": {
                 // "cwd": "/usr/lib64/ccache"
@@ -303,9 +290,8 @@
             },
             "detail": "Generated task by Debugger"
         },
-        {
+        {"label": "Build SDL2 (i486)",
             "type": "shell",
-            "label": "Build SDL2 (i486)",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
@@ -326,9 +312,8 @@
             },
             "detail": "Generated task by Debugger"
         },
-        {
+        {"label": "Clean SDL2",
             "type": "shell",
-            "label": "Clean SDL2",
             "command": "${SAILFISH_SDK}/bin/sfdk",
             "args": [
                 "engine",
@@ -349,12 +334,12 @@
             },
             "detail": "Generated task by Debugger"
         },
-        {
+        {"label": "GDB server Nemo",
             "type": "shell",
-            "label": "GDB server Nemo",
             "command": "ssh",
             "args": [
                 "${device}",
+                // "export WAYLAND_DISPLAY=../../display/wayland-0 &&",
                 "gdbserver",":10001",
                 "/home/nemo/Projects/quake2/quake2-gles2"
             ],
@@ -374,9 +359,8 @@
             ],
             "detail": "Run remote gdbserver",
         },
-        {
+        {"label": "GDB server stop Nemo",
             "type": "shell",
-            "label": "GDB server stop Nemo",
             "command": "ssh",
             "args": [
                 "${device}",

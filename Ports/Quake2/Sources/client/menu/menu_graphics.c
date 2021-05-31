@@ -892,5 +892,7 @@ void MenuGraphics_apply()
     MenuGraphics_backface_lighting_apply();
 	MenuGraphics_lightflash_apply();
 	MenuGraphics_flash_apply();
+	#ifdef SAILFISH_FBO
 	MenuGraphics_rotaterender_apply();
+	#endif
 }
