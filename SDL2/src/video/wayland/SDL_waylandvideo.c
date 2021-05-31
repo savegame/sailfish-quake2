@@ -51,6 +51,7 @@
 #include "org-kde-kwin-server-decoration-manager-client-protocol.h"
 
 #define WAYLANDVID_DRIVER_NAME "wayland"
+#define INCH2MM 25.4f
 
 /* Initialization/Query functions */
 static int
@@ -60,6 +61,9 @@ static void
 Wayland_GetDisplayModes(_THIS, SDL_VideoDisplay *sdl_display);
 static int
 Wayland_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode);
+
+static int
+Wayland_GetDisplayDPI(_THIS, SDL_VideoDisplay * display, float * ddpi, float * hdpi, float * vdpi);
 
 static void
 Wayland_VideoQuit(_THIS);
@@ -163,6 +167,7 @@ Wayland_CreateDevice(int devindex)
     /* Set the function pointers */
     device->VideoInit = Wayland_VideoInit;
     device->VideoQuit = Wayland_VideoQuit;
+    device->GetDisplayDPI = Wayland_GetDisplayDPI;
     device->SetDisplayMode = Wayland_SetDisplayMode;
     device->GetDisplayModes = Wayland_GetDisplayModes;
     device->GetWindowWMInfo = Wayland_GetWindowWMInfo;
@@ -229,6 +234,9 @@ display_handle_geometry(void *data,
 
     SDL_DisplayOrientation orientation = SDL_ORIENTATION_UNKNOWN;
     SDL_bool is_portrait = physical_height > physical_width;
+    // Handle display physical size in mm
+    ((SDL_VideoData*)display->device->driverdata)->physical_width = physical_width;
+    ((SDL_VideoData*)display->device->driverdata)->physical_height = physical_height;
 
     if (SDL_strcmp(model, "") != 0 && SDL_strcmp(display->name, model) != 0) {
         SDL_free(display->name);
@@ -490,6 +498,16 @@ static int
 Wayland_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode)
 {
     return SDL_Unsupported();
+}
+
+static int
+Wayland_GetDisplayDPI(_THIS, SDL_VideoDisplay * display, float * ddpi, float * hdpi, float * vdpi)
+{
+    SDL_VideoData *data = _this->driverdata;
+    *hdpi = display->current_mode.w * INCH2MM / data->physical_width;
+    *vdpi = display->current_mode.h * INCH2MM / data->physical_height;
+    *ddpi = (*hdpi + *vdpi)*0.5f;
+    return 0;
 }
 
 void

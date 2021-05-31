@@ -81,6 +81,8 @@ typedef struct {
     char *classname;
 
     int relative_mouse_mode;
+    int physical_width;
+    int physical_height;
 } SDL_VideoData;
 
 typedef struct {
