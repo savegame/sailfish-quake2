@@ -25,9 +25,9 @@ ifndef RESCOMP
 endif
 
 ifeq ($(sailfish_x86),yes)
-BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
+  BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
 else
-BASEDIR   = ../../../Output/Targets/SailfishOS-32
+  BASEDIR   = ../../../Output/Targets/SailfishOS-32
 endif
 
 ifeq ($(config),release)

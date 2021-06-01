@@ -12,7 +12,8 @@
 #include <SDL/shader.h>
 #include <SDL/gl_vkb.h>
 // DEBUG _ GL
-#	define DEBUG_GL
+// #	define DEBUG_GL
+// #define DEPTH_AS_TEXTURE 
 #endif // SAILFISH_FBO
 
 #ifdef DEBUG_GL
@@ -3760,7 +3761,7 @@ void create_fbo(GLuint w, GLuint h) {
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0) );
 		
 		// attach it to currently bound framebuffer object
-#if 1 // RenderBuffer as depth buffer
+#ifndef DEPTH_AS_TEXTURE // RenderBuffer as depth buffer
 		GL_CHECK( glGenRenderbuffers(1, &sailfish_fbo.DepthBuffer) );
 		GL_CHECK( glBindRenderbuffer(GL_RENDERBUFFER, sailfish_fbo.DepthBuffer) ); 
 		GL_CHECK( glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, sailfish_fbo.bw, sailfish_fbo.bh) );  
@@ -3779,9 +3780,9 @@ void create_fbo(GLuint w, GLuint h) {
 			GL_DEPTH_STENCIL_OES, GL_UNSIGNED_INT_24_8_OES, 0) );
 		GL_CHECK( glBindTexture(GL_TEXTURE_2D, 0) );
 
-		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderedTexture, 0) );
-		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthTexture, 0) );
-		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, sailfish_fbo.DepthBuffer) );
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sailfish_fbo.RenderedTexture, 0) );
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, sailfish_fbo.DepthTexture, 0) );
+		GL_CHECK( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, sailfish_fbo.DepthTexture) );
 #endif
 
 		// Stencil - just skip it

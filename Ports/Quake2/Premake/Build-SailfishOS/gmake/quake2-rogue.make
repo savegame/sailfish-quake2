@@ -7,6 +7,10 @@ ifndef verbose
   SILENT = @
 endif
 
+ifndef sailfish_x86
+  sailfish_x86=no
+endif
+
 CC = gcc
 CXX = g++
 AR = ar
@@ -17,6 +21,12 @@ ifndef RESCOMP
   else
     RESCOMP = windres
   endif
+endif
+
+ifeq ($(sailfish_x86),yes)
+  BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
+else
+  BASEDIR   = ../../../Output/Targets/SailfishOS-32
 endif
 
 ifeq ($(config),release)

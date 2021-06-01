@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    25
+Release:    27
 Version:    1.1
 Group:      Amusements/Games
 License:    GPLv2
@@ -44,9 +44,9 @@ cd %{_topdir}/BUILD/SDL2
     --disable-video-x11\
     --enable-video-wayland\
     --enable-pulseaudio\
-    --disable-shared\
     --enable-hidapi\
-    --enable-libudev
+    --enable-libudev \
+    # --disable-shared
 
 
 %build
