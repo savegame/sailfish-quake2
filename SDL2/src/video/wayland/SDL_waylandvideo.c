@@ -504,9 +504,15 @@ static int
 Wayland_GetDisplayDPI(_THIS, SDL_VideoDisplay * display, float * ddpi, float * hdpi, float * vdpi)
 {
     SDL_VideoData *data = _this->driverdata;
-    *hdpi = display->current_mode.w * INCH2MM / data->physical_width;
-    *vdpi = display->current_mode.h * INCH2MM / data->physical_height;
-    *ddpi = (*hdpi + *vdpi)*0.5f;
+    if ( hdpi ) {
+        *hdpi = display->current_mode.w * INCH2MM / data->physical_width;
+    }
+    if ( vdpi ) {
+        *vdpi = display->current_mode.h * INCH2MM / data->physical_height;
+    }
+    if ( ddpi ) {
+        *ddpi = (display->current_mode.w / data->physical_width + display->current_mode.h / data->physical_height)*0.5f*INCH2MM;
+    }
     return 0;
 }
 
