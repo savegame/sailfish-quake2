@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    27
+Release:    28
 Version:    1.1
 Group:      Amusements/Games
 License:    GPLv2
@@ -58,14 +58,14 @@ cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
 make -j8 \
     config=release\
     sailfish_x86=$( [[ "%{_arch}" == "armv7hl" ]] && echo no || echo yes )\
-    sailfish_fbo=no\
+    sailfish_fbo=yes\
     quake2-game\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
 make -j8 \
     config=debug\
     sailfish_x86=$( [[ "%{_arch}" == "armv7hl" ]] && echo no || echo yes )\
-    sailfish_fbo=no\
+    sailfish_fbo=yes\
     quake2-gles2\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
