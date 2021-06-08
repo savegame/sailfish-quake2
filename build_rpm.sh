@@ -1,8 +1,8 @@
 #!/bin/bash
 rm -fr `pwd`/build_rpm
 mkdir -p `pwd`/build_rpm/SOURCES
-# git archive --output `pwd`/build_rpm/SOURCES/harbour-quake2.tar.gz HEAD
-tar czvf `pwd`/build_rpm/SOURCES/harbour-quake2.tar.gz Engine Ports SDL2 spec
+git archive --output `pwd`/build_rpm/SOURCES/harbour-quake2.tar.gz HEAD
+#tar czvf `pwd`/build_rpm/SOURCES/harbour-quake2.tar.gz Engine Ports SDL2 spec
 
 # rpmbuild --define "_topdir `pwd`/build_rpm" --define "_arch armv7hl" -ba spec/quake2.spec
 sfdk_targets=`sfdk engine exec sb2-config -l`
@@ -21,6 +21,7 @@ for each in $sfdk_targets; do
         mce-headers dbus-devel libvorbis-devel libogg-devel rsync
     # build RPM for current target
     sfdk engine exec sb2 -t $each rpmbuild --define "_topdir `pwd`/build_rpm" --define "_arch $target_arch" -ba spec/quake2.spec
+    if [ $? -ne 0 ] ; then break; fi
 done
 echo "All build done! All yopur packages in "`pwd`/build_rpm/RPMS
 # #install deps for arm target

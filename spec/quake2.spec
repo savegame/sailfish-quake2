@@ -60,13 +60,15 @@ make -j8 \
     sailfish_x86=$( [[ "%{_arch}" == "armv7hl" ]] && echo no || echo yes )\
     sailfish_fbo=no\
     quake2-game\
-    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
+    CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
 make -j8 \
     config=debug\
     sailfish_x86=$( [[ "%{_arch}" == "armv7hl" ]] && echo no || echo yes )\
     sailfish_fbo=no\
     quake2-gles2\
-    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
+    CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
 strip %{build_folder}/%{build_subfolder}/bin/quake2-gles2
 # exit 0
 
