@@ -51,7 +51,9 @@ cd %{_topdir}/BUILD/SDL2
 
 %build
 cd %{_topdir}/BUILD/SDL2
-make -j8
+make -j8 \
+    CFLAGS=-I/usr/lib64/dbus-1.0/include \
+    CXXFLAGS=-I/usr/lib64/dbus-1.0/include
 cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
 make -j8 \
     config=release\
