@@ -7,9 +7,8 @@ ifndef verbose
   SILENT = @
 endif
 
-
-ifndef sailfish_x86
-  sailfish_x86=no
+ifndef sailfish_arch
+  sailfish_arch=armv7hl
 endif
 
 CC = gcc
@@ -24,10 +23,14 @@ ifndef RESCOMP
   endif
 endif
 
-ifeq ($(sailfish_x86),yes)
-  BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
-else
+ifeq ($(sailfish_arch),armv7hl)
   BASEDIR   = ../../../Output/Targets/SailfishOS-32
+else
+  ifeq ($(sailfish_arch),aarch64)
+    BASEDIR   = ../../../Output/Targets/SailfishOS-64
+  else
+    BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
+  endif
 endif
 
 ifeq ($(config),release)

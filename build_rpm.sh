@@ -1,11 +1,12 @@
-#!/bin/bash
+#!/usr/bin/bash
 rm -fr `pwd`/build_rpm
 mkdir -p `pwd`/build_rpm/SOURCES
 git archive --output `pwd`/build_rpm/SOURCES/harbour-quake2.tar.gz HEAD
 #tar czvf `pwd`/build_rpm/SOURCES/harbour-quake2.tar.gz Engine Ports SDL2 spec
+export PATH=$HOME/SailfishOS/bin:${PATH}
 
 # rpmbuild --define "_topdir `pwd`/build_rpm" --define "_arch armv7hl" -ba spec/quake2.spec
-sfdk_targets=`sfdk engine exec sb2-config -l`
+sfdk_targets=`sfdk engine exec sb2-config -l|grep -v default`
 
 echo "WARNING: Build Quake 2 for ALL ypur targets in SailfishSDK"
 for each in $sfdk_targets; do
@@ -18,7 +19,7 @@ for each in $sfdk_targets; do
     #install deps for current target
     sfdk engine exec sb2 -t $each -R -m sdk-install zypper in -y pulseaudio-devel\
         wayland-devel libGLESv2-devel wayland-egl-devel wayland-protocols-devel libusb-devel  libxkbcommon-devel\
-        mce-headers dbus-devel libvorbis-devel libogg-devel rsync
+        mce-headers dbus-devel libvorbis-devel libogg-devel rsync systemd-devel
     # build RPM for current target
     sfdk engine exec sb2 -t $each rpmbuild --define "_topdir `pwd`/build_rpm" --define "_arch $target_arch" -ba spec/quake2.spec
     if [ $? -ne 0 ] ; then break; fi

@@ -1,7 +1,7 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    28
-Version:    1.1
+Release:    3
+Version:    1.2
 Group:      Amusements/Games
 License:    GPLv2
 BuildArch:  %{_arch}
@@ -22,10 +22,14 @@ BuildRequires: libxkbcommon-devel, mce-headers, dbus-devel
 BuildRequires: libogg-devel libvorbis-devel
 
 %global build_subfolder Debug
-%if %{_arch} == "armv7hl"
+%ifarch armv7hl
 %global build_folder %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32
-%else
-%global build_folder %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32-x86
+%else 
+    %ifarch aarch64
+        %global build_folder %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-64
+    %else
+        %global build_folder %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32-x86
+    %endif
 %endif
 %{echo:set build bolder to %{build_folder}}
 
@@ -57,14 +61,14 @@ make -j8 \
 cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
 make -j8 \
     config=release\
-    sailfish_x86=$( [[ "%{_arch}" == "armv7hl" ]] && echo no || echo yes )\
+    sailfish_arch=%{_arch}\
     sailfish_fbo=yes\
     quake2-game\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
 make -j8 \
     config=debug\
-    sailfish_x86=$( [[ "%{_arch}" == "armv7hl" ]] && echo no || echo yes )\
+    sailfish_arch=%{_arch}\
     sailfish_fbo=yes\
     quake2-gles2\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
@@ -92,11 +96,13 @@ rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{
 %attr(644,root,root) %{_datadir}/applications/%{name}.desktop
 
 %changelog 
+* Wed Mar 30 2022 sashikknox <sashikknox@gmail.com>
+- fixes for SailfishOS >= 4.3
 * Fri Feb 12 2021 sashikknox <sashikknox@gmail.com>
 - rotate render dynamic when change settings
 * Wed Feb 10 2021 sashikknox <sashikknox@gmail.com>
 - Add advanced graphics option for rotating render to 180 degrees (for gemini PDA)
-* Mon Feb 1  2021 sashikknox <sashikknos@gmail.com>
+* Mon Feb 1  2021 sashikknox <sashikknox@gmail.com>
 - use OES_packed_depth_stencil GL_EXTENSION for support stencil shadows in FBO
 * Sat Jan 23 2021 sashikknox <sashikknox@gmail.com>
 - add gamma correction to shader (now brightness setup has effect)

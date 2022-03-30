@@ -11,8 +11,8 @@ ifndef sailfish_fbo
   sailfish_fbo=no
 endif
 
-ifndef sailfish_x86
-  sailfish_x86=no
+ifndef sailfish_arch
+  sailfish_arch=armv7hl
 endif
 
 ifndef verbose
@@ -46,10 +46,14 @@ ifeq ($(sailfish_fbo),yes)
   DEFINES += -DSAILFISH_FBO
 endif
 
-ifeq ($(sailfish_x86),yes)
-BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
+ifeq ($(sailfish_arch),armv7hl)
+  BASEDIR   = ../../../Output/Targets/SailfishOS-32
 else
-BASEDIR   = ../../../Output/Targets/SailfishOS-32
+  ifeq ($(sailfish_arch),aarch64)
+    BASEDIR   = ../../../Output/Targets/SailfishOS-64
+  else
+    BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
+  endif
 endif
 
 ifeq ($(config),release)
@@ -79,7 +83,7 @@ ifeq ($(config),debug)
   OBJDIR     = $(BASEDIR)/Debug/obj/quake2-gles2
   TARGETDIR  = $(BASEDIR)/Debug/bin
   TARGET     = $(TARGETDIR)/quake2-gles2
-  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2  
+  DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP -D_GNU_SOURCE=1 -DEGLW_GLES2
   # DEFINES    += -DSDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH
   INCLUDES  += -I../../../../../SDL2/include -I../../../../../Engine/External/include -I../../../Sources -I../../../../../Engine/Sources/Compatibility -I../../../../../Engine/Sources/Compatibility/OpenGLES/Includes
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
