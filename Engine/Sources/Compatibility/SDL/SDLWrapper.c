@@ -9,6 +9,8 @@ SdlwContext *sdlwContext = NULL;
 #include <SDL_hints.h>
 #include <SDL_events.h>
 #include <SDL_video.h>
+#include <SDL_syswm.h>
+#include <wayland-client-protocol.h>
 #endif
 //SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK
 
@@ -159,7 +161,7 @@ bool sdlwCreateWindow(const char *windowName, int windowWidth, int windowHeight,
 #endif
    	if ((sdlw->window=SDL_CreateWindow(windowName, windowPos, windowPos, windowWidth, windowHeight, flags))==NULL) goto on_error;
 #ifdef SAILFISHOS
-    SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+    sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE); // SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
 #endif
     return false;
 on_error:
@@ -271,23 +273,57 @@ void sdlwSetOrientation(SDL_DisplayOrientation orientation) {
     SdlwContext *sdlw = sdlwContext;
     if (sdlw == NULL) return;
     sdlw->orientation = orientation;
+
+    struct SDL_SysWMinfo wmInfo;
+    SDL_VERSION(&wmInfo.version);
+    if (!SDL_GetWindowWMInfo(sdlwContext->window, &wmInfo)) {
+        printf("Cannot get the window handle.\n");
+        // goto on_error;
+        switch (sdlw->orientation) {
+            case SDL_ORIENTATION_LANDSCAPE:
+                SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+                break;
+            case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+                SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"inverted-landscape");
+                break;
+            case SDL_ORIENTATION_PORTRAIT:
+                SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"portrait");
+                break;
+            case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+                SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"inverted-portrait");
+                break;
+            default:
+            case SDL_ORIENTATION_UNKNOWN:
+                SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+                // printf("SDL_DisplayOrientation is SDL_ORIENTATION_UNKNOWN\n");
+                break;
+        }
+    }
+    // nativeDisplay = wmInfo.info.wl.display;
+    // wl_surface *sdl_wl_surface = wmInfo.info.wl.surface;
+
     // SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
     switch (sdlw->orientation) {
         case SDL_ORIENTATION_LANDSCAPE:
-            SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+            // SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+            wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_270);
             break;
         case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
-            SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"inverted-landscape");
+            // SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"inverted-landscape");
+            wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_90);
             break;
         case SDL_ORIENTATION_PORTRAIT:
-            SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"portrait");
+            // SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"portrait");
+            wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_NORMAL);
             break;
         case SDL_ORIENTATION_PORTRAIT_FLIPPED:
-            SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"inverted-portrait");
+            // SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"inverted-portrait");
+            wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_180);
             break;
         default:
         case SDL_ORIENTATION_UNKNOWN:
-            SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+            // SDL_SetHint(SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION,"landscape");
+            wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_90);
             // printf("SDL_DisplayOrientation is SDL_ORIENTATION_UNKNOWN\n");
             break;
     }

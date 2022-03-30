@@ -65,7 +65,7 @@ ifeq ($(config),release)
   ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Release/lib -L. -s
   LDDEPS    += $(BASEDIR)/Release/lib/libZLib.a
   LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a
-  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread
+  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread -lwayland-client
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -89,7 +89,7 @@ ifeq ($(config),debug)
   ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Debug/lib -L. -L../../../../../SDL2-src/SDL2/build/.libs
   LDDEPS    += $(BASEDIR)/Debug/lib/libZLib.a
   LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a
-  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread
+  LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread -lwayland-client
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
