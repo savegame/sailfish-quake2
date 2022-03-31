@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    3
+Release:    5
 Version:    1.2
 Group:      Amusements/Games
 License:    GPLv2
@@ -8,12 +8,12 @@ BuildArch:  %{_arch}
 URL:        https://github.com/savegame/lp-public
 Source0:    %{name}.tar.gz
 # Requires:   SDL2
-Requires:   libGLESv2
-Requires:   dbus
-Requires:   libogg libvorbis
+# Requires:   libGLESv2
+# Requires:   dbus
+# Requires:   libogg libvorbis
 # Requires:   zlib
 # Requires:   glib2
-Requires:   libaudioresource
+# Requires:   libaudioresource
 
 BuildRequires: pulseaudio-devel,  wayland-devel, rsync
 BuildRequires: libGLESv2-devel, wayland-egl-devel
@@ -72,6 +72,7 @@ make -j8 \
     sailfish_fbo=yes\
     quake2-gles2\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
+    LDFLAGS=-Wl,-rpath,%{_datadir}/%{name}/lib\
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
 strip %{build_folder}/%{build_subfolder}/bin/quake2-gles2
 # exit 0
@@ -79,20 +80,30 @@ strip %{build_folder}/%{build_subfolder}/bin/quake2-gles2
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/{bin,share/%{name}/baseq2,share/applications}
+mkdir -p %{buildroot}%{_datadir}/%{name}/lib
+mkdir -p %{buildroot}/usr/share/icons/hicolor/{86x86,108x108,128x128,172x172}/apps/
 rsync -avP %{build_folder}/%{build_subfolder}/bin/quake2-gles2 %{buildroot}%{_bindir}/%{name}
 rsync -avP %{_topdir}/BUILD/Engine/Sources/Compatibility/SDL/res %{buildroot}%{_datadir}/%{name}/
 rsync -avP %{_topdir}/BUILD/spec/harbour-quake2.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
-rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}%{_datadir}/%{name}/%{name}.png
+rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor/86x86/apps/%{name}.png
+rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor/108x108/apps/%{name}.png
+rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor/128x128/apps/%{name}.png
+rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor/172x172/apps/%{name}.png
 rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{name}/baseq2/
+rsync -avP /usr/lib/libvorbis.so* %{buildroot}%{_datadir}/%{name}/lib/
+rsync -avP /usr/lib/libogg.so* %{buildroot}%{_datadir}/%{name}/lib/
 
 %files
 %defattr(644,root,root,-)
 %attr(755,root,root) %{_bindir}/%{name}
-%attr(644,root,root) %{_datadir}/%{name}/%{name}.png
+%dir %{_datadir}/icons/hicolor
+%attr(644,root,root) %{_datadir}/icons/hicolor/*
 %dir %{_datadir}/%{name}/baseq2
 %attr(755,root,root) %{_datadir}/%{name}/baseq2/*
 %dir %{_datadir}/%{name}/res
+%dir %{_datadir}/%{name}/lib
 %attr(644,root,root) %{_datadir}/%{name}/res/*
+%attr(644,root,root) %{_datadir}/%{name}/lib/*
 %attr(644,root,root) %{_datadir}/applications/%{name}.desktop
 
 %changelog 
