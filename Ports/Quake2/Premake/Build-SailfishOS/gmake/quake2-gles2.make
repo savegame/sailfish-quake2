@@ -36,7 +36,7 @@ ifeq ($(sailfish),yes)
 DEFINES += -DSAILFISHOS
 endif
 DEFINES += -DOGG
-LIBS    += -logg 
+# LIBS    += -logg 
 #LIBS    += -lvorbis -lvorbisfile
 INCLUDES  += -I../../../../../SDL2/include
 INCLUDES  += -I../../../../../vorbis/include
@@ -70,6 +70,7 @@ ifeq ($(config),release)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Release/lib -L. -s
   LDDEPS    += $(BASEDIR)/Release/lib/libZLib.a
+  LDDEPS    += $(BASEDIR)/Release/lib/libogg.a
   LDDEPS    += $(BASEDIR)/Release/lib/libvorbis.a
   LDDEPS    += $(BASEDIR)/Release/lib/libvorbisenc.a
   LDDEPS    += $(BASEDIR)/Release/lib/libvorbisfile.a
@@ -97,6 +98,7 @@ ifeq ($(config),debug)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Debug/lib -L. -L../../../../../SDL2-src/SDL2/build/.libs
   LDDEPS    += $(BASEDIR)/Debug/lib/libZLib.a
+  LDDEPS    += $(BASEDIR)/Debug/lib/libogg.a
   LDDEPS    += $(BASEDIR)/Debug/lib/libvorbis.a
   LDDEPS    += $(BASEDIR)/Debug/lib/libvorbisfile.a
   LDDEPS    += $(BASEDIR)/Debug/lib/libvorbisenc.a
