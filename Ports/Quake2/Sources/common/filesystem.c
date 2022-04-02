@@ -32,6 +32,12 @@
 #include "unzip/unzip.h"
 #endif
 
+#ifdef SAILFISHOS
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#endif
+
 #define MAX_HANDLES 512
 #define MAX_PAKS 100
 
@@ -1016,9 +1022,12 @@ static void FS_AddGameDirectories(const char * dir)
 	#endif
 	#ifdef SAILFISHOS
 	printf("Add SailfihsOS specific paths\n");
+	struct passwd *pw = getpwuid(getuid());
+	const char *homedir = pw->pw_dir;
+	
 	FS_AddGameDirectory(va("%s/%s", "/usr/share/harbour-quake2", dir)); // here we are put baseq2/game.so
-	FS_AddGameDirectory(va("%s/%s", "/home/nemo/.local/share/harbour-quake2", dir)); // home share data 
-	FS_AddGameDirectory(va("%s/%s", "/home/defaultuser/Documents/Games/Quake2", dir)); // AuroraOS 
+	FS_AddGameDirectory(va("%s/%s", va(homedir,".local/share/harbour-quake2/"), dir)); // home share data 
+	FS_AddGameDirectory(va("%s/%s", va(homedir,"Documents/Games/Quake2/"), dir)); // AuroraOS 
 	#endif
 }
 

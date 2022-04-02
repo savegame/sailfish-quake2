@@ -49,17 +49,11 @@ cd %{_topdir}/BUILD/SDL2
     --enable-video-wayland\
     --enable-pulseaudio\
     --enable-hidapi\
-    --enable-libudev \
-    # --disable-shared
-
-# mkdir -p %{_topdir}/BUILD/vorbis/build
-# cd %{_topdir}/BUILD/vorbis/build
-# cmake ..
+    --enable-libudev 
 
 cd %{_topdir}/BUILD/libogg
 ./configure \
     --disable-shared
-
 
 %build
 cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
@@ -77,8 +71,7 @@ make -j`nproc` \
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include
 cd %{_topdir}/BUILD/libogg
 make -j`nproc`
-# cd %{_topdir}/BUILD/vorbis/build
-# make -j`nproc`
+
 cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
 make -j`nproc` \
     config=release\
@@ -89,12 +82,6 @@ make -j`nproc` \
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
 
 mkdir -p %{build_folder}/%{build_subfolder}/lib/
-# rsync -avP %{_topdir}/BUILD/vorbis/lib/.libs/libvorbis.a %{build_folder}/%{build_subfolder}/lib/
-# rsync -avP %{_topdir}/BUILD/vorbis/lib/.libs/libvorbisenc.a %{build_folder}/%{build_subfolder}/lib/
-# rsync -avP %{_topdir}/BUILD/vorbis/lib/.libs/libvorbisfile.a %{build_folder}/%{build_subfolder}/lib/
-# rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbis.a %{build_folder}/%{build_subfolder}/lib/
-# rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbisenc.a %{build_folder}/%{build_subfolder}/lib/
-# rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbisfile.a %{build_folder}/%{build_subfolder}/lib/
 rsync -avP %{_topdir}/BUILD/libogg/src/.libs/libogg.a %{build_folder}/%{build_subfolder}/lib/
 
 make -j8 \
@@ -127,7 +114,7 @@ rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{
 %files
 %defattr(644,root,root,-)
 %attr(755,root,root) %{_bindir}/%{name}
-%dir %{_datadir}/icons/hicolor
+# %dir %{_datadir}/icons/hicolor
 %attr(644,root,root) %{_datadir}/icons/hicolor/*
 %dir %{_datadir}/%{name}/baseq2
 %attr(755,root,root) %{_datadir}/%{name}/baseq2/*
