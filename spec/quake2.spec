@@ -58,6 +58,10 @@ cd %{_topdir}/BUILD/SDL2
 make -j8 \
     CFLAGS=-I/usr/lib64/dbus-1.0/include \
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include
+mkdir -p %{_topdir}/BUILD/vorbis/build
+cd %{_topdir}/BUILD/vorbis/build
+cmake -DBUILD_SHARED_LIBS=OFF ..
+make -j8
 cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
 make -j8 \
     config=release\
@@ -66,21 +70,27 @@ make -j8 \
     quake2-game\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
+
+mkdir -p %{build_folder}/%{build_subfolder}/lib/
+rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbis.a %{build_folder}/%{build_subfolder}/lib/
+rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbisenc.a %{build_folder}/%{build_subfolder}/lib/
+rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbisfile.a %{build_folder}/%{build_subfolder}/lib/
+
 make -j8 \
     config=debug\
     sailfish_arch=%{_arch}\
     sailfish_fbo=yes\
     quake2-gles2\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
-    LDFLAGS=-Wl,-rpath,%{_datadir}/%{name}/lib\
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
+
 strip %{build_folder}/%{build_subfolder}/bin/quake2-gles2
 # exit 0
 
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/{bin,share/%{name}/baseq2,share/applications}
-mkdir -p %{buildroot}%{_datadir}/%{name}/lib
+# mkdir -p %{buildroot}%{_datadir}/%{name}/lib
 mkdir -p %{buildroot}/usr/share/icons/hicolor/{86x86,108x108,128x128,172x172}/apps/
 rsync -avP %{build_folder}/%{build_subfolder}/bin/quake2-gles2 %{buildroot}%{_bindir}/%{name}
 rsync -avP %{_topdir}/BUILD/Engine/Sources/Compatibility/SDL/res %{buildroot}%{_datadir}/%{name}/
@@ -90,8 +100,8 @@ rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor
 rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor/128x128/apps/%{name}.png
 rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor/172x172/apps/%{name}.png
 rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{name}/baseq2/
-rsync -avP /usr/lib/libvorbis.so* %{buildroot}%{_datadir}/%{name}/lib/
-rsync -avP /usr/lib/libogg.so* %{buildroot}%{_datadir}/%{name}/lib/
+# rsync -avP /usr/lib/libvorbis.so* %{buildroot}%{_datadir}/%{name}/lib/
+# rsync -avP /usr/lib/libogg.so* %{buildroot}%{_datadir}/%{name}/lib/
 
 %files
 %defattr(644,root,root,-)
