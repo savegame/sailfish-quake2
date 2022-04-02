@@ -72,8 +72,6 @@ ifeq ($(config),release)
   LDDEPS    += $(BASEDIR)/Release/lib/libZLib.a
   LDDEPS    += $(BASEDIR)/Release/lib/libogg.a
   LDDEPS    += $(BASEDIR)/Release/lib/libvorbis.a
-  LDDEPS    += $(BASEDIR)/Release/lib/libvorbisenc.a
-  LDDEPS    += $(BASEDIR)/Release/lib/libvorbisfile.a
   LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a
   LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread -lwayland-client
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
@@ -99,8 +97,8 @@ ifeq ($(config),debug)
   ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Debug/lib -L. -L../../../../../SDL2-src/SDL2/build/.libs 
   LDDEPS    += $(BASEDIR)/Debug/lib/libZLib.a
   LDDEPS    += $(BASEDIR)/Debug/lib/libogg.a
-  LDDEPS    += $(BASEDIR)/Debug/lib/libvorbis.a
-  LDDEPS    += $(BASEDIR)/Debug/lib/libvorbisfile.a
+  LDDEPS    += $(BASEDIR)/Release/lib/libvorbis.a
+#   LDDEPS    += $(BASEDIR)/Debug/lib/libvorbisfile.a
 #   LDDEPS    += ../../../../../vorbis/lib/.libs/libvorbisenc.a
 #   LDDEPS    += ../../../../../vorbis/lib/.libs/libvorbis.a
 #   LDDEPS    += ../../../../../vorbis/lib/.libs/libvorbisfile.a

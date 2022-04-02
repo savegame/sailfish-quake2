@@ -6,7 +6,7 @@ ifndef config
 endif
 export config
 
-PROJECTS := ZLib quake2-game quake2-xatrix quake2-rogue quake2-ctf quake2-gles1 quake2-gles2
+PROJECTS := ZLib vorbis quake2-game quake2-xatrix quake2-rogue quake2-ctf quake2-gles1 quake2-gles2
 
 .PHONY: all clean help $(PROJECTS)
 
@@ -15,6 +15,10 @@ all: $(PROJECTS)
 ZLib: 
 	@echo "==== Building ZLib ($(config)) ===="
 	@${MAKE} --no-print-directory -C . -f ZLib.make
+
+vorbis: 
+	@echo "==== Building vorbis ($(config)) ===="
+	@${MAKE} --no-print-directory -C . -f vorbis.make
 
 quake2-game: 
 	@echo "==== Building quake2-game ($(config)) ===="
@@ -42,6 +46,7 @@ quake2-gles2: ZLib
 
 clean:
 	@${MAKE} --no-print-directory -C . -f ZLib.make clean
+	@${MAKE} --no-print-directory -C . -f vorbis.make clean
 	@${MAKE} --no-print-directory -C . -f quake2-game.make clean
 	@${MAKE} --no-print-directory -C . -f quake2-xatrix.make clean
 	@${MAKE} --no-print-directory -C . -f quake2-rogue.make clean
@@ -60,6 +65,7 @@ help:
 	@echo "   all (default)"
 	@echo "   clean"
 	@echo "   ZLib"
+	@echo "   vorbis"
 	@echo "   quake2-game"
 	@echo "   quake2-xatrix"
 	@echo "   quake2-rogue"

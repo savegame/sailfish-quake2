@@ -52,9 +52,9 @@ cd %{_topdir}/BUILD/SDL2
     --enable-libudev \
     # --disable-shared
 
-mkdir -p %{_topdir}/BUILD/vorbis/build
-cd %{_topdir}/BUILD/vorbis/build
-cmake ..
+# mkdir -p %{_topdir}/BUILD/vorbis/build
+# cd %{_topdir}/BUILD/vorbis/build
+# cmake ..
 
 cd %{_topdir}/BUILD/libogg
 ./configure \
@@ -62,14 +62,23 @@ cd %{_topdir}/BUILD/libogg
 
 
 %build
+cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
+make -j`nproc` \
+    config=release\
+    sailfish_arch=%{_arch}\
+    sailfish_fbo=yes\
+    vorbis\
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
+    CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
+
 cd %{_topdir}/BUILD/SDL2
 make -j`nproc` \
     CFLAGS=-I/usr/lib64/dbus-1.0/include \
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include
 cd %{_topdir}/BUILD/libogg
 make -j`nproc`
-cd %{_topdir}/BUILD/vorbis/build
-make -j`nproc`
+# cd %{_topdir}/BUILD/vorbis/build
+# make -j`nproc`
 cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
 make -j`nproc` \
     config=release\
@@ -83,9 +92,9 @@ mkdir -p %{build_folder}/%{build_subfolder}/lib/
 # rsync -avP %{_topdir}/BUILD/vorbis/lib/.libs/libvorbis.a %{build_folder}/%{build_subfolder}/lib/
 # rsync -avP %{_topdir}/BUILD/vorbis/lib/.libs/libvorbisenc.a %{build_folder}/%{build_subfolder}/lib/
 # rsync -avP %{_topdir}/BUILD/vorbis/lib/.libs/libvorbisfile.a %{build_folder}/%{build_subfolder}/lib/
-rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbis.a %{build_folder}/%{build_subfolder}/lib/
-rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbisenc.a %{build_folder}/%{build_subfolder}/lib/
-rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbisfile.a %{build_folder}/%{build_subfolder}/lib/
+# rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbis.a %{build_folder}/%{build_subfolder}/lib/
+# rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbisenc.a %{build_folder}/%{build_subfolder}/lib/
+# rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbisfile.a %{build_folder}/%{build_subfolder}/lib/
 rsync -avP %{_topdir}/BUILD/libogg/src/.libs/libogg.a %{build_folder}/%{build_subfolder}/lib/
 
 make -j8 \
@@ -123,9 +132,9 @@ rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{
 %dir %{_datadir}/%{name}/baseq2
 %attr(755,root,root) %{_datadir}/%{name}/baseq2/*
 %dir %{_datadir}/%{name}/res
-%dir %{_datadir}/%{name}/lib
+# %dir %{_datadir}/%{name}/lib
 %attr(644,root,root) %{_datadir}/%{name}/res/*
-%attr(644,root,root) %{_datadir}/%{name}/lib/*
+# %attr(644,root,root) %{_datadir}/%{name}/lib/*
 %attr(644,root,root) %{_datadir}/applications/%{name}.desktop
 
 %changelog 
