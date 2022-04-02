@@ -96,12 +96,15 @@ ifeq ($(config),debug)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -g -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Debug/lib -L. -L../../../../../SDL2-src/SDL2/build/.libs
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Debug/lib -L. -L../../../../../SDL2-src/SDL2/build/.libs 
   LDDEPS    += $(BASEDIR)/Debug/lib/libZLib.a
   LDDEPS    += $(BASEDIR)/Debug/lib/libogg.a
   LDDEPS    += $(BASEDIR)/Debug/lib/libvorbis.a
   LDDEPS    += $(BASEDIR)/Debug/lib/libvorbisfile.a
-  LDDEPS    += $(BASEDIR)/Debug/lib/libvorbisenc.a
+#   LDDEPS    += ../../../../../vorbis/lib/.libs/libvorbisenc.a
+#   LDDEPS    += ../../../../../vorbis/lib/.libs/libvorbis.a
+#   LDDEPS    += ../../../../../vorbis/lib/.libs/libvorbisfile.a
+#   LDDEPS    += $(BASEDIR)/Debug/lib/libvorbisenc.a
   LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a
   LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread -lwayland-client -logg
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
