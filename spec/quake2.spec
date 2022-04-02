@@ -52,6 +52,10 @@ cd %{_topdir}/BUILD/SDL2
     --enable-libudev \
     # --disable-shared
 
+cd %{_topdir}/BUILD/vorbis
+./autogen.sh
+./configure
+
 cd %{_topdir}/BUILD/libogg
 ./configure \
     --disable-shared
@@ -64,9 +68,7 @@ make -j`nproc` \
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include
 cd %{_topdir}/BUILD/libogg
 make -j`nproc`
-mkdir -p %{_topdir}/BUILD/vorbis/build
-cd %{_topdir}/BUILD/vorbis/build
-cmake -DBUILD_SHARED_LIBS=OFF ..
+cd %{_topdir}/BUILD/vorbis
 make -j`nproc`
 cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
 make -j`nproc` \
@@ -78,9 +80,9 @@ make -j`nproc` \
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
 
 mkdir -p %{build_folder}/%{build_subfolder}/lib/
-rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbis.a %{build_folder}/%{build_subfolder}/lib/
-rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbisenc.a %{build_folder}/%{build_subfolder}/lib/
-rsync -avP %{_topdir}/BUILD/vorbis/build/lib/libvorbisfile.a %{build_folder}/%{build_subfolder}/lib/
+rsync -avP %{_topdir}/BUILD/vorbis/lib/.libs/libvorbis.a %{build_folder}/%{build_subfolder}/lib/
+rsync -avP %{_topdir}/BUILD/vorbis/lib/.libs/libvorbisenc.a %{build_folder}/%{build_subfolder}/lib/
+rsync -avP %{_topdir}/BUILD/vorbis/lib/.libs/libvorbisfile.a %{build_folder}/%{build_subfolder}/lib/
 rsync -avP %{_topdir}/BUILD/libogg/src/.libs/libogg.a %{build_folder}/%{build_subfolder}/lib/
 
 make -j8 \
