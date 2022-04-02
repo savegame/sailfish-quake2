@@ -1018,6 +1018,7 @@ static void FS_AddGameDirectories(const char * dir)
 	printf("Add SailfihsOS specific paths\n");
 	FS_AddGameDirectory(va("%s/%s", "/usr/share/harbour-quake2", dir)); // here we are put baseq2/game.so
 	FS_AddGameDirectory(va("%s/%s", "/home/nemo/.local/share/harbour-quake2", dir)); // home share data 
+	FS_AddGameDirectory(va("%s/%s", "/home/defaultuser/Documents/Games/Quake2", dir)); // AuroraOS 
 	#endif
 }
 
