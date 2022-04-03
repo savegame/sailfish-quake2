@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    5
+Release:    6
 Version:    1.2
 Group:      Amusements/Games
 License:    GPLv2
@@ -103,10 +103,10 @@ mkdir -p %{buildroot}/usr/share/icons/hicolor/{86x86,108x108,128x128,172x172}/ap
 rsync -avP %{build_folder}/%{build_subfolder}/bin/quake2-gles2 %{buildroot}%{_bindir}/%{name}
 rsync -avP %{_topdir}/BUILD/Engine/Sources/Compatibility/SDL/res %{buildroot}%{_datadir}/%{name}/
 rsync -avP %{_topdir}/BUILD/spec/harbour-quake2.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
-rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor/86x86/apps/%{name}.png
-rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor/108x108/apps/%{name}.png
-rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor/128x128/apps/%{name}.png
-rsync -avP %{_topdir}/BUILD/spec/Quake2.png %{buildroot}/usr/share/icons/hicolor/172x172/apps/%{name}.png
+rsync -avP %{_topdir}/BUILD/spec/Quake2_86.png %{buildroot}/usr/share/icons/hicolor/86x86/apps/%{name}.png
+rsync -avP %{_topdir}/BUILD/spec/Quake2_108.png %{buildroot}/usr/share/icons/hicolor/108x108/apps/%{name}.png
+rsync -avP %{_topdir}/BUILD/spec/Quake2_128.png %{buildroot}/usr/share/icons/hicolor/128x128/apps/%{name}.png
+rsync -avP %{_topdir}/BUILD/spec/Quake2_172.png %{buildroot}/usr/share/icons/hicolor/172x172/apps/%{name}.png
 rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{name}/baseq2/
 # rsync -avP /usr/lib/libvorbis.so* %{buildroot}%{_datadir}/%{name}/lib/
 # rsync -avP /usr/lib/libogg.so* %{buildroot}%{_datadir}/%{name}/lib/

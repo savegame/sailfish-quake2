@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:export-ydpi="36"
-   inkscape:export-xdpi="36"
-   inkscape:export-filename="/home/andreev/Projects/Sailfish/quake2_rpi/spec/Quake2.png"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   inkscape:export-ydpi="48.375"
+   inkscape:export-xdpi="48.375"
+   inkscape:export-filename="/home/sashikknox/Projects/sailfish-quake2/spec/Quake2_172.png"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
    sodipodi:docname="Quake2.svg"
    id="svg5"
    version="1.1"
    viewBox="0 0 256 256"
    height="256pt"
-   width="256pt">
+   width="256pt"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <metadata
      id="metadata11">
     <rdf:RDF>
@@ -25,7 +25,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -33,9 +33,9 @@
      id="defs9">
     <filter
        height="1.3003187"
-       y="-0.15015936"
+       y="-0.15015935"
        width="1.3992861"
-       x="-0.19964305"
+       x="-0.19964304"
        id="filter1264"
        style="color-interpolation-filters:sRGB"
        inkscape:collect="always">
@@ -48,15 +48,15 @@
   <sodipodi:namedview
      inkscape:current-layer="layer3"
      inkscape:window-maximized="1"
-     inkscape:window-y="29"
+     inkscape:window-y="0"
      inkscape:window-x="0"
-     inkscape:cy="149.91144"
-     inkscape:cx="101.2112"
+     inkscape:cy="176.51202"
+     inkscape:cx="167.49741"
      inkscape:zoom="1.7194296"
      units="pt"
      showgrid="false"
      id="namedview7"
-     inkscape:window-height="1003"
+     inkscape:window-height="1015"
      inkscape:window-width="1920"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0"
@@ -65,7 +65,9 @@
      objecttolerance="10"
      borderopacity="1"
      bordercolor="#666666"
-     pagecolor="#ffffff" />
+     pagecolor="#ffffff"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="pt" />
   <g
      sodipodi:insensitive="true"
      style="display:none"
