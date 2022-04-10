@@ -35,7 +35,8 @@ BuildRequires: libogg-devel libvorbis-devel
 
 
 %description
-Quake II is a first-person shooter, in which the player shoots enemies from the perspective of the main character. 
+Quake II is a first-person shooter, in which the player shoots 
+enemies from the perspective of the main character. 
 
 %prep
 echo "Unpack sources"
@@ -112,17 +113,17 @@ rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{
 # rsync -avP /usr/lib/libogg.so* %{buildroot}%{_datadir}/%{name}/lib/
 
 %files
-%defattr(644,root,root,-)
+%defattr(-,root,root,-)
 %attr(755,root,root) %{_bindir}/%{name}
 # %dir %{_datadir}/icons/hicolor
-%attr(644,root,root) %{_datadir}/icons/hicolor/*
+%{_datadir}/icons/hicolor/*
 %dir %{_datadir}/%{name}/baseq2
 %attr(755,root,root) %{_datadir}/%{name}/baseq2/*
 %dir %{_datadir}/%{name}/res
 # %dir %{_datadir}/%{name}/lib
-%attr(644,root,root) %{_datadir}/%{name}/res/*
+%{_datadir}/%{name}/res/*
 # %attr(644,root,root) %{_datadir}/%{name}/lib/*
-%attr(644,root,root) %{_datadir}/applications/%{name}.desktop
+%{_datadir}/applications/%{name}.desktop
 
 %changelog 
 * Wed Mar 30 2022 sashikknox <sashikknox@gmail.com>
