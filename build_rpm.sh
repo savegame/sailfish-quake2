@@ -1,11 +1,12 @@
 #!/usr/bin/bash
-rm -fr `pwd`/build_rpm
+rm -fr `pwd`/build_rpm/{BUILD,SRPMS}
 mkdir -p `pwd`/build_rpm/SOURCES
 git archive --output `pwd`/build_rpm/SOURCES/harbour-quake2.tar.gz HEAD
 #tar czvf `pwd`/build_rpm/SOURCES/harbour-quake2.tar.gz Engine Ports SDL2 spec
 export PATH=$HOME/SailfishOS/bin:${PATH}
 export PWD=`pwd`
 
+# uncomment right engine for your 
 export engine="sfdk engine exec"
 # export engine="docker exec --user mersdk -w `pwd` aurora-os-build-engine"
 
@@ -29,15 +30,16 @@ for each in $sfdk_targets; do
     ${target} rpmbuild --define "_topdir `pwd`/build_rpm" --define "_arch $target_arch" -ba spec/quake2.spec
 
     # sign RPM packacge 
-    if [[ "${engine}" == "*aurora*" ]]; then
+    if [[ "${engine}" == *"aurora"* ]]; then
         echo "Signing RPMs: "
         ${target} rpmsign-external sign --key /home/sashikknox/Downloads/regular_key.pem --cert /home/sashikknox/Downloads/regular_cert.pem `pwd`/build_rpm/RPMS/${target_arch}/*
         if [ $? -ne 0 ] ; then break; fi
         echo "Validate RPMs:"
         ${target} rpm-validator -p regular `pwd`/build_rpm/RPMS/${target_arch}/harbour-quake2-1.2*
         if [ $? -ne 0 ] ; then break; fi
-    elif [[ "${engine}" == "sfdk *" ]] ;then
-        sfdk config target=${target}
+    elif [[ "${engine}" == "sfdk "* ]] ;then
+        echo "Validate RPM:"
+        sfdk config target=${each}
         sfdk check `pwd`/build_rpm/RPMS/${target_arch}/harbour-quake2-1.2*
         if [ $? -ne 0 ] ; then break; fi
     fi
