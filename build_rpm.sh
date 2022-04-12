@@ -10,6 +10,12 @@ export PWD=`pwd`
 export engine="sfdk engine exec"
 # export engine="docker exec --user mersdk -w `pwd` aurora-os-build-engine"
 
+
+build_dir="build_rpm"
+if [[ "${engine}" == *"aurora"* ]]; then
+    build_dir="build_auroa_rpm"
+fi
+
 sfdk_targets=`${engine} sb2-config -l|grep -v default`
 
 echo "WARNING: Build Quake 2 for ALL ypur targets in SailfishSDK"
@@ -17,8 +23,8 @@ for each in $sfdk_targets; do
     target_arch=${each##*-}
     echo "Build for '$each' target with '$target_arch' architecture"
     # clean build folder
-    if [ -d `pwd`/build_rpm/BUILD ]; then
-        rm -fr `pwd`/build_rpm/BUILD
+    if [ -d `pwd`/${build_dir}/BUILD ]; then
+        rm -fr `pwd`/${build_dir}/BUILD
     fi
     target="${engine} sb2 -t $each"
     #install deps for current target
@@ -27,20 +33,20 @@ for each in $sfdk_targets; do
         mce-headers dbus-devel libvorbis-devel libogg-devel rsync systemd-devel autoconf automake libtool
     
     # build RPM for current target
-    ${target} rpmbuild --define "_topdir `pwd`/build_rpm" --define "_arch $target_arch" -ba spec/quake2.spec
+    ${target} rpmbuild --define "_topdir `pwd`/${build_dir}" --define "_arch $target_arch" -ba spec/quake2.spec
 
     # sign RPM packacge 
     if [[ "${engine}" == *"aurora"* ]]; then
         echo "Signing RPMs: "
-        ${target} rpmsign-external sign --key /home/sashikknox/Downloads/regular_key.pem --cert /home/sashikknox/Downloads/regular_cert.pem `pwd`/build_rpm/RPMS/${target_arch}/*
+        ${target} rpmsign-external sign --key `pwd`/regular_key.pem --cert `pwd`/regular_cert.pem `pwd`/build_rpm/RPMS/${target_arch}/*
         if [ $? -ne 0 ] ; then break; fi
         echo "Validate RPMs:"
-        ${target} rpm-validator -p regular `pwd`/build_rpm/RPMS/${target_arch}/harbour-quake2-1.2*
+        ${target} rpm-validator -p regular `pwd`/${build_dir}/RPMS/${target_arch}/harbour-quake2-1.2*
         if [ $? -ne 0 ] ; then break; fi
     elif [[ "${engine}" == "sfdk "* ]] ;then
         echo "Validate RPM:"
         sfdk config target=${each}
-        sfdk check `pwd`/build_rpm/RPMS/${target_arch}/harbour-quake2-1.2*
+        sfdk check `pwd`/${build_dir}/RPMS/${target_arch}/harbour-quake2-1.2*
         if [ $? -ne 0 ] ; then break; fi
     fi
 done
