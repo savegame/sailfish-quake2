@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    6
+Release:    8
 Version:    1.2
 Group:      Amusements/Games
 License:    GPLv2
@@ -98,7 +98,7 @@ strip %{build_folder}/%{build_subfolder}/bin/quake2-gles2
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/{bin,share/%{name}/baseq2,share/applications}
+mkdir -p %{buildroot}/usr/{bin,share/%{name}/lib/baseq2,share/applications}
 # mkdir -p %{buildroot}%{_datadir}/%{name}/lib
 mkdir -p %{buildroot}/usr/share/icons/hicolor/{86x86,108x108,128x128,172x172}/apps/
 rsync -avP %{build_folder}/%{build_subfolder}/bin/quake2-gles2 %{buildroot}%{_bindir}/%{name}
@@ -108,21 +108,18 @@ rsync -avP %{_topdir}/BUILD/spec/Quake2_86.png %{buildroot}/usr/share/icons/hico
 rsync -avP %{_topdir}/BUILD/spec/Quake2_108.png %{buildroot}/usr/share/icons/hicolor/108x108/apps/%{name}.png
 rsync -avP %{_topdir}/BUILD/spec/Quake2_128.png %{buildroot}/usr/share/icons/hicolor/128x128/apps/%{name}.png
 rsync -avP %{_topdir}/BUILD/spec/Quake2_172.png %{buildroot}/usr/share/icons/hicolor/172x172/apps/%{name}.png
-rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{name}/baseq2/
+rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{name}/lib/baseq2/
 # rsync -avP /usr/lib/libvorbis.so* %{buildroot}%{_datadir}/%{name}/lib/
 # rsync -avP /usr/lib/libogg.so* %{buildroot}%{_datadir}/%{name}/lib/
 
 %files
 %defattr(-,root,root,-)
 %attr(755,root,root) %{_bindir}/%{name}
-# %dir %{_datadir}/icons/hicolor
 %{_datadir}/icons/hicolor/*
-%dir %{_datadir}/%{name}/baseq2
-%attr(755,root,root) %{_datadir}/%{name}/baseq2/*
+%dir %{_datadir}/%{name}/lib/baseq2
+%attr(755,root,root) %{_datadir}/%{name}/lib/baseq2/*
 %dir %{_datadir}/%{name}/res
-# %dir %{_datadir}/%{name}/lib
 %{_datadir}/%{name}/res/*
-# %attr(644,root,root) %{_datadir}/%{name}/lib/*
 %{_datadir}/applications/%{name}.desktop
 
 %changelog 
