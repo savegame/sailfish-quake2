@@ -1,8 +1,4 @@
 #!/usr/bin/bash
-rm -fr `pwd`/build_rpm/{BUILD,SRPMS}
-mkdir -p `pwd`/build_rpm/SOURCES
-git archive --output `pwd`/build_rpm/SOURCES/harbour-quake2.tar.gz HEAD
-#tar czvf `pwd`/build_rpm/SOURCES/harbour-quake2.tar.gz Engine Ports SDL2 spec
 export PATH=$HOME/SailfishOS/bin:${PATH}
 export PWD=`pwd`
 
@@ -10,15 +6,36 @@ export PWD=`pwd`
 export engine="sfdk engine exec"
 # export engine="docker exec --user mersdk -w `pwd` aurora-os-build-engine"
 
-
 build_dir="build_rpm"
 if [[ "${engine}" == *"aurora"* ]]; then
-    build_dir="build_auroa_rpm"
+    build_dir="build_aurora_rpm"
+fi
+echo "Pack latest git cmmit to an archive: ${build_dir}/SOURCES/harbour-quake2.tar.gz"
+rm -fr `pwd`/${build_dir}/{BUILD,SRPMS}
+mkdir -p `pwd`/${build_dir}/SOURCES
+git archive --output `pwd`/${build_dir}/SOURCES/harbour-quake2.tar.gz HEAD
+#tar czvf `pwd`/${build_dir}/SOURCES/harbour-quake2.tar.gz Engine Ports SDL2 spec
+
+if [[ "${engine}" == *"aurora"* ]]; then
+    for each in key cert; do
+        if [ -f `pwd`/regular_${each}.pem ]; then 
+            continue;
+        fi
+        echo -n "Скачиваем ключ regular_${each}.pem для подписи пактов под АврораОС: "
+        curl https://community.omprussia.ru/documentation/files/doc/regular_${each}.pem -o regular_${each}.pem &> /dev/null
+        if [ $? -eq 0 ]; then 
+            echo "OK"
+        else
+            echo "FAIL"
+            echo "Ошибка скачивания regular_${each}.pem: https://community.omprussia.ru/documentation/files/doc/regular_${each}.pem"
+            exit 1
+        fi
+    done
 fi
 
 sfdk_targets=`${engine} sb2-config -l|grep -v default`
 
-echo "WARNING: Build Quake 2 for ALL ypur targets in SailfishSDK"
+echo "WARNING: Build Quake 2 for ALL your targets in SailfishSDK"
 for each in $sfdk_targets; do
     target_arch=${each##*-}
     echo "Build for '$each' target with '$target_arch' architecture"
@@ -34,20 +51,36 @@ for each in $sfdk_targets; do
     
     # build RPM for current target
     ${target} rpmbuild --define "_topdir `pwd`/${build_dir}" --define "_arch $target_arch" -ba spec/quake2.spec
+    if [ $? -ne 0 ] ; then 
+        echo "Build RPM for ${each} : FAIL"
+        continue; 
+    fi
 
     # sign RPM packacge 
     if [[ "${engine}" == *"aurora"* ]]; then
-        echo "Signing RPMs: "
-        ${target} rpmsign-external sign --key `pwd`/regular_key.pem --cert `pwd`/regular_cert.pem `pwd`/build_rpm/RPMS/${target_arch}/*
-        if [ $? -ne 0 ] ; then break; fi
-        echo "Validate RPMs:"
+        echo -n "Signing RPMs: "
+        ${target} rpmsign-external sign --key `pwd`/regular_key.pem --cert `pwd`/regular_cert.pem `pwd`/${build_dir}/RPMS/${target_arch}/harbour-quake2-1.*
+        if [ $? -ne 0 ] ; then 
+            echo "FAIL"
+            break; 
+        fi
+        echo "OK"
+        echo -n "Validate RPMs: "
         ${target} rpm-validator -p regular `pwd`/${build_dir}/RPMS/${target_arch}/harbour-quake2-1.2*
-        if [ $? -ne 0 ] ; then break; fi
+        if [ $? -ne 0 ] ; then 
+            echo "FAIL"
+            break; 
+        fi
+        echo "OK"
     elif [[ "${engine}" == "sfdk "* ]] ;then
-        echo "Validate RPM:"
+        echo -n "Validate RPM: "
         sfdk config target=${each}
         sfdk check `pwd`/${build_dir}/RPMS/${target_arch}/harbour-quake2-1.2*
-        if [ $? -ne 0 ] ; then break; fi
+        if [ $? -ne 0 ] ; then 
+            echo "FAIL"
+            break;
+        fi
+        echo "OK"
     fi
 done
 echo "All build done! All yopur packages in "`pwd`/build_rpm/RPMS
