@@ -7,8 +7,16 @@ ifndef verbose
   SILENT = @
 endif
 
-ifndef sailfish_x86
-  sailfish_x86=no
+ifndef sailfish
+  sailfish=yes
+endif
+
+ifndef sailfish_fbo
+  sailfish_fbo=no
+endif
+
+ifndef sailfish_arch
+  sailfish_arch=armv7hl
 endif
 
 CC = gcc
@@ -23,15 +31,27 @@ ifndef RESCOMP
   endif
 endif
 
-ifeq ($(sailfish_x86),yes)
-  BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
-else
-  BASEDIR   = ../../../Output/Targets/SailfishOS-32
+# define SailfishOS platform first
+ifeq ($(sailfish),yes)
+DEFINES += -DSAILFISHOS
 endif
 
+ifeq ($(sailfish_fbo),yes)
+  DEFINES += -DSAILFISH_FBO
+endif
+
+ifeq ($(sailfish_arch),armv7hl)
+  BASEDIR   = ../../../Output/Targets/SailfishOS-32
+else
+  ifeq ($(sailfish_arch),aarch64)
+    BASEDIR   = ../../../Output/Targets/SailfishOS-64
+  else
+    BASEDIR   = ../../../Output/Targets/SailfishOS-32-x86
+  endif
+endif
 ifeq ($(config),release)
-  OBJDIR     = ../../../Output/Targets/Linux-x86-32/Release/obj/quake2-ctf
-  TARGETDIR  = ../../../Output/Targets/Linux-x86-32/Release/bin/ctf
+  OBJDIR     = $(BASEDIR)/Release/obj/quake2-ctf
+  TARGETDIR  = $(BASEDIR)/Release/bin/ctf
   TARGET     = $(TARGETDIR)/game.so
   DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP
   INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources -I../../../Sources/ctf/src
@@ -39,7 +59,7 @@ ifeq ($(config),release)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -O2 -fPIC -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/Linux-x86-32/Release/lib -s -shared
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Release/lib -s -shared
   LDDEPS    +=
   LIBS      += $(LDDEPS)
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
@@ -52,8 +72,8 @@ ifeq ($(config),release)
 endif
 
 ifeq ($(config),debug)
-  OBJDIR     = ../../../Output/Targets/Linux-x86-32/Debug/obj/quake2-ctf
-  TARGETDIR  = ../../../Output/Targets/Linux-x86-32/Debug/bin/ctf
+  OBJDIR     = $(BASEDIR)/Debug/obj/quake2-ctf
+  TARGETDIR  = $(BASEDIR)/Debug/bin/ctf
   TARGET     = $(TARGETDIR)/game.so
   DEFINES   += -DARCH=\"i386\" -DOSTYPE=\"Linux\" -DNOUNCRYPT -DZIP
   INCLUDES  += -I../../../../../Engine/External/include -I../../../Sources -I../../../Sources/ctf/src
@@ -61,7 +81,7 @@ ifeq ($(config),debug)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -ffast-math -Wall -Wextra -g -fPIC -std=c99 -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-switch -Wno-missing-field-initializers -fPIC -fvisibility=hidden
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../Output/Targets/Linux-x86-32/Debug/lib -shared
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(BASEDIR)/Debug/lib -shared
   LDDEPS    +=
   LIBS      += $(LDDEPS)
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
