@@ -19,6 +19,7 @@ git archive --output `pwd`/${build_dir}/SOURCES/harbour-quake2.tar.gz HEAD
 if [[ "${engine}" == *"aurora"* ]]; then
     for each in key cert; do
         if [ -f `pwd`/regular_${each}.pem ]; then 
+            echo "Файл ключа regular_${each}.pem найден: OK"
             continue;
         fi
         echo -n "Скачиваем ключ regular_${each}.pem для подписи пактов под АврораОС: "
