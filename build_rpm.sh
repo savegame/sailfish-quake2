@@ -1,10 +1,18 @@
 #!/usr/bin/bash
-export PATH=$HOME/SailfishOS/bin:${PATH}
 export PWD=`pwd`
 
-# uncomment right engine for your 
 export engine="sfdk engine exec"
-# export engine="docker exec --user mersdk -w `pwd` aurora-os-build-engine"
+dependencies="pulseaudio-devel wayland-devel libGLESv2-devel 
+    wayland-egl-devel wayland-protocols-devel libusb-devel 
+    libxkbcommon-devel mce-headers dbus-devel libvorbis-devel 
+    libogg-devel rsync systemd-devel autoconf automake libtool"
+# uncomment right engine for your 
+if [ "$1" == "aurora" ]; then
+    export engine="docker exec --user mersdk -w `pwd` aurora-os-build-engine"
+else
+    export PATH=$HOME/SailfishOS/bin:${PATH}
+export engine="sfdk engine exec"
+fi
 
 build_dir="build_rpm"
 if [[ "${engine}" == *"aurora"* ]]; then
@@ -46,9 +54,7 @@ for each in $sfdk_targets; do
     fi
     target="${engine} sb2 -t $each"
     #install deps for current target
-    ${target} -R -m sdk-install zypper in -y pulseaudio-devel\
-        wayland-devel libGLESv2-devel wayland-egl-devel wayland-protocols-devel libusb-devel  libxkbcommon-devel\
-        mce-headers dbus-devel libvorbis-devel libogg-devel rsync systemd-devel autoconf automake libtool
+    ${target} -R -m sdk-install zypper in -y ${dependencies}
     
     # build RPM for current target
     ${target} rpmbuild --define "_topdir `pwd`/${build_dir}" --define "_arch $target_arch" -ba spec/quake2.spec
@@ -67,21 +73,23 @@ for each in $sfdk_targets; do
         fi
         echo "OK"
         echo -n "Validate RPMs: "
-        ${target} rpm-validator -p regular `pwd`/${build_dir}/RPMS/${target_arch}/harbour-quake2-1.2*
+        validator_output=`${target} rpm-validator -p regular $(pwd)/${build_dir}/RPMS/${target_arch}/harbour-quake2-1.2* 2>&1`
         if [ $? -ne 0 ] ; then 
             echo "FAIL"
+            echo "${validator_output}"
             break; 
         fi
         echo "OK"
     elif [[ "${engine}" == "sfdk "* ]] ;then
         echo -n "Validate RPM: "
         sfdk config target=${each}
-        sfdk check `pwd`/${build_dir}/RPMS/${target_arch}/harbour-quake2-1.2*
+        validator_output=`sfdk check $(pwd)/${build_dir}/RPMS/${target_arch}/harbour-quake2-1.2* 2>&1`
         if [ $? -ne 0 ] ; then 
             echo "FAIL"
+            echo "${validator_output}"
             break;
         fi
         echo "OK"
     fi
 done
-echo "All build done! All yopur packages in "`pwd`/build_rpm/RPMS
+echo "All build done! All yopur packages in `pwd`/build_rpm/RPMS"

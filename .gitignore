@@ -10,3 +10,5 @@ SDL2/sdl2.pc
 SDL2/include/SDL_config.h
 SDL2-src
 build_rpm/*
+build_aurora_rpm/*
+libogg/*

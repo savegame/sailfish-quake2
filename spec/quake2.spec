@@ -31,7 +31,7 @@ BuildRequires: libogg-devel libvorbis-devel
         %global build_folder %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32-x86
     %endif
 %endif
-%{echo:set build bolder to %{build_folder}}
+%{echo:set build folder to %{build_folder}}
 
 
 %description
