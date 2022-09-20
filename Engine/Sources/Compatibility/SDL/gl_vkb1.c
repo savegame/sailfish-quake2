@@ -1500,6 +1500,7 @@ unsigned vkb_GLVKBMouseEvent(int b, int p, int x, int y, VKB_Key_Action_Function
 {
 	return vkb_VKBMouseEvent(b, p, x, y, f);
 }
+
 #define GET_JOY_XY(r, v, s, w, b) \
 	switch(b) \
 { \

@@ -608,15 +608,22 @@ bool IN_processEvent(SDL_Event *event)
 			5 - right sholder
 		*/
 		int key = -1;
-		bool down = avalue >= 0.5;
+		bool down = avalue >= 0.25;
+		char cmd[1024];
 		// joy_shoulder_to_mouse_button
 		switch( event->jaxis.axis ) {
 			case 4: 
 				// key = K_GAMEPAD_L; 
 				if( joy_shoulder_to_mouse_button[1] == down )
 					break;
-				key = K_MOUSE2;
+				// key = K_MOUSE2;
 				joy_shoulder_to_mouse_button[1] = down;
+				if( down ) {
+					Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "speed", K_LAST, Sys_Milliseconds());
+				} else {
+					Com_sprintf (cmd, sizeof(cmd), "-%s %i %i\n", "speed", K_LAST, Sys_Milliseconds());
+				}
+				vkb_AddCommand(cmd);
 				break;
 			case 5: 
 				// key = K_GAMEPAD_R; 
@@ -647,9 +654,18 @@ bool IN_processEvent(SDL_Event *event)
 
 			9 - left trigger
 			10 - right trigger
+
+			7 - left joy toggle
+			8 - right joy toggle
+
+			4 - select (share on DS4)
+			6 - start 				
 		*/
 		bool down = (event->type == SDL_JOYBUTTONDOWN);
 		int key = K_JOY1 + event->jbutton.button;
+		char cmd[1024];
+		cmd[0] = '\0';
+
 		switch( event->jbutton.button ) {
 			case 11: // UP
 				key = K_GAMEPAD_UP; break;
@@ -659,6 +675,38 @@ bool IN_processEvent(SDL_Event *event)
 				key = K_GAMEPAD_LEFT; break;
 			case 14: // RIGHT
 				key = K_GAMEPAD_RIGHT; break;
+			case 2: {
+				if( down ) {
+					Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "moveup", K_LAST, Sys_Milliseconds());
+				} else {
+					Com_sprintf (cmd, sizeof(cmd), "-%s %i %i\n", "moveup", K_LAST, Sys_Milliseconds());
+				}
+				vkb_AddCommand(cmd);
+				break;
+			}
+			case 8: {
+				if( down ) {
+					Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "movedown", K_LAST, Sys_Milliseconds());
+				} else {
+					Com_sprintf (cmd, sizeof(cmd), "-%s %i %i\n", "movedown", K_LAST, Sys_Milliseconds());
+				}
+				vkb_AddCommand(cmd);
+				break;
+			}
+			case 9: {
+				if( down ) {
+					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "weapprev", K_LAST, Sys_Milliseconds());
+					vkb_AddCommand(cmd);
+				}
+				break;
+			}
+			case 10: {
+				if( down ) {
+					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "weapnext", K_LAST, Sys_Milliseconds());
+					vkb_AddCommand(cmd);
+				}
+				break;
+			}
 		}
 		Key_Event(key, down);
 	}
