@@ -795,6 +795,61 @@ static int MenuGraphics_rotaterender_init(int y)
 	y += 10;
 	return y;
 }
+
+//----------------------------------------
+// Size framebuffer render.
+//----------------------------------------
+static const char *sizerender_names[] =
+{
+	"1.0",
+	"0.85",
+	"0.7",
+	"0.5",
+	"0.35",
+	"0.15",
+	0
+};// 6
+
+static menulist_s MenuGraphics_sizerender_list;
+
+static void MenuGraphics_sizerender_apply()
+{
+	menulist_s *list = &MenuGraphics_sizerender_list;
+	Cvar_SetValue("r_sizerender", list->curvalue);
+// #ifdef SAILFISHOS
+// 	if( (int)(list->curvalue) == 1 ) {
+// 		if( sdlwGetRealOrientation() == SDL_ORIENTATION_LANDSCAPE_FLIPPED )
+// 			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE);
+// 		else if( sdlwGetRealOrientation() == SDL_ORIENTATION_LANDSCAPE )
+// 			sdlwSetOrientation(SDL_ORIENTATION_LANDSCAPE_FLIPPED);
+// 	}
+// 	else {
+// 		sdlwSetOrientation(sdlwGetRealOrientation());
+// 	}
+// #endif
+}
+
+static void MenuGraphics_sizerender_callback(void *s)
+{
+	MenuGraphics_sizerender_apply();
+}
+
+static int MenuGraphics_sizerender_init(int y)
+{
+	menulist_s *list = &MenuGraphics_sizerender_list;
+	list->generic.type = MTYPE_SPINCONTROL;
+	list->generic.name = "render size";
+	list->generic.x = 0;
+	list->generic.y = y;
+	list->generic.callback = MenuGraphics_sizerender_callback;
+	list->itemnames = sizerender_names;
+	list->curvalue = r_sizerender->flags;
+	list->savedValue = list->curvalue;
+	Menu_AddItem(&MenuGraphics_menu, (void *)list);
+	y += 10;
+	return y;
+}
+
 #endif 
 
 //----------------------------------------
@@ -856,6 +911,7 @@ void MenuGraphics_init()
 	y = MenuGraphics_flash_init(y);
 	#ifdef SAILFISH_FBO
 	y = MenuGraphics_rotaterender_init(y);
+	y = MenuGraphics_sizerender_init(y);
 	#endif
 
 	Menu_CenterWithBanner(&MenuGraphics_menu, "m_banner_video");

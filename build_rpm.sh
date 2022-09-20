@@ -42,11 +42,12 @@ if [[ "${engine}" == *"aurora"* ]]; then
     done
 fi
 
-sfdk_targets=`${engine} sb2-config -l|grep -v default`
+sfdk_targets=`${engine} sb2-config -l|grep default|grep aarch`
 
 echo "WARNING: Build Quake 2 for ALL your targets in SailfishSDK"
 for each in $sfdk_targets; do
     target_arch=${each##*-}
+    target_arch=${target_arch/.default/}
     echo "Build for '$each' target with '$target_arch' architecture"
     # clean build folder
     if [ -d `pwd`/${build_dir}/BUILD ]; then
@@ -82,7 +83,7 @@ for each in $sfdk_targets; do
         echo "OK"
     elif [[ "${engine}" == "sfdk "* ]] ;then
         echo -n "Validate RPM: "
-        sfdk config target=${each}
+        sfdk config target=${each/.default/}
         validator_output=`sfdk check $(pwd)/${build_dir}/RPMS/${target_arch}/harbour-quake2-1.2* 2>&1`
         if [ $? -ne 0 ] ; then 
             echo "FAIL"

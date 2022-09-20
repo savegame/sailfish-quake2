@@ -137,6 +137,9 @@ void transformTouch( float *x, float *y ) {
 }
 #endif
 
+// convert joy sholder to mouse button
+static bool joy_shoulder_to_mouse_button[2] = { false, false };
+
 static int IN_TranslateSDLtoQ2Key(Sint32 keysym)
 {
 	int key;
@@ -598,12 +601,66 @@ bool IN_processEvent(SDL_Event *event)
 	break;
 
 	case SDL_JOYAXISMOTION:
+	{
+		float avalue = event->jaxis.value / 32767.0f;
+		/* axis 
+			4 - left sholder
+			5 - right sholder
+		*/
+		int key = -1;
+		bool down = avalue >= 0.5;
+		// joy_shoulder_to_mouse_button
+		switch( event->jaxis.axis ) {
+			case 4: 
+				// key = K_GAMEPAD_L; 
+				if( joy_shoulder_to_mouse_button[1] == down )
+					break;
+				key = K_MOUSE2;
+				joy_shoulder_to_mouse_button[1] = down;
+				break;
+			case 5: 
+				// key = K_GAMEPAD_R; 
+				if( joy_shoulder_to_mouse_button[0] == down )
+					break;
+				key = K_MOUSE1;
+				joy_shoulder_to_mouse_button[0] = down;
+				break;
+		}
+		if( key != -1 )
+			Key_Event(key, down);
 		break;
+	}
 	case SDL_JOYBUTTONDOWN:
 	case SDL_JOYBUTTONUP:
 	{
+		/*
+			11 - up
+			12 - down
+			13 - left
+			14 - right
+
+			key axis
+			3 - up/triangle	
+			0 - down/ krest
+			2 - left/square
+			1 - right/circle
+
+			9 - left trigger
+			10 - right trigger
+		*/
 		bool down = (event->type == SDL_JOYBUTTONDOWN);
-		Key_Event(K_JOY1 + event->jbutton.button, down);
+		int key = K_JOY1 + event->jbutton.button;
+		switch( event->jbutton.button ) {
+			case 11: // UP
+				key = K_GAMEPAD_UP; break;
+			case 12: // DOWN
+				key = K_GAMEPAD_DOWN; break;
+			case 13: // LEFT
+				key = K_GAMEPAD_LEFT; break;
+			case 14: // RIGHT
+				key = K_GAMEPAD_RIGHT; break;
+		}
+		Key_Event(key, down);
 	}
 	break;
 	case SDL_JOYHATMOTION:
@@ -766,14 +823,14 @@ void IN_Move(usercmd_t *cmd)
     if (l_controller != NULL)
     {
         float joyX, joyY;
-
-        joyX = (float)SDL_GameControllerGetAxis(l_controller, SDL_CONTROLLER_AXIS_LEFTX) / 32768.0f;;
-        joyY = (float)SDL_GameControllerGetAxis(l_controller, SDL_CONTROLLER_AXIS_LEFTY) / 32768.0f;;
-        joyXFloat += ComputeStickValue(joyX);
-        joyYFloat += ComputeStickValue(joyY);
-
+		// mouselook
         joyX = (float)SDL_GameControllerGetAxis(l_controller, SDL_CONTROLLER_AXIS_RIGHTX) / 32768.0f;;
         joyY = (float)SDL_GameControllerGetAxis(l_controller, SDL_CONTROLLER_AXIS_RIGHTY) / 32768.0f;;
+        joyXFloat += ComputeStickValue(joyX);
+        joyYFloat += ComputeStickValue(joyY);
+		// movement
+        joyX = (float)SDL_GameControllerGetAxis(l_controller, SDL_CONTROLLER_AXIS_LEFTX) / 32768.0f;;
+        joyY = (float)SDL_GameControllerGetAxis(l_controller, SDL_CONTROLLER_AXIS_LEFTY) / -32768.0f;;
         joyX = ComputeStickValue(joyX);
         joyY = ComputeStickValue(joyY);
         cmd->sidemove += cl_speed_side->value * joyX * running;
@@ -878,6 +935,7 @@ void IN_Init()
 	r_fullscreen = Cvar_Get("r_fullscreen", GL_FULLSCREEN_DEFAULT_STRING, CVAR_ARCHIVE);
 	#ifdef SAILFISH_FBO
 	r_rotaterender = Cvar_Get("r_rotaterender", "0", CVAR_ARCHIVE);
+	r_sizerender = Cvar_Get("r_sizerender", "0.5", CVAR_ARCHIVE);
 	#endif
 
 	SDL_StartTextInput();

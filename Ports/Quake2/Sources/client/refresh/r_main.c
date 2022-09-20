@@ -160,6 +160,24 @@ cvar_t *r_fullscreenflash;
 cvar_t *r_lightflash;
 #ifdef SAILFISH_FBO
 cvar_t *r_rotaterender;
+cvar_t *r_sizerender;
+
+enum SizeRender {
+	SIZE_100 = 0,
+	SIZE_85 = 1,
+	SIZE_70 = 2,
+	SIZE_50 = 3,
+	SIZE_30 = 4,
+	SIZE_15 = 5,
+};
+const float SizeRenderValue[SIZE_15+1] = {
+	1.0,
+	0.85,
+	0.70,
+	0.5,
+	0.3,
+	0.15
+};
 #endif
 
 extern cvar_t *gl_hudscale; /* named for consistency with R1Q2 */
@@ -3717,6 +3735,7 @@ void create_fbo_quad() {
 void remove_fbo() {
 	if( sailfish_fbo.Framebuffer == 0 )
 		return;
+	vkb_DeleteGLVKB();
 	glDeleteTextures(1, &sailfish_fbo.RenderedTexture);
 	sailfish_fbo.RenderedTexture = GL_NONE;
 	glDeleteRenderbuffers(1, &sailfish_fbo.DepthBuffer);
@@ -3737,6 +3756,16 @@ void create_fbo(GLuint w, GLuint h) {
 	if( sailfish_fbo.Framebuffer == 0 ) {
 		// R_printf(PRINT_ALL, "Max Framebuffer texture size is %i x %i ;\n", (int)dims[0], (int)dims[1]);
 		// sailfish_fbo.vs = 1.0f;
+		if( r_sizerender->value > 1 ) {
+			sailfish_fbo.vs = 1.0f;
+		}
+		else if ( r_sizerender->value <= 0  ) {
+			sailfish_fbo.vs = 0.15f;
+		}
+		else { 
+			sailfish_fbo.vs = r_sizerender->value;
+		}
+
 		if( sailfish_fbo.vs > 1.0f || sailfish_fbo.vs < 0.15f )
 			sailfish_fbo.vs = SAILFISH_FBO_DEFAULT_SCALE;
 		sdlwSetFboScale(sailfish_fbo.vs);
@@ -4448,6 +4477,7 @@ static bool R_Window_createContext()
 	}
 
 #ifdef SAILFISH_FBO
+	Cvar_SetValue("r_sizerender", 0.5);
 	create_fbo(viddef.width, viddef.height);
 #endif
 
@@ -4617,6 +4647,7 @@ static void R_Register()
 	r_fullscreenflash = Cvar_Get("r_fullscreenflash", "1", 0);
 	#if defined(SAILFISH_FBO)
 	r_rotaterender = Cvar_Get("r_rotaterender", "0", CVAR_ARCHIVE);
+	r_sizerender = Cvar_Get("r_sizerender", "1", CVAR_ARCHIVE);
 	#endif
 
 	r_texture_retexturing = Cvar_Get("r_texture_retexturing", "1", CVAR_ARCHIVE);
