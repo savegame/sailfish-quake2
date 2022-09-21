@@ -27,11 +27,11 @@
 #define TEX_FULL_HEIGHT 512
 
 enum{
-	VKB_In_Game = 1 << 0,
+	VKB_In_Game    = 1 << 0,
 	VKB_In_Console = 1 << 1,
 	VKB_In_Message = 1 << 2,
-	VKB_In_Menu = 1 << 3,
-	VKB_Not_Use = 1 << 4,
+	VKB_In_Menu    = 1 << 3,
+	VKB_Not_Use    = 1 << 4,
 };
 
 typedef enum{
@@ -333,7 +333,7 @@ extern boolean render_lock;
 float vkb_FormatAngle(float angle);
 void vkb_SetKeyBindinds(char ** kbs);
 void vkb_SetClientState(unsigned state);
+unsigned vkb_GetClientState();
 void vkb_SetAddCommandFunction(void (* f)(char *));
 int vkb_GetActionData(unsigned action, int *keys, unsigned int key_max, unsigned int *key_count, char *cmd, unsigned int cmd_max);
-
 #endif

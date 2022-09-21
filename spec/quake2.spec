@@ -1,6 +1,6 @@
 Name:       harbour-quake2
 Summary:    Quake 2 
-Release:    1
+Release:    3
 Version:    1.3
 Group:      Amusements/Games
 License:    GPLv2

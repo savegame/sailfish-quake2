@@ -1491,6 +1491,10 @@ void vkb_SetClientState(unsigned state)
 	client_state = state > Client_In_Invalid ? Client_In_Invalid : state;
 }
 
+unsigned vkb_GetClientState() {
+	return client_state;
+}
+
 unsigned vkb_GLVKBMouseMotionEvent(int b, int p, int x, int y, int dx, int dy, VKB_Key_Action_Function f)
 {
 	return vkb_VKBMouseMotionEvent(b, p, x, y, dx, dy, f);

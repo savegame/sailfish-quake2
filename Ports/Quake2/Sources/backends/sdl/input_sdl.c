@@ -648,7 +648,7 @@ bool IN_processEvent(SDL_Event *event)
 
 			key axis
 			3 - up/triangle	
-			0 - down/ krest
+			0 - down/cross
 			2 - left/square
 			1 - right/circle
 
@@ -659,56 +659,90 @@ bool IN_processEvent(SDL_Event *event)
 			8 - right joy toggle
 
 			4 - select (share on DS4)
-			6 - start 				
+			6 - start (option) 				
 		*/
 		bool down = (event->type == SDL_JOYBUTTONDOWN);
 		int key = K_JOY1 + event->jbutton.button;
+		// int vkb_state = vkb_GetClientState();
+		// int in_game = vkb_state & VKB_In_Game;
 		char cmd[1024];
 		cmd[0] = '\0';
 
 		switch( event->jbutton.button ) {
 			case 11: // UP
-				key = K_GAMEPAD_UP; break;
+				if( vkb_GetClientState() == Client_In_Game ) {
+					if( down )
+						Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invdrop", K_LAST, Sys_Milliseconds());
+				} else
+					key = K_GAMEPAD_UP; 
+				break;
 			case 12: // DOWN
-				key = K_GAMEPAD_DOWN; break;
+				if( vkb_GetClientState() == Client_In_Game ) {
+					if( down )
+						Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invuse", K_LAST, Sys_Milliseconds());
+				} else
+					key = K_GAMEPAD_DOWN; 
+				break;
 			case 13: // LEFT
-				key = K_GAMEPAD_LEFT; break;
+				if( vkb_GetClientState() == Client_In_Game ) {
+					if( down )
+						Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invprev", K_LAST, Sys_Milliseconds());
+				} else 
+					key = K_GAMEPAD_LEFT;
+				break;
 			case 14: // RIGHT
-				key = K_GAMEPAD_RIGHT; break;
-			case 2: {
-				if( down ) {
-					Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "moveup", K_LAST, Sys_Milliseconds());
-				} else {
-					Com_sprintf (cmd, sizeof(cmd), "-%s %i %i\n", "moveup", K_LAST, Sys_Milliseconds());
-				}
-				vkb_AddCommand(cmd);
+				if( vkb_GetClientState() == Client_In_Game ) {
+					if( down )
+						Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invnext", K_LAST, Sys_Milliseconds());
+				} else 
+					key = K_GAMEPAD_RIGHT;
+				break;
+			case 6: {// start
+				key = K_GAMEPAD_SELECT;
+				// if( down )
+					// Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invnext", K_LAST, Sys_Milliseconds());
 				break;
 			}
-			case 8: {
+			case 4: {// select
+ 				// key = K_GAMEPAD_START; 
+				if( down )
+					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "cmd help", K_LAST, Sys_Milliseconds());
+				break;
+			}
+			case 0: { // cross
+				if( vkb_GetClientState() == Client_In_Game ) {
+					if( down ) {
+						Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "moveup", K_LAST, Sys_Milliseconds());
+					} else {
+						Com_sprintf (cmd, sizeof(cmd), "-%s %i %i\n", "moveup", K_LAST, Sys_Milliseconds());
+					}
+				}
+				break;
+			}
+			case 2: // square
+			case 8: { // right stick press
 				if( down ) {
 					Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "movedown", K_LAST, Sys_Milliseconds());
 				} else {
 					Com_sprintf (cmd, sizeof(cmd), "-%s %i %i\n", "movedown", K_LAST, Sys_Milliseconds());
 				}
-				vkb_AddCommand(cmd);
 				break;
 			}
 			case 9: {
-				if( down ) {
+				if( down )
 					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "weapprev", K_LAST, Sys_Milliseconds());
-					vkb_AddCommand(cmd);
-				}
 				break;
 			}
 			case 10: {
-				if( down ) {
+				if( down )
 					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "weapnext", K_LAST, Sys_Milliseconds());
-					vkb_AddCommand(cmd);
-				}
 				break;
 			}
 		}
-		Key_Event(key, down);
+		if( cmd[0] == '\0' )
+			Key_Event(key, down);
+		else
+			vkb_AddCommand(cmd);
 	}
 	break;
 	case SDL_JOYHATMOTION:
