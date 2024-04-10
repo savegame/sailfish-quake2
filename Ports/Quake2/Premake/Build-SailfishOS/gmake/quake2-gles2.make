@@ -72,7 +72,7 @@ ifeq ($(config),release)
   LDDEPS    += $(BASEDIR)/Release/lib/libZLib.a
   LDDEPS    += $(BASEDIR)/Release/lib/libogg.a
   LDDEPS    += $(BASEDIR)/Release/lib/libvorbis.a
-  LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a
+  LDDEPS    += ../../../../../SDL2/build/libSDL2.a
   LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread -lwayland-client
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
@@ -103,7 +103,7 @@ ifeq ($(config),debug)
 #   LDDEPS    += ../../../../../vorbis/lib/.libs/libvorbis.a
 #   LDDEPS    += ../../../../../vorbis/lib/.libs/libvorbisfile.a
 #   LDDEPS    += $(BASEDIR)/Debug/lib/libvorbisenc.a
-  LDDEPS    += ../../../../../SDL2/build/.libs/libSDL2.a
+  LDDEPS    += ../../../../../SDL2/build/libSDL2.a
   LIBS      += $(LDDEPS) -lm -ldl -lGLESv2 -lEGL -lpthread -lwayland-client -logg
   LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS

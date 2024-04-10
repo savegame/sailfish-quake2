@@ -1,3 +1,15 @@
+%global build_subfolder Debug
+# %define _arch armv7hl
+%ifarch armv7hl 
+    %global build_folder Ports/Quake2/Output/Targets/SailfishOS-32
+%else 
+    %ifarch aarch64
+        %global build_folder Ports/Quake2/Output/Targets/SailfishOS-64
+    %else
+        %global build_folder Ports/Quake2/Output/Targets/SailfishOS-32-x86
+    %endif
+%endif
+
 Name:       harbour-quake2
 Summary:    Quake 2 
 Release:    3
@@ -5,7 +17,7 @@ Version:    1.3
 Group:      Amusements/Games
 License:    GPLv2
 BuildArch:  %{_arch}
-URL:        https://github.com/savegame/lp-public
+URL:        https://github.com/savegame/sailfish-quake2
 Source0:    %{name}.tar.gz
 # Requires:   SDL2
 # Requires:   libGLESv2
@@ -14,24 +26,25 @@ Source0:    %{name}.tar.gz
 # Requires:   zlib
 # Requires:   glib2
 # Requires:   libaudioresource
-
-BuildRequires: pulseaudio-devel,  wayland-devel, rsync
-BuildRequires: libGLESv2-devel, wayland-egl-devel
-BuildRequires: wayland-protocols-devel, libusb-devel
-BuildRequires: libxkbcommon-devel, mce-headers, dbus-devel
-BuildRequires: libogg-devel libvorbis-devel
-
-%global build_subfolder Debug
-%ifarch armv7hl
-%global build_folder %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32
-%else 
-    %ifarch aarch64
-        %global build_folder %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-64
-    %else
-        %global build_folder %{_topdir}/BUILD/Ports/Quake2/Output/Targets/SailfishOS-32-x86
-    %endif
-%endif
-%{echo:set build folder to %{build_folder}}
+BuildRequires: pkgconfig(openal)
+BuildRequires: cmake
+BuildRequires: dbus-devel
+BuildRequires: pkgconfig(mce)
+BuildRequires: pkgconfig(wayland-egl)
+BuildRequires: pkgconfig(wayland-client)
+BuildRequires: pkgconfig(wayland-cursor)
+BuildRequires: pkgconfig(wayland-protocols)
+BuildRequires: pkgconfig(wayland-scanner)
+BuildRequires: pkgconfig(egl)
+BuildRequires: pkgconfig(glesv2)
+BuildRequires: pkgconfig(xkbcommon)
+BuildRequires: pkgconfig(gbm)
+BuildRequires: pkgconfig(libpulse)
+#BuildRequires: pulseaudio-devel
+BuildRequires: rsync
+#BuildRequires: libusb-devel
+BuildRequires: libogg-devel 
+BuildRequires: libvorbis-devel
 
 
 %description
@@ -39,25 +52,35 @@ Quake II is a first-person shooter, in which the player shoots
 enemies from the perspective of the main character. 
 
 %prep
-echo "Unpack sources"
-cd %{_topdir}/BUILD
-tar -xzf %{_topdir}/SOURCES/%{name}.tar.gz
+echo "arch is %{_arch}"
+%setup -q -n harbour-quake2-%{version}
 echo "Configure SDL2"
-cd %{_topdir}/BUILD/SDL2
-#make clean 
-./configure \
-    --disable-video-x11\
-    --enable-video-wayland\
-    --enable-pulseaudio\
-    --enable-hidapi\
-    --enable-libudev 
+cd SDL2
+cmake -Bbuild \
+    -DLIB_SUFFIX="" \
+    -DPULSEAUDIO=ON \
+    -DSDL_STATIC=ON \
+    -DVIDEO_WAYLAND=ON \
+    -DVIDEO_X11=OFF \
+    .
 
-cd %{_topdir}/BUILD/libogg
+cd ../libogg
 ./configure \
     --disable-shared
 
 %build
-cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
+pushd SDL2/build
+make -j`nproc` \
+    CFLAGS=-I/usr/lib64/dbus-1.0/include \
+    CXXFLAGS=-I/usr/lib64/dbus-1.0/include \
+    LDFLAGS="-lwayland-client"
+popd 
+
+pushd libogg
+make -j`nproc`
+popd
+
+pushd Ports/Quake2/Premake/Build-SailfishOS/gmake
 make -j`nproc` \
     config=release\
     sailfish_arch=%{_arch}\
@@ -65,15 +88,9 @@ make -j`nproc` \
     vorbis\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
+popd
 
-cd %{_topdir}/BUILD/SDL2
-make -j`nproc` \
-    CFLAGS=-I/usr/lib64/dbus-1.0/include \
-    CXXFLAGS=-I/usr/lib64/dbus-1.0/include
-cd %{_topdir}/BUILD/libogg
-make -j`nproc`
-
-cd %{_topdir}/BUILD/Ports/Quake2/Premake/Build-SailfishOS/gmake
+pushd Ports/Quake2/Premake/Build-SailfishOS/gmake
 make -j`nproc` \
     config=release\
     sailfish_arch=%{_arch}\
@@ -81,17 +98,20 @@ make -j`nproc` \
     quake2-game\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
+popd
 
 mkdir -p %{build_folder}/%{build_subfolder}/lib/
-rsync -avP %{_topdir}/BUILD/libogg/src/.libs/libogg.a %{build_folder}/%{build_subfolder}/lib/
+rsync -avP libogg/src/.libs/libogg.a %{build_folder}/%{build_subfolder}/lib/
 
-make -j8 \
+pushd Ports/Quake2/Premake/Build-SailfishOS/gmake
+make -j`nproc` \
     config=debug\
     sailfish_arch=%{_arch}\
     sailfish_fbo=yes\
     quake2-gles2\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
     CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
+popd
 
 strip %{build_folder}/%{build_subfolder}/bin/quake2-gles2
 # exit 0
@@ -102,12 +122,14 @@ mkdir -p %{buildroot}/usr/{bin,share/%{name}/lib/baseq2,share/applications}
 # mkdir -p %{buildroot}%{_datadir}/%{name}/lib
 mkdir -p %{buildroot}/usr/share/icons/hicolor/{86x86,108x108,128x128,172x172}/apps/
 rsync -avP %{build_folder}/%{build_subfolder}/bin/quake2-gles2 %{buildroot}%{_bindir}/%{name}
-rsync -avP %{_topdir}/BUILD/Engine/Sources/Compatibility/SDL/res %{buildroot}%{_datadir}/%{name}/
-rsync -avP %{_topdir}/BUILD/spec/harbour-quake2.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
-rsync -avP %{_topdir}/BUILD/spec/Quake2_86.png %{buildroot}/usr/share/icons/hicolor/86x86/apps/%{name}.png
-rsync -avP %{_topdir}/BUILD/spec/Quake2_108.png %{buildroot}/usr/share/icons/hicolor/108x108/apps/%{name}.png
-rsync -avP %{_topdir}/BUILD/spec/Quake2_128.png %{buildroot}/usr/share/icons/hicolor/128x128/apps/%{name}.png
-rsync -avP %{_topdir}/BUILD/spec/Quake2_172.png %{buildroot}/usr/share/icons/hicolor/172x172/apps/%{name}.png
+rsync -avP Engine/Sources/Compatibility/SDL/res %{buildroot}%{_datadir}/%{name}/
+chmod -R go-rw %{buildroot}%{_datadir}/%{name}/res
+rsync -avP spec/gamecontrollerdb.txt %{buildroot}%{_datadir}/%{name}/gamecontrollerdb.txt
+rsync -avP spec/harbour-quake2.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
+rsync -avP spec/Quake2_86.png %{buildroot}/usr/share/icons/hicolor/86x86/apps/%{name}.png
+rsync -avP spec/Quake2_108.png %{buildroot}/usr/share/icons/hicolor/108x108/apps/%{name}.png
+rsync -avP spec/Quake2_128.png %{buildroot}/usr/share/icons/hicolor/128x128/apps/%{name}.png
+rsync -avP spec/Quake2_172.png %{buildroot}/usr/share/icons/hicolor/172x172/apps/%{name}.png
 rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{name}/lib/baseq2/
 # rsync -avP /usr/lib/libvorbis.so* %{buildroot}%{_datadir}/%{name}/lib/
 # rsync -avP /usr/lib/libogg.so* %{buildroot}%{_datadir}/%{name}/lib/
@@ -115,12 +137,16 @@ rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{
 %files
 %defattr(-,root,root,-)
 %attr(755,root,root) %{_bindir}/%{name}
-%{_datadir}/icons/hicolor/*
+%attr(655,root,root) %{_datadir}/icons/hicolor/86x86/apps/%{name}.png
+%attr(655,root,root) %{_datadir}/icons/hicolor/108x108/apps/%{name}.png
+%attr(655,root,root) %{_datadir}/icons/hicolor/128x128/apps/%{name}.png
+%attr(655,root,root) %{_datadir}/icons/hicolor/172x172/apps/%{name}.png
 %dir %{_datadir}/%{name}/lib/baseq2
 %attr(755,root,root) %{_datadir}/%{name}/lib/baseq2/*
 %dir %{_datadir}/%{name}/res
-%{_datadir}/%{name}/res/*
-%{_datadir}/applications/%{name}.desktop
+%attr(655,root,root) %{_datadir}/%{name}/res/*
+%attr(655,root,root) %{_datadir}/%{name}/gamecontrollerdb.txt
+%attr(655,root,root) %{_datadir}/applications/%{name}.desktop
 
 %changelog 
 * Wed Mar 30 2022 sashikknox <sashikknox@gmail.com>

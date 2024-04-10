@@ -5,3 +5,9 @@ Icon=harbour-quake2
 Exec=harbour-quake2
 Name=Quake 2
 Name[en]=Quake 2
+
+[X-Application]
+Permissions=UserDirs;RemovableMedia;Internet;Audio
+OrganizationName=ru.sashikknox
+ApplicationName=harbour-quake2
+

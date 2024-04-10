@@ -426,23 +426,6 @@ bool IN_processEvent(SDL_Event *event)
 #if defined(SAILFISHOS) && defined(SAILFISH_FBO)
     case SDL_DISPLAYEVENT:
         if( event->display.event == SDL_DISPLAYEVENT_ORIENTATION ) {
-            /*switch (event->display.data1) {
-                case SDL_ORIENTATION_LANDSCAPE:
-                    printf("SDL_DisplayOrientation is SDL_ORIENTATION_LANDSCAPE\n");
-                    break;
-                case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
-                    printf("SDL_DisplayOrientation is SDL_ORIENTATION_LANDSCAPE_FLIPPED\n");
-                    break;
-                case SDL_ORIENTATION_PORTRAIT:
-                    printf("SDL_DisplayOrientation is SDL_ORIENTATION_PORTRAIT\n");
-                    break;
-                case SDL_ORIENTATION_PORTRAIT_FLIPPED:
-                    printf("SDL_DisplayOrientation is SDL_ORIENTATION_PORTRAIT_FLIPPED\n");
-                    break;
-                case SDL_ORIENTATION_UNKNOWN:
-                    printf("SDL_DisplayOrientation is SDL_ORIENTATION_UNKNOWN\n");
-                    break;
-            }*/
 			// skip non landscape orinetations 
 			if( event->display.data1 == SDL_ORIENTATION_LANDSCAPE 
 			    || event->display.data1 == SDL_ORIENTATION_LANDSCAPE_FLIPPED ) 
@@ -647,7 +630,7 @@ bool IN_processEvent(SDL_Event *event)
 			14 - right
 
 			key axis
-			3 - up/triangle	
+			3 - up/triangle
 			0 - down/cross
 			2 - left/square
 			1 - right/circle
@@ -758,7 +741,56 @@ bool IN_processEvent(SDL_Event *event)
 		Key_Event(K_GAMEPAD_UP, up);
 	}
 	break;
-
+	case SDL_CONTROLLERDEVICEADDED:
+		Com_Printf("JoyEvent: SDL_CONTROLLERDEVICEADDED %i\n", event->cdevice.which);
+		// if (NULL == l_controller && SDL_IsGameController(event->cdevice.which)) {
+		// 	if (l_joystick) {
+		// 		SDL_JoystickClose(l_joystick);
+		// 		l_joystick = NULL;
+		// 	}
+			
+		// 	Com_Printf("JoyEvent: SDL_CONTROLLERADDED\n");
+		// 	l_controller = SDL_GameControllerOpen(event->cdevice.which);
+		// }
+		break;
+	case SDL_JOYDEVICEADDED:         /**< A new joystick has been inserted into the system */
+		Com_Printf("JoyEvent: Try handle %i joystick\n", event->jdevice.which);
+		if (l_controller) {
+			SDL_GameControllerClose(l_controller);
+			l_controller = NULL;
+		}
+		if (NULL == l_controller) {
+			if (l_joystick) {
+				SDL_JoystickClose(l_joystick);
+				l_joystick = NULL;
+			}
+			// Com_Printf("Could not open gamecontroller %i: %s\n", i, SDL_GetError());
+			if (SDL_IsGameController(event->jdevice.which)) {
+				l_controller = SDL_GameControllerOpen(event->jdevice.which);
+				Com_Printf("JoyEvent: SDL_CONTROLLERADDED %l\n", l_controller);
+			} else {
+				Com_Printf("JoyEvent: SDL_JOYDEVICEADDED\n");
+				l_joystick = SDL_JoystickOpen(event->jdevice.which);
+			}
+		}
+		break;
+	case SDL_JOYDEVICEREMOVED:
+		Com_Printf("JoyEvent: SDL_JOYDEVICEREMOVED\n");
+		if (l_joystick) {
+			SDL_JoystickClose(l_joystick);
+			l_joystick = NULL;
+		} else if (l_controller) {
+			SDL_GameControllerClose(l_controller);
+			l_controller = NULL;
+		}
+		break;
+	case SDL_CONTROLLERDEVICEREMOVED:
+		if (l_controller) {
+			Com_Printf("JoyEvent: SDL_CONTROLLERDEVICEREMOVED\n");
+			SDL_GameControllerClose(l_controller);
+			l_controller = NULL;
+		}
+		break;
 	case SDL_CONTROLLERAXISMOTION:
 		break;
 	case SDL_CONTROLLERBUTTONDOWN:
@@ -766,6 +798,8 @@ bool IN_processEvent(SDL_Event *event)
 	{
 		bool down = (event->type == SDL_CONTROLLERBUTTONDOWN);
 		int key;
+		char cmd[1024];
+		cmd[0] = '\0';
 		switch (event->cbutton.button)
 		{
 		default: key = -1; break;
@@ -778,15 +812,48 @@ bool IN_processEvent(SDL_Event *event)
 		case SDL_CONTROLLER_BUTTON_START: key = K_GAMEPAD_START; break;
 		//case SDL_CONTROLLER_BUTTON_LEFTSTICK: key = K_GAMEPAD_; break;
 		//case SDL_CONTROLLER_BUTTON_RIGHTSTICK: key = K_GAMEPAD_; break;
-		case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: key = K_GAMEPAD_L; break;
-		case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: key = K_GAMEPAD_R; break;
-		case SDL_CONTROLLER_BUTTON_DPAD_UP: key = K_GAMEPAD_UP; break;
-		case SDL_CONTROLLER_BUTTON_DPAD_DOWN: key = K_GAMEPAD_DOWN; break;
-		case SDL_CONTROLLER_BUTTON_DPAD_LEFT: key = K_GAMEPAD_LEFT; break;
-		case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: key = K_GAMEPAD_RIGHT; break;
+		case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: 
+			// key = K_GAMEPAD_L; 
+			if( vkb_GetClientState() == Client_In_Game && down )
+				Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "weapprev", K_LAST, Sys_Milliseconds());
+			break;
+		case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: 
+			// key = K_GAMEPAD_R; 
+			if( vkb_GetClientState() == Client_In_Game && down )
+				Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "weapnext", K_LAST, Sys_Milliseconds());
+			break;
+		case SDL_CONTROLLER_BUTTON_DPAD_UP: 
+			if( vkb_GetClientState() == Client_In_Game ) {
+				if( down )
+					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invdrop", K_LAST, Sys_Milliseconds());
+			} else
+				key = K_GAMEPAD_UP; 
+			break;
+		case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+			if( vkb_GetClientState() == Client_In_Game ) {
+				if( down )
+					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invuse", K_LAST, Sys_Milliseconds());
+			} else
+				key = K_GAMEPAD_DOWN; 
+			break;
+		case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+			if( vkb_GetClientState() == Client_In_Game ) {
+				if( down )
+					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invprev", K_LAST, Sys_Milliseconds());
+			} else
+				 key = K_GAMEPAD_LEFT; 
+			break;
+		case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: if( vkb_GetClientState() == Client_In_Game ) {
+				if( down )
+					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invnext", K_LAST, Sys_Milliseconds());
+			} else
+				 key = K_GAMEPAD_RIGHT; 
+			break;
 		}
 		if (key >= 0)
 			Key_Event(key, down);
+		else if( cmd[0] != '\0' )
+			vkb_AddCommand(cmd);
 	}
 	break;
 	}
@@ -1048,6 +1115,7 @@ void IN_Init()
 					}
 					else
 					{
+						printf("Its not an gamecontroller!\n");
 						if (!l_joystick)
 						{
 							l_joystick = SDL_JoystickOpen(i);
