@@ -123,9 +123,13 @@ void sdlwFinalize() {
 
 bool sdlwCreateWindow(const char *windowName, int windowWidth, int windowHeight, Uint32 flags)
 {
-	SdlwContext *sdlw = sdlwContext;
-	if (sdlw == NULL) return true;
-
+    SdlwContext *sdlw = sdlwContext;
+    if (sdlw == NULL) 
+        return true;
+    #ifdef SAILFISHOS
+        int r = SDL_GameControllerAddMappingsFromFile("/usr/share/harbour-quake2/gamecontrollerdb.txt");
+        printf("Load gamecontrollerdb : %i\n", r);
+    #endif
     sdlwDestroyWindow();
 #ifdef SAILFISHOS
     windowWidth = -1;
