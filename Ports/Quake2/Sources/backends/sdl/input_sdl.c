@@ -497,7 +497,9 @@ bool IN_processEvent(SDL_Event *event)
 			//int touch_count = 0;
 			transformTouch(&event->tfinger.x, &event->tfinger.y);
 			for(int i = 0; i < MAX_FINGER; i++) {
-				if( fingers[i].finger_id == 0 ){
+				if (fingers[i].finger_id == event->tfinger.fingerId && fingers[i].touch_id == event->tfinger.touchId) 
+					fingers[i].finger_id = 0;
+				if (fingers[i].finger_id == 0 ) {
 					fingers[i].press_x = event->tfinger.x;
 					fingers[i].press_y = event->tfinger.y;
 					fingers[i].x = event->tfinger.x;

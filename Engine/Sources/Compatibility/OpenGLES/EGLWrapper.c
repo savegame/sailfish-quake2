@@ -388,6 +388,9 @@ bool eglwInitialize(EglwConfigInfo *minimalCfgi, EglwConfigInfo *requestedCfgi, 
     {
         static const EGLint SURFACE_ATTRIBUTES[] = { EGL_NONE };
 		EGLNativeWindowType nativeWindow = eglwGetNativeWindow();   
+        if (!nativeWindow) {
+            printf("Cannot get nativeWindowe.\n");
+        }
 		eglw->surface = eglCreateWindowSurface(eglw->display, eglw->config, nativeWindow, SURFACE_ATTRIBUTES);
 		if (eglw->surface==NULL) {
 			printf("Cannot create a window surface.\n");
