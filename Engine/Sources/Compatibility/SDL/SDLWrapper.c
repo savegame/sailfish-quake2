@@ -127,7 +127,7 @@ bool sdlwCreateWindow(const char *windowName, int windowWidth, int windowHeight,
     if (sdlw == NULL) 
         return true;
     #ifdef SAILFISHOS
-        int r = SDL_GameControllerAddMappingsFromFile("/usr/share/harbour-quake2/gamecontrollerdb.txt");
+        int r = SDL_GameControllerAddMappingsFromFile("/usr/share/ru.sashikknox.quake2/gamecontrollerdb.txt");
         printf("Load gamecontrollerdb : %i\n", r);
     #endif
     sdlwDestroyWindow();

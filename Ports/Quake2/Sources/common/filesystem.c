@@ -1025,10 +1025,9 @@ static void FS_AddGameDirectories(const char * dir)
 	struct passwd *pw = getpwuid(getuid());
 	const char *homedir = pw->pw_dir;
 	
-	FS_AddGameDirectory(va("%s/%s", "/usr/share/harbour-quake2/lib/", dir)); // here we are put baseq2/game.so
+	FS_AddGameDirectory(va("%s/%s", "/usr/share/ru.sashikknox.quake2/lib/", dir)); // here we are put baseq2/game.so
 	FS_AddGameDirectory(va("%s/%s", va(homedir,"Documents/Quake2/"), dir)); // AuroraOS 
-	// FS_AddGameDirectory(va("%s/%s", va(homedir,".local/share/harbour-quake2/"), dir)); // home share data 
-	FS_AddGameDirectory(va("%s/%s", va(homedir,".local/share/ru.sashikknox/harbour-quake2/"), dir)); // home share data 
+	FS_AddGameDirectory(va("%s/%s", va(homedir,".local/share/ru.sashikknox/quake2/"), dir)); // home share data 
 	#endif
 }
 

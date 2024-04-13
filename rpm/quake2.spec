@@ -1,31 +1,27 @@
 %global build_subfolder Debug
-# %define _arch armv7hl
+%global dbus_include /usr/lib64/dbus-1.0/include
 %ifarch armv7hl 
     %global build_folder Ports/Quake2/Output/Targets/SailfishOS-32
+    %global dbus_include /usr/lib/dbus-1.0/include
 %else 
     %ifarch aarch64
         %global build_folder Ports/Quake2/Output/Targets/SailfishOS-64
+        %global dbus_include /usr/lib64/dbus-1.0/include
     %else
         %global build_folder Ports/Quake2/Output/Targets/SailfishOS-32-x86
+        %global dbus_include /usr/lib/dbus-1.0/include
     %endif
 %endif
 
-Name:       harbour-quake2
+Name:       ru.sashikknox.quake2
 Summary:    Quake 2 
 Release:    3
 Version:    1.3
 Group:      Amusements/Games
 License:    GPLv2
-BuildArch:  %{_arch}
+# BuildArch:  %{_arch}
 URL:        https://github.com/savegame/sailfish-quake2
 Source0:    %{name}.tar.gz
-# Requires:   SDL2
-# Requires:   libGLESv2
-# Requires:   dbus
-# Requires:   libogg libvorbis
-# Requires:   zlib
-# Requires:   glib2
-# Requires:   libaudioresource
 BuildRequires: pkgconfig(openal)
 BuildRequires: cmake
 BuildRequires: dbus-devel
@@ -40,7 +36,6 @@ BuildRequires: pkgconfig(glesv2)
 BuildRequires: pkgconfig(xkbcommon)
 BuildRequires: pkgconfig(gbm)
 BuildRequires: pkgconfig(libpulse)
-#BuildRequires: pulseaudio-devel
 BuildRequires: rsync
 #BuildRequires: libusb-devel
 BuildRequires: libogg-devel 
@@ -53,7 +48,7 @@ enemies from the perspective of the main character.
 
 %prep
 echo "arch is %{_arch}"
-%setup -q -n harbour-quake2-%{version}
+%setup -q -n %{name}-%{version}
 echo "Configure SDL2"
 cd SDL2
 cmake -Bbuild \
@@ -71,8 +66,8 @@ cd ../libogg
 %build
 pushd SDL2/build
 make -j`nproc` \
-    CFLAGS=-I/usr/lib64/dbus-1.0/include \
-    CXXFLAGS=-I/usr/lib64/dbus-1.0/include \
+    CFLAGS=-I%{dbus_include} \
+    CXXFLAGS=-I%{dbus_include} \
     LDFLAGS="-lwayland-client"
 popd 
 
@@ -86,8 +81,8 @@ make -j`nproc` \
     sailfish_arch=%{_arch}\
     sailfish_fbo=yes\
     vorbis\
-    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
-    CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I%{dbus_include}\
+    CXXFLAGS=-I%{dbus_include} 
 popd
 
 pushd Ports/Quake2/Premake/Build-SailfishOS/gmake
@@ -96,8 +91,8 @@ make -j`nproc` \
     sailfish_arch=%{_arch}\
     sailfish_fbo=yes\
     quake2-game\
-    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
-    CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I%{dbus_include}\
+    CXXFLAGS=-I%{dbus_include}
 popd
 
 mkdir -p %{build_folder}/%{build_subfolder}/lib/
@@ -109,8 +104,8 @@ make -j`nproc` \
     sailfish_arch=%{_arch}\
     sailfish_fbo=yes\
     quake2-gles2\
-    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I/usr/lib64/dbus-1.0/include\
-    CXXFLAGS=-I/usr/lib64/dbus-1.0/include 
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I%{dbus_include}\
+    CXXFLAGS=-I%{dbus_include}
 popd
 
 strip %{build_folder}/%{build_subfolder}/bin/quake2-gles2
