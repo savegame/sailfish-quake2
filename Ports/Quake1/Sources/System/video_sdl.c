@@ -35,7 +35,7 @@ void VID_SetPalette(unsigned char *palette)
 void VID_Init(unsigned char *palette)
 {
   	extern bool IN_processEvent(SDL_Event *event);
-	if (sdlwInitialize(IN_processEvent, SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK))
+	if (sdlwInitialize(IN_processEvent, SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER))
 		goto on_error;
 	sdlwEnableDefaultEventManagement(false);
 

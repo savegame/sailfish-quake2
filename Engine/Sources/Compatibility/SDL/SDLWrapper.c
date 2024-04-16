@@ -12,7 +12,7 @@ SdlwContext *sdlwContext = NULL;
 #include <SDL_syswm.h>
 #include <wayland-client-protocol.h>
 #endif
-//SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK
+//SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER
 
 static void sdlwLogOutputFunction(void *userdata, int category, SDL_LogPriority priority, const char *message)
 {

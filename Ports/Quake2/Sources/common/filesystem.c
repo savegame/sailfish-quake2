@@ -998,6 +998,16 @@ static void FS_AddGameDirectories(const char * dir)
 	Com_sprintf(fs_gamedir, sizeof(fs_gamedir), "%s/%s", fs_basedir->string, dir);
 	printf("Game path: %s\n", fs_basedir->string);
 
+#ifdef SAILFISHOS
+	{
+		Com_Printf("Add AuroraOS specific paths\n");
+		char *userhome = getenv("HOME");
+		FS_AddGameDirectory(va("/usr/share/ru.sashikknox.quake2/lib/%s", dir)); // here we are put baseq2/game.so
+		FS_AddGameDirectory(va("%s/Documents/Quake2/%s", userhome, dir)); // AuroraOS 
+		FS_AddGameDirectory(va("%s/.local/share/ru.sashikknox/quake2/%s", userhome, dir)); // home share data 
+	}
+#endif
+
 	{
 		char *home = Sys_GetHomeDir();
 		printf("Home path: %s\n", home);
@@ -1019,15 +1029,6 @@ static void FS_AddGameDirectories(const char * dir)
 	#if defined(__GCW_ZERO__)
 	FS_AddGameDirectory(va("%s/%s", "/media/data/Quake2", dir)); // Internal SD card.
 //	FS_AddGameDirectory(va("%s/%s", "../../Quake2", dir)); // External SD card when using an OPK from the /apps directory.
-	#endif
-	#ifdef SAILFISHOS
-	printf("Add SailfihsOS specific paths\n");
-	struct passwd *pw = getpwuid(getuid());
-	const char *homedir = pw->pw_dir;
-	
-	FS_AddGameDirectory(va("%s/%s", "/usr/share/ru.sashikknox.quake2/lib/", dir)); // here we are put baseq2/game.so
-	FS_AddGameDirectory(va("%s/%s", va(homedir,"Documents/Quake2/"), dir)); // AuroraOS 
-	FS_AddGameDirectory(va("%s/%s", va(homedir,".local/share/ru.sashikknox/quake2/"), dir)); // home share data 
 	#endif
 }
 

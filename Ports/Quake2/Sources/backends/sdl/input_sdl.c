@@ -587,6 +587,8 @@ bool IN_processEvent(SDL_Event *event)
 
 	case SDL_JOYAXISMOTION:
 	{
+		if (l_controller)
+			break;
 		float avalue = event->jaxis.value / 32767.0f;
 		/* axis 
 			4 - left sholder
@@ -625,6 +627,12 @@ bool IN_processEvent(SDL_Event *event)
 	case SDL_JOYBUTTONDOWN:
 	case SDL_JOYBUTTONUP:
 	{
+		if (l_controller)
+			break;
+
+		Com_Printf("JoyEvent: SDL_JOYBUTTO %s: %i\n", 
+			(event->type == SDL_JOYBUTTONDOWN ? "DOWN" : "UP"),
+			event->jbutton.button);
 		/*
 			11 - up
 			12 - down
@@ -654,7 +662,7 @@ bool IN_processEvent(SDL_Event *event)
 		cmd[0] = '\0';
 
 		switch( event->jbutton.button ) {
-			case 11: // UP
+			case SDL_CONTROLLER_BUTTON_DPAD_UP:
 				if( vkb_GetClientState() == Client_In_Game ) {
 					if( down )
 						Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invdrop", K_LAST, Sys_Milliseconds());
@@ -682,7 +690,7 @@ bool IN_processEvent(SDL_Event *event)
 				} else 
 					key = K_GAMEPAD_RIGHT;
 				break;
-			case 6: {// start
+			case SDL_CONTROLLER_BUTTON_START: {// start
 				key = K_GAMEPAD_SELECT;
 				// if( down )
 					// Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invnext", K_LAST, Sys_Milliseconds());
@@ -694,7 +702,7 @@ bool IN_processEvent(SDL_Event *event)
 					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "cmd help", K_LAST, Sys_Milliseconds());
 				break;
 			}
-			case 0: { // cross
+			case SDL_CONTROLLER_BUTTON_A: { // cross
 				if( vkb_GetClientState() == Client_In_Game ) {
 					if( down ) {
 						Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "moveup", K_LAST, Sys_Milliseconds());
@@ -704,8 +712,8 @@ bool IN_processEvent(SDL_Event *event)
 				}
 				break;
 			}
-			case 2: // square
-			case 8: { // right stick press
+			case SDL_CONTROLLER_BUTTON_X: // square
+			case SDL_CONTROLLER_BUTTON_RIGHTSTICK: {
 				if( down ) {
 					Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "movedown", K_LAST, Sys_Milliseconds());
 				} else {
@@ -732,6 +740,8 @@ bool IN_processEvent(SDL_Event *event)
 	break;
 	case SDL_JOYHATMOTION:
 	{
+		if (l_controller)
+			break;
 		int v = event->jhat.value;
 		bool left = (v == SDL_HAT_LEFTDOWN || v == SDL_HAT_LEFT || v == SDL_HAT_LEFTUP);
 		bool right = (v == SDL_HAT_RIGHTDOWN || v == SDL_HAT_RIGHT || v == SDL_HAT_RIGHTUP);
@@ -744,35 +754,28 @@ bool IN_processEvent(SDL_Event *event)
 	}
 	break;
 	case SDL_CONTROLLERDEVICEADDED:
-		Com_Printf("JoyEvent: SDL_CONTROLLERDEVICEADDED %i\n", event->cdevice.which);
-		// if (NULL == l_controller && SDL_IsGameController(event->cdevice.which)) {
-		// 	if (l_joystick) {
-		// 		SDL_JoystickClose(l_joystick);
-		// 		l_joystick = NULL;
-		// 	}
-			
-		// 	Com_Printf("JoyEvent: SDL_CONTROLLERADDED\n");
-		// 	l_controller = SDL_GameControllerOpen(event->cdevice.which);
-		// }
+		Com_Printf("JoyEvent: SDL_CONTROLLERDEVICEADDED %i \n", event->cdevice.which);
 		break;
 	case SDL_JOYDEVICEADDED:         /**< A new joystick has been inserted into the system */
 		Com_Printf("JoyEvent: Try handle %i joystick\n", event->jdevice.which);
 		if (l_controller) {
+			Com_Printf("JoyEvent: Close controller: %d \n", l_controller);
 			SDL_GameControllerClose(l_controller);
 			l_controller = NULL;
 		}
 		if (NULL == l_controller) {
 			if (l_joystick) {
+				Com_Printf("JoyEvent: Close Joystick: %d\n", l_joystick);
 				SDL_JoystickClose(l_joystick);
 				l_joystick = NULL;
 			}
 			// Com_Printf("Could not open gamecontroller %i: %s\n", i, SDL_GetError());
 			if (SDL_IsGameController(event->jdevice.which)) {
 				l_controller = SDL_GameControllerOpen(event->jdevice.which);
-				Com_Printf("JoyEvent: SDL_CONTROLLERADDED %l\n", l_controller);
+				Com_Printf("JoyEvent: SDL_CONTROLLERADDED %d\n", l_controller);
 			} else {
-				Com_Printf("JoyEvent: SDL_JOYDEVICEADDED\n");
 				l_joystick = SDL_JoystickOpen(event->jdevice.which);
+				Com_Printf("JoyEvent: SDL_JOYDEVICEADDED %d\n", l_joystick);
 			}
 		}
 		break;
@@ -793,63 +796,133 @@ bool IN_processEvent(SDL_Event *event)
 			l_controller = NULL;
 		}
 		break;
-	case SDL_CONTROLLERAXISMOTION:
+	case SDL_CONTROLLERAXISMOTION: {
+		int key;
+		char cmd[1024];
+		float avalue = event->caxis.value / 32767.0f;
+		bool down = avalue >= 0.25;
+		cmd[0] = '\0';
+
+		switch(event->caxis.axis) {
+		case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+			if( joy_shoulder_to_mouse_button[0] == down )
+				break;
+			joy_shoulder_to_mouse_button[0] = down;
+			key = K_MOUSE1;
+			Key_Event(key, down);
+			break;
+		case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+			if( joy_shoulder_to_mouse_button[1] == down )
+					break;
+			joy_shoulder_to_mouse_button[1] = down;
+			key = K_MOUSE2;
+			Key_Event(key, down);
+			// if( down ) {
+			// 	Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "speed", K_LAST, Sys_Milliseconds());
+			// } else {
+			// 	Com_sprintf (cmd, sizeof(cmd), "-%s %i %i\n", "speed", K_LAST, Sys_Milliseconds());
+			// }
+			// vkb_AddCommand(cmd);
+			break;
+		}
+		// Com_Printf("SDL_CONTROLLERAXISMOTION: %i %s\n", event->caxis.axis, (down ? "DOWN" : "UP"));
 		break;
+	}
 	case SDL_CONTROLLERBUTTONDOWN:
 	case SDL_CONTROLLERBUTTONUP:
 	{
 		bool down = (event->type == SDL_CONTROLLERBUTTONDOWN);
-		int key;
+		int key = -1;
 		char cmd[1024];
 		cmd[0] = '\0';
 		switch (event->cbutton.button)
 		{
-		default: key = -1; break;
-		case SDL_CONTROLLER_BUTTON_A: key = K_GAMEPAD_A; break;
-		case SDL_CONTROLLER_BUTTON_B: key = K_GAMEPAD_B; break;
-		case SDL_CONTROLLER_BUTTON_X: key = K_GAMEPAD_X; break;
-		case SDL_CONTROLLER_BUTTON_Y: key = K_GAMEPAD_Y; break;
-		//case SDL_CONTROLLER_BUTTON_BACK: key = K_GAMEPAD_; break;
-		case SDL_CONTROLLER_BUTTON_GUIDE: key = K_GAMEPAD_SELECT; break;
-		case SDL_CONTROLLER_BUTTON_START: key = K_GAMEPAD_START; break;
-		//case SDL_CONTROLLER_BUTTON_LEFTSTICK: key = K_GAMEPAD_; break;
-		//case SDL_CONTROLLER_BUTTON_RIGHTSTICK: key = K_GAMEPAD_; break;
-		case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: 
-			// key = K_GAMEPAD_L; 
-			if( vkb_GetClientState() == Client_In_Game && down )
-				Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "weapprev", K_LAST, Sys_Milliseconds());
+		case SDL_CONTROLLER_BUTTON_A:
+			// if( vkb_GetClientState() == Client_In_Game ) {
+			// 	if( down ) {
+			// 		Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "moveup", K_LAST, Sys_Milliseconds());
+			// 	} else {
+			// 		Com_sprintf (cmd, sizeof(cmd), "-%s %i %i\n", "moveup", K_LAST, Sys_Milliseconds());
+			// 	}
+			// } else
+				key = K_GAMEPAD_A; 
+		break;
+		case SDL_CONTROLLER_BUTTON_B: 
+			key = K_GAMEPAD_B; 
 			break;
-		case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: 
-			// key = K_GAMEPAD_R; 
-			if( vkb_GetClientState() == Client_In_Game && down )
-				Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "weapnext", K_LAST, Sys_Milliseconds());
+		case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+		case SDL_CONTROLLER_BUTTON_X: 
+			// if( vkb_GetClientState() == Client_In_Game ) {
+			// 	if( down ) {
+			// 		Com_sprintf (cmd, sizeof(cmd), "+%s %i %i\n", "movedown", K_LAST, Sys_Milliseconds());
+			// 	} else {
+			// 		Com_sprintf (cmd, sizeof(cmd), "-%s %i %i\n", "movedown", K_LAST, Sys_Milliseconds());
+			// 	}
+			// } else
+				key = K_GAMEPAD_X;
 			break;
-		case SDL_CONTROLLER_BUTTON_DPAD_UP: 
+		case SDL_CONTROLLER_BUTTON_Y: 
+			key = K_GAMEPAD_Y; 
+			break;
+		case SDL_CONTROLLER_BUTTON_LEFTSTICK: 
+			key = K_JOY1; 
+			break;
+		case SDL_CONTROLLER_BUTTON_BACK:
+		case SDL_CONTROLLER_BUTTON_GUIDE: 
 			if( vkb_GetClientState() == Client_In_Game ) {
 				if( down )
-					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invdrop", K_LAST, Sys_Milliseconds());
-			} else
+					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "cmd help", K_LAST, Sys_Milliseconds());
+			} else {
+				key = K_GAMEPAD_SELECT;
+			}
+		break;
+		case SDL_CONTROLLER_BUTTON_START: 
+			// key = K_GAMEPAD_START; 
+			key = K_ESCAPE;
+		break;
+		//case SDL_CONTROLLER_BUTTON_LEFTSTICK: key = K_GAMEPAD_; break;
+		case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: 
+			key = K_GAMEPAD_L; 
+			// if( vkb_GetClientState() == Client_In_Game && down )
+			// 	Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "weapprev", K_LAST, Sys_Milliseconds());
+			break;
+		case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: 
+			key = K_GAMEPAD_R; 
+			// if( vkb_GetClientState() == Client_In_Game && down )
+			// 	Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "weapnext", K_LAST, Sys_Milliseconds());
+			break;
+		case SDL_CONTROLLER_BUTTON_DPAD_UP: 
+			// if( vkb_GetClientState() == Client_In_Game ) {
+			// 	if( down )
+			// 		Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invdrop", K_LAST, Sys_Milliseconds());
+			// } else
 				key = K_GAMEPAD_UP; 
 			break;
 		case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-			if( vkb_GetClientState() == Client_In_Game ) {
-				if( down )
-					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invuse", K_LAST, Sys_Milliseconds());
-			} else
+			// if( vkb_GetClientState() == Client_In_Game ) {
+			// 	if( down )
+			// 		Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invuse", K_LAST, Sys_Milliseconds());
+			// } else
 				key = K_GAMEPAD_DOWN; 
 			break;
 		case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-			if( vkb_GetClientState() == Client_In_Game ) {
-				if( down )
-					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invprev", K_LAST, Sys_Milliseconds());
-			} else
+			// if( vkb_GetClientState() == Client_In_Game ) {
+			// 	if( down )
+			// 		Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invprev", K_LAST, Sys_Milliseconds());
+			// } else
 				 key = K_GAMEPAD_LEFT; 
 			break;
-		case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: if( vkb_GetClientState() == Client_In_Game ) {
-				if( down )
-					Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invnext", K_LAST, Sys_Milliseconds());
-			} else
+		case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: 
+			// if( vkb_GetClientState() == Client_In_Game ) {
+			// 	if( down )
+			// 		Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", "invnext", K_LAST, Sys_Milliseconds());
+			// } else
 				 key = K_GAMEPAD_RIGHT; 
+			break;
+		default: 
+			Com_Printf("JoyEvent: SDL_CONTROLLERBUTTON %s: %i\n", 
+				(event->type == SDL_CONTROLLERBUTTONDOWN ? "DOWN" : "UP"),
+				event->cbutton.button);
 			break;
 		}
 		if (key >= 0)
@@ -1007,9 +1080,8 @@ void IN_Move(usercmd_t *cmd)
 				joyY = cos(angle) * vec_len;
 				// joyXFloat = ComputeStickValue(joyX);
 				// joyYFloat = ComputeStickValue(joyY);
-
 				cmd->sidemove    += cl_speed_side->value    *  joyX * running;
-        		cmd->forwardmove += cl_speed_forward->value * -joyY * running;
+				cmd->forwardmove += cl_speed_forward->value * -joyY * running;
 				break;
 			}
 		}
@@ -1091,9 +1163,9 @@ void IN_Init()
 
 	SDL_StartTextInput();
 
-	if (!SDL_WasInit(SDL_INIT_JOYSTICK))
+	if (!SDL_WasInit(SDL_INIT_JOYSTICK) || !SDL_WasInit(SDL_INIT_GAMECONTROLLER))
 	{
-		if (SDL_Init(SDL_INIT_JOYSTICK) == -1)
+		if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) == -1)
 		{
 			R_printf(PRINT_ALL, "Couldn't init SDL l_joystick: %s.\n", SDL_GetError());
 		}
@@ -1149,6 +1221,16 @@ void IN_Shutdown()
 			l_joystick = NULL;
 		}
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+	}
+
+	if (SDL_WasInit(SDL_INIT_GAMECONTROLLER))
+	{
+		if (SDL_GameControllerGetAttached(l_controller))
+		{
+			SDL_GameControllerClose(l_controller);
+			l_controller = NULL;
+		}
+		SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 	}
 
 	Com_Printf("Shutting down input.\n");

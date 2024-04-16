@@ -93,6 +93,30 @@ make -j`nproc` \
     quake2-game\
     CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I%{dbus_include}\
     CXXFLAGS=-I%{dbus_include}
+
+make -j`nproc` \
+    config=release\
+    sailfish_arch=%{_arch}\
+    sailfish_fbo=yes\
+    quake2-ctf\
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I%{dbus_include}\
+    CXXFLAGS=-I%{dbus_include}
+
+make -j`nproc` \
+    config=release\
+    sailfish_arch=%{_arch}\
+    sailfish_fbo=yes\
+    quake2-rogue\
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I%{dbus_include}\
+    CXXFLAGS=-I%{dbus_include}
+
+make -j`nproc` \
+    config=release\
+    sailfish_arch=%{_arch}\
+    sailfish_fbo=yes\
+    quake2-xatrix\
+    CFLAGS=-DRESC='\"%{_datadir}/%{name}/res/\"'\ -I%{dbus_include}\
+    CXXFLAGS=-I%{dbus_include}
 popd
 
 mkdir -p %{build_folder}/%{build_subfolder}/lib/
@@ -126,6 +150,9 @@ rsync -avP spec/Quake2_108.png %{buildroot}/usr/share/icons/hicolor/108x108/apps
 rsync -avP spec/Quake2_128.png %{buildroot}/usr/share/icons/hicolor/128x128/apps/%{name}.png
 rsync -avP spec/Quake2_172.png %{buildroot}/usr/share/icons/hicolor/172x172/apps/%{name}.png
 rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{name}/lib/baseq2/
+rsync -avP %{build_folder}/Release/bin/ctf/game.so %{buildroot}%{_datadir}/%{name}/lib/ctf/
+rsync -avP %{build_folder}/Release/bin/rogue/game.so %{buildroot}%{_datadir}/%{name}/lib/rogue/
+rsync -avP %{build_folder}/Release/bin/xatrix/game.so %{buildroot}%{_datadir}/%{name}/lib/xatrix/
 # rsync -avP /usr/lib/libvorbis.so* %{buildroot}%{_datadir}/%{name}/lib/
 # rsync -avP /usr/lib/libogg.so* %{buildroot}%{_datadir}/%{name}/lib/
 
@@ -138,6 +165,9 @@ rsync -avP %{build_folder}/Release/bin/baseq2/game.so %{buildroot}%{_datadir}/%{
 %attr(655,root,root) %{_datadir}/icons/hicolor/172x172/apps/%{name}.png
 %dir %{_datadir}/%{name}/lib/baseq2
 %attr(755,root,root) %{_datadir}/%{name}/lib/baseq2/*
+%attr(755,root,root) %{_datadir}/%{name}/lib/rogue/*
+%attr(755,root,root) %{_datadir}/%{name}/lib/ctf/*
+%attr(755,root,root) %{_datadir}/%{name}/lib/xatrix/*
 %dir %{_datadir}/%{name}/res
 %attr(655,root,root) %{_datadir}/%{name}/res/*
 %attr(655,root,root) %{_datadir}/%{name}/gamecontrollerdb.txt
