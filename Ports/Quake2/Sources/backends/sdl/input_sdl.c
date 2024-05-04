@@ -630,7 +630,7 @@ bool IN_processEvent(SDL_Event *event)
 		if (l_controller)
 			break;
 
-		Com_Printf("JoyEvent: SDL_JOYBUTTO %s: %i\n", 
+		Com_Printf("JoyEvent: SDL_JOYBUTTON %s: %i\n", 
 			(event->type == SDL_JOYBUTTONDOWN ? "DOWN" : "UP"),
 			event->jbutton.button);
 		/*
@@ -758,11 +758,6 @@ bool IN_processEvent(SDL_Event *event)
 		break;
 	case SDL_JOYDEVICEADDED:         /**< A new joystick has been inserted into the system */
 		Com_Printf("JoyEvent: Try handle %i joystick\n", event->jdevice.which);
-		if (l_controller) {
-			Com_Printf("JoyEvent: Close controller: %d \n", l_controller);
-			SDL_GameControllerClose(l_controller);
-			l_controller = NULL;
-		}
 		if (NULL == l_controller) {
 			if (l_joystick) {
 				Com_Printf("JoyEvent: Close Joystick: %d\n", l_joystick);
@@ -771,11 +766,16 @@ bool IN_processEvent(SDL_Event *event)
 			}
 			// Com_Printf("Could not open gamecontroller %i: %s\n", i, SDL_GetError());
 			if (SDL_IsGameController(event->jdevice.which)) {
+				if (l_controller != SDL_GameControllerFromInstanceID(event->jdevice.which)) {
+					Com_Printf("JoyEvent: Close controller: %s \n", SDL_GameControllerName(l_controller));
+					SDL_GameControllerClose(l_controller);
+					l_controller = NULL;
+				}
 				l_controller = SDL_GameControllerOpen(event->jdevice.which);
-				Com_Printf("JoyEvent: SDL_CONTROLLERADDED %d\n", l_controller);
+				Com_Printf("JoyEvent: SDL_CONTROLLERADDED %s\n", SDL_GameControllerName(l_controller));
 			} else {
 				l_joystick = SDL_JoystickOpen(event->jdevice.which);
-				Com_Printf("JoyEvent: SDL_JOYDEVICEADDED %d\n", l_joystick);
+				Com_Printf("JoyEvent: SDL_JOYDEVICEADDED %i : %d\n", event->jdevice.which, l_joystick);
 			}
 		}
 		break;
@@ -1185,11 +1185,15 @@ void IN_Init()
 							{
 								R_printf(PRINT_ALL, "Could not open gamecontroller %i: %s\n", i, SDL_GetError());
 							}
+							else
+							{
+								R_printf(PRINT_ALL, "Open gamecontroller %i: %s\n", i, SDL_GameControllerName(l_controller));
+							}
 						}
 					}
 					else
 					{
-						printf("Its not an gamecontroller!\n");
+						printf("Its not an gamecontroller %i\n", i);
 						if (!l_joystick)
 						{
 							l_joystick = SDL_JoystickOpen(i);

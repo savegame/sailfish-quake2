@@ -24,7 +24,7 @@ URL:        https://github.com/savegame/sailfish-quake2
 Source0:    %{name}.tar.gz
 BuildRequires: pkgconfig(openal)
 BuildRequires: cmake
-BuildRequires: dbus-devel
+BuildRequires: pkgconfig(dbus-1)
 BuildRequires: pkgconfig(mce)
 BuildRequires: pkgconfig(wayland-egl)
 BuildRequires: pkgconfig(wayland-client)
